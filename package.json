@@ -1,20 +1,20 @@
 {
   "name": "notification-kit",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A unified notification library for React + Capacitor apps. One API for push notifications, in-app notifications, and local notifications across Web, iOS, and Android.",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.esm.js",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.js"
     },
     "./react": {
+      "types": "./dist/react.d.ts",
       "import": "./dist/react.esm.js",
-      "require": "./dist/react.js",
-      "types": "./dist/react.d.ts"
+      "require": "./dist/react.js"
     }
   },
   "files": [
@@ -95,6 +95,9 @@
   },
   "devDependencies": {
     "@capacitor/core": "^7.0.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/react-hooks": "^8.0.1",
     "@types/node": "^22.10.1",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.6",
@@ -108,12 +111,14 @@
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",
+    "globals": "^16.3.0",
     "husky": "^9.1.7",
     "jsdom": "^25.0.1",
     "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "terser": "^5.43.1",
     "typescript": "^5.8.3",
     "vite": "^7.0.4",
     "vite-plugin-dts": "^4.3.0",

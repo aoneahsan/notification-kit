@@ -1,12 +1,12 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app'
-import { 
-  getMessaging, 
-  getToken, 
-  onMessage, 
+import {
+  getMessaging,
+  getToken,
+  onMessage,
   deleteToken,
   type Messaging,
   type MessagePayload,
-  isSupported
+  isSupported,
 } from 'firebase/messaging'
 import { Capacitor } from '@capacitor/core'
 import type {
@@ -14,7 +14,7 @@ import type {
   FirebaseConfig,
   PushNotificationPayload,
   PermissionStatus,
-  ProviderCapabilities
+  ProviderCapabilities,
 } from '@/types'
 
 /**
@@ -39,21 +39,21 @@ export class FirebaseProvider implements NotificationProvider {
   async init(config: FirebaseConfig): Promise<void> {
     try {
       this.config = config
-      
+
       // Initialize Firebase app
-      const firebaseConfig: any = {
+      const firebaseConfig: Record<string, string> = {
         apiKey: config.apiKey,
         authDomain: config.authDomain,
         projectId: config.projectId,
         storageBucket: config.storageBucket,
         messagingSenderId: config.messagingSenderId,
-        appId: config.appId
+        appId: config.appId,
       }
-      
+
       if (config.measurementId) {
         firebaseConfig.measurementId = config.measurementId
       }
-      
+
       this.app = initializeApp(firebaseConfig)
 
       // Initialize messaging if supported
@@ -134,10 +134,15 @@ export class FirebaseProvider implements NotificationProvider {
     }
 
     try {
-      const token = await getToken(this.messaging, this.config?.vapidKey ? {
-        vapidKey: this.config.vapidKey
-      } : undefined)
-      
+      const token = await getToken(
+        this.messaging,
+        this.config?.vapidKey
+          ? {
+              vapidKey: this.config.vapidKey,
+            }
+          : undefined
+      )
+
       if (token) {
         this.currentToken = token
         return token
@@ -199,14 +204,9 @@ export class FirebaseProvider implements NotificationProvider {
       throw new Error('No FCM token available')
     }
 
-    try {
-      // Topic subscription is typically handled server-side
-      // This is a placeholder for the API call
-      await this.callTopicAPI('subscribe', topic, this.currentToken)
-    } catch (error) {
-      this.handleError(new Error(`Topic subscription failed: ${error}`))
-      throw error
-    }
+    // Topic subscription is typically handled server-side
+    // This is a placeholder for the API call
+    await this.callTopicAPI('subscribe', topic, this.currentToken)
   }
 
   /**
@@ -217,14 +217,9 @@ export class FirebaseProvider implements NotificationProvider {
       throw new Error('No FCM token available')
     }
 
-    try {
-      // Topic unsubscription is typically handled server-side
-      // This is a placeholder for the API call
-      await this.callTopicAPI('unsubscribe', topic, this.currentToken)
-    } catch (error) {
-      this.handleError(new Error(`Topic unsubscription failed: ${error}`))
-      throw error
-    }
+    // Topic unsubscription is typically handled server-side
+    // This is a placeholder for the API call
+    await this.callTopicAPI('unsubscribe', topic, this.currentToken)
   }
 
   /**
@@ -235,14 +230,9 @@ export class FirebaseProvider implements NotificationProvider {
       throw new Error('No FCM token available')
     }
 
-    try {
-      // This would typically be handled server-side
-      // Return empty array as placeholder
-      return []
-    } catch (error) {
-      this.handleError(new Error(`Get subscriptions failed: ${error}`))
-      throw error
-    }
+    // This would typically be handled server-side
+    // Return empty array as placeholder
+    return []
   }
 
   /**
@@ -311,7 +301,7 @@ export class FirebaseProvider implements NotificationProvider {
       } else {
         return await isSupported()
       }
-    } catch (error) {
+    } catch (_error) {
       return false
     }
   }
@@ -321,7 +311,7 @@ export class FirebaseProvider implements NotificationProvider {
    */
   async getCapabilities(): Promise<ProviderCapabilities> {
     const isWeb = !Capacitor.isNativePlatform()
-    
+
     return {
       pushNotifications: true,
       topics: true,
@@ -357,7 +347,7 @@ export class FirebaseProvider implements NotificationProvider {
       abTesting: false,
       automation: false,
       journeys: false,
-      realTimeUpdates: true
+      realTimeUpdates: true,
     }
   }
 
@@ -371,28 +361,35 @@ export class FirebaseProvider implements NotificationProvider {
 
     try {
       this.messaging = getMessaging(this.app)
-      
+
       // Setup message listener
-      this.unsubscribeMessage = onMessage(this.messaging, (payload: MessagePayload) => {
-        const notificationPayload: PushNotificationPayload = {
-          data: payload.data || {},
-          to: payload.from,
-          collapse_key: payload.collapseKey
+      this.unsubscribeMessage = onMessage(
+        this.messaging,
+        (payload: MessagePayload) => {
+          const notificationPayload: PushNotificationPayload = {
+            data: payload.data || {},
+            to: payload.from,
+            collapse_key: payload.collapseKey,
+          }
+
+          if (payload.notification) {
+            const notification: Record<string, unknown> = {}
+            if (payload.notification.title)
+              notification.title = payload.notification.title
+            if (payload.notification.body)
+              notification.body = payload.notification.body
+            if (payload.notification.icon)
+              notification.icon = payload.notification.icon
+            if (payload.notification.image)
+              notification.image = payload.notification.image
+            if (payload.data) notification.data = payload.data
+
+            notificationPayload.notification = notification
+          }
+
+          this.notifyMessageListeners(notificationPayload)
         }
-        
-        if (payload.notification) {
-          const notification: any = {}
-          if (payload.notification.title) notification.title = payload.notification.title
-          if (payload.notification.body) notification.body = payload.notification.body
-          if (payload.notification.icon) notification.icon = payload.notification.icon
-          if (payload.notification.image) notification.image = payload.notification.image
-          if (payload.data) notification.data = payload.data
-          
-          notificationPayload.notification = notification
-        }
-        
-        this.notifyMessageListeners(notificationPayload)
-      })
+      )
     } catch (error) {
       throw new Error(`Firebase messaging initialization failed: ${error}`)
     }
@@ -403,10 +400,12 @@ export class FirebaseProvider implements NotificationProvider {
    */
   private async requestNativePermission(): Promise<boolean> {
     try {
-      const { PushNotifications } = await import('@capacitor/push-notifications')
+      const { PushNotifications } = await import(
+        '@capacitor/push-notifications'
+      )
       const result = await PushNotifications.requestPermissions()
       return result.receive === 'granted'
-    } catch (error) {
+    } catch (_error) {
       return false
     }
   }
@@ -416,9 +415,11 @@ export class FirebaseProvider implements NotificationProvider {
    */
   private async checkNativePermission(): Promise<PermissionStatus> {
     try {
-      const { PushNotifications } = await import('@capacitor/push-notifications')
+      const { PushNotifications } = await import(
+        '@capacitor/push-notifications'
+      )
       const result = await PushNotifications.checkPermissions()
-      
+
       if (result.receive === 'granted') {
         return 'granted'
       } else if (result.receive === 'denied') {
@@ -428,7 +429,7 @@ export class FirebaseProvider implements NotificationProvider {
       } else {
         return 'unknown'
       }
-    } catch (error) {
+    } catch (_error) {
       return 'denied'
     }
   }
@@ -471,7 +472,11 @@ export class FirebaseProvider implements NotificationProvider {
   /**
    * Call topic API (placeholder)
    */
-  private async callTopicAPI(action: 'subscribe' | 'unsubscribe', _topic: string, _token: string): Promise<void> {
+  private async callTopicAPI(
+    action: 'subscribe' | 'unsubscribe',
+    _topic: string,
+    _token: string
+  ): Promise<void> {
     // This would typically call your backend API
     // For now, we'll throw an error to indicate server-side implementation needed
     throw new Error(`Topic ${action} must be implemented server-side`)

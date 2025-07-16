@@ -1,9 +1,9 @@
 /**
  * notification-kit - A unified notification library for React + Capacitor apps
- * 
+ *
  * @description One API for push notifications, in-app notifications, and local notifications
  * across Web, iOS, and Android platforms.
- * 
+ *
  * @author Ahsan Mahmood <aoneahsan@gmail.com>
  * @version 1.0.0
  * @license MIT
@@ -17,7 +17,11 @@ export { FirebaseProvider } from './providers/FirebaseProvider'
 export { OneSignalProvider } from './providers/OneSignalProvider'
 
 // Core utilities
-export { PermissionManager, permissionManager, permissions } from './core/permissions'
+export {
+  PermissionManager,
+  permissionManager,
+  permissions,
+} from './core/permissions'
 export { PlatformManager, platformManager, platform } from './core/platform'
 export { StorageManager, storage, createStorage } from './core/storage'
 
@@ -25,14 +29,14 @@ export { StorageManager, storage, createStorage } from './core/storage'
 export { ValidationUtils, validate } from './utils/validation'
 export { FormattingUtils, format } from './utils/formatting'
 export { SchedulingUtils } from './utils/scheduling'
-export { 
+export {
   InAppNotificationManager,
   showInAppNotification,
   dismissInAppNotification,
   dismissAllInAppNotifications,
   getActiveInAppNotifications,
   configureInAppNotifications,
-  inApp
+  inApp,
 } from './utils/inApp'
 
 // Types - Core
@@ -50,7 +54,7 @@ export type {
   PlatformDetection,
   PlatformConfig,
   PlatformDefaults,
-  PlatformCompatibility
+  PlatformCompatibility,
 } from './types'
 
 // Types - Providers
@@ -65,7 +69,7 @@ export type {
   ProviderLimits,
   ProviderEndpoints,
   ProviderAuthentication,
-  ProviderWebhook
+  ProviderWebhook,
 } from './types'
 
 // Types - Notifications
@@ -79,7 +83,7 @@ export type {
   ScheduleAt,
   ScheduleOn,
   ScheduleEvery,
-  ScheduleResult
+  ScheduleResult,
 } from './types'
 
 // Types - Configuration
@@ -94,7 +98,7 @@ export type {
   FeatureFlags,
   LocalizationConfig,
   SecurityConfig,
-  BackupConfig
+  BackupConfig,
 } from './types'
 
 // Types - Events
@@ -112,14 +116,11 @@ export type {
   SubscribedEvent,
   UnsubscribedEvent,
   ReadyEvent,
-  ErrorEvent
+  ErrorEvent,
 } from './types'
 
 // Types - Permissions
-export type {
-  PermissionStatus,
-  PermissionType
-} from './types'
+export type { PermissionStatus, PermissionType } from './types'
 
 // Types - Channels
 export type {
@@ -129,14 +130,11 @@ export type {
   ChannelSound,
   ChannelVibration,
   ChannelLights,
-  ChannelGroup
+  ChannelGroup,
 } from './types'
 
 // Types - Utilities
-export type {
-  ValidationError,
-  ValidationWarning
-} from './types'
+export type { ValidationError, ValidationWarning } from './types'
 
 // Import NotificationKit for default export and quick start
 import { NotificationKit, notifications } from './core/NotificationKit'
@@ -175,11 +173,11 @@ export const metadata = {
     'mobile',
     'ios',
     'android',
-    'web'
+    'web',
   ],
   platforms: ['web', 'ios', 'android', 'electron'],
   frameworks: ['react', 'capacitor'],
-  providers: ['firebase', 'onesignal']
+  providers: ['firebase', 'onesignal'],
 }
 
 /**
@@ -201,7 +199,7 @@ export const quickStart = {
   }) => {
     return await NotificationKit.getInstance().init({
       provider: 'firebase',
-      config
+      config,
     })
   },
 
@@ -215,7 +213,7 @@ export const quickStart = {
   }) => {
     return await NotificationKit.getInstance().init({
       provider: 'onesignal',
-      config
+      config,
     })
   },
 
@@ -225,38 +223,37 @@ export const quickStart = {
   setup: async () => {
     const kit = NotificationKit.getInstance()
     const granted = await kit.requestPermission()
-    
+
     if (granted) {
       const token = await kit.getToken()
       return { granted, token }
     }
-    
+
     return { granted, token: null }
   },
 
   /**
    * Show success notification
    */
-  success: (title: string, message?: string) => 
+  success: (title: string, message?: string) =>
     notifications.success(title, message),
 
   /**
    * Show error notification
    */
-  error: (title: string, message?: string) => 
+  error: (title: string, message?: string) =>
     notifications.error(title, message),
 
   /**
    * Show warning notification
    */
-  warning: (title: string, message?: string) => 
+  warning: (title: string, message?: string) =>
     notifications.warning(title, message),
 
   /**
    * Show info notification
    */
-  info: (title: string, message?: string) => 
-    notifications.info(title, message),
+  info: (title: string, message?: string) => notifications.info(title, message),
 
   /**
    * Schedule a local notification
@@ -268,13 +265,17 @@ export const quickStart = {
     schedule: {
       at: Date | string
     }
-  }) => notifications.schedule({ 
-    ...options, 
-    id: String(options.id),
-    schedule: {
-      at: options.schedule.at instanceof Date ? options.schedule.at : new Date(options.schedule.at)
-    }
-  }),
+  }) =>
+    notifications.schedule({
+      ...options,
+      id: String(options.id),
+      schedule: {
+        at:
+          options.schedule.at instanceof Date
+            ? options.schedule.at
+            : new Date(options.schedule.at),
+      },
+    }),
 
   /**
    * Subscribe to a topic
@@ -284,7 +285,7 @@ export const quickStart = {
   /**
    * Unsubscribe from a topic
    */
-  unsubscribe: (topic: string) => notifications.unsubscribe(topic)
+  unsubscribe: (topic: string) => notifications.unsubscribe(topic),
 }
 
 /**
@@ -306,7 +307,7 @@ export const features = {
   react: true,
   firebase: true,
   onesignal: true,
-  typescript: true
+  typescript: true,
 }
 
 /**
@@ -318,19 +319,26 @@ export const compatibility = {
     firefox: '44+',
     safari: '16+',
     edge: '79+',
-    opera: '37+'
+    opera: '37+',
   },
   mobile: {
     ios: '10+',
-    android: '5.0+'
+    android: '5.0+',
   },
   features: {
-    pushNotifications: ['chrome', 'firefox', 'safari', 'edge', 'ios', 'android'],
+    pushNotifications: [
+      'chrome',
+      'firefox',
+      'safari',
+      'edge',
+      'ios',
+      'android',
+    ],
     serviceWorker: ['chrome', 'firefox', 'safari', 'edge'],
     notifications: ['chrome', 'firefox', 'safari', 'edge', 'ios', 'android'],
     vibration: ['chrome', 'firefox', 'opera', 'android'],
-    badging: ['chrome', 'edge', 'ios', 'android']
-  }
+    badging: ['chrome', 'edge', 'ios', 'android'],
+  },
 }
 
 /**
@@ -342,7 +350,7 @@ export const dev = {
    */
   enableDebug: () => {
     if (typeof window !== 'undefined') {
-      (window as any).__NOTIFICATION_KIT_DEBUG__ = true
+      ;(window as any).__NOTIFICATION_KIT_DEBUG__ = true
     }
   },
 
@@ -351,7 +359,7 @@ export const dev = {
    */
   disableDebug: () => {
     if (typeof window !== 'undefined') {
-      (window as any).__NOTIFICATION_KIT_DEBUG__ = false
+      ;(window as any).__NOTIFICATION_KIT_DEBUG__ = false
     }
   },
 
@@ -379,16 +387,21 @@ export const dev = {
    * Test notifications
    */
   test: {
-    inApp: () => notifications.info('Test Notification', 'This is a test in-app notification'),
+    inApp: () =>
+      notifications.info(
+        'Test Notification',
+        'This is a test in-app notification'
+      ),
     permission: () => notifications.requestPermission(),
     token: () => notifications.getToken(),
-    schedule: () => notifications.schedule({
-      id: 'test',
-      title: 'Test Local Notification',
-      body: 'This is a test local notification',
-      schedule: {
-        at: new Date(Date.now() + 5000) // 5 seconds from now
-      }
-    })
-  }
+    schedule: () =>
+      notifications.schedule({
+        id: 'test',
+        title: 'Test Local Notification',
+        body: 'This is a test local notification',
+        schedule: {
+          at: new Date(Date.now() + 5000), // 5 seconds from now
+        },
+      }),
+  },
 }

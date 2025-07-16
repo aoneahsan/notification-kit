@@ -4,18 +4,21 @@
 
 // Hooks
 export { useNotifications } from './hooks/useNotifications'
-export { 
+export {
   useInAppNotification,
   useInAppNotificationSimple,
   useInAppNotificationQueue,
-  useInAppNotificationPersistence
+  useInAppNotificationPersistence,
 } from './hooks/useInAppNotification'
 
 // Types
-export type { UseNotificationsState, UseNotificationsReturn } from './hooks/useNotifications'
-export type { 
-  UseInAppNotificationState, 
-  UseInAppNotificationReturn 
+export type {
+  UseNotificationsState,
+  UseNotificationsReturn,
+} from './hooks/useNotifications'
+export type {
+  UseInAppNotificationState,
+  UseInAppNotificationReturn,
 } from './hooks/useInAppNotification'
 
 // Re-export core types for convenience
@@ -35,17 +38,17 @@ export type {
   FirebaseConfig,
   OneSignalConfig,
   Platform,
-  PlatformCapabilities
+  PlatformCapabilities,
 } from '@/types'
 
 // Re-export utility functions for convenience
-export { 
+export {
   showInAppNotification,
   dismissInAppNotification,
   dismissAllInAppNotifications,
   getActiveInAppNotifications,
   configureInAppNotifications,
-  inApp
+  inApp,
 } from '@/utils/inApp'
 
 export { validate } from '@/utils/validation'

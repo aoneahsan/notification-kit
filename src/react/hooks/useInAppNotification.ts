@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { 
-  InAppNotificationManager, 
+import {
+  InAppNotificationManager,
   type InAppNotificationInstance,
   showInAppNotification,
   dismissInAppNotification,
   dismissAllInAppNotifications,
   getActiveInAppNotifications,
-  configureInAppNotifications
+  configureInAppNotifications,
 } from '@/utils/inApp'
 import type { InAppOptions, InAppConfig } from '@/types'
 
@@ -25,25 +25,43 @@ export interface UseInAppNotificationState {
 export interface UseInAppNotificationReturn extends UseInAppNotificationState {
   // Configuration
   configure: (config: InAppConfig) => void
-  
+
   // Show notifications
   show: (options: InAppOptions) => Promise<string>
-  success: (title: string, message?: string, options?: Partial<InAppOptions>) => Promise<string>
-  error: (title: string, message?: string, options?: Partial<InAppOptions>) => Promise<string>
-  warning: (title: string, message?: string, options?: Partial<InAppOptions>) => Promise<string>
-  info: (title: string, message?: string, options?: Partial<InAppOptions>) => Promise<string>
-  
+  success: (
+    title: string,
+    message?: string,
+    options?: Partial<InAppOptions>
+  ) => Promise<string>
+  error: (
+    title: string,
+    message?: string,
+    options?: Partial<InAppOptions>
+  ) => Promise<string>
+  warning: (
+    title: string,
+    message?: string,
+    options?: Partial<InAppOptions>
+  ) => Promise<string>
+  info: (
+    title: string,
+    message?: string,
+    options?: Partial<InAppOptions>
+  ) => Promise<string>
+
   // Dismiss notifications
   dismiss: (id: string) => Promise<void>
   dismissAll: () => Promise<void>
-  
+
   // Utilities
   getActive: () => InAppNotificationInstance[]
   hasActive: boolean
   activeCount: number
-  
+
   // Event handlers
-  onShow: (callback: (notification: InAppNotificationInstance) => void) => () => void
+  onShow: (
+    callback: (notification: InAppNotificationInstance) => void
+  ) => () => void
   onDismiss: (callback: (id: string) => void) => () => void
 }
 
@@ -54,20 +72,25 @@ export function useInAppNotification(): UseInAppNotificationReturn {
   const [state, setState] = useState<UseInAppNotificationState>({
     activeNotifications: [],
     isConfigured: false,
-    config: null
+    config: null,
   })
 
   const managerRef = useRef<InAppNotificationManager | null>(null)
-  const showCallbacksRef = useRef<Set<(notification: InAppNotificationInstance) => void>>(new Set())
+  const showCallbacksRef = useRef<
+    Set<(notification: InAppNotificationInstance) => void>
+  >(new Set())
   const dismissCallbacksRef = useRef<Set<(id: string) => void>>(new Set())
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   /**
    * Update state helper
    */
-  const updateState = useCallback((updates: Partial<UseInAppNotificationState>) => {
-    setState(prev => ({ ...prev, ...updates }))
-  }, [])
+  const updateState = useCallback(
+    (updates: Partial<UseInAppNotificationState>) => {
+      setState(prev => ({ ...prev, ...updates }))
+    },
+    []
+  )
 
   /**
    * Initialize manager
@@ -90,115 +113,156 @@ export function useInAppNotification(): UseInAppNotificationReturn {
   /**
    * Configure in-app notifications
    */
-  const configure = useCallback((config: InAppConfig) => {
-    initializeManager()
-    configureInAppNotifications(config)
-    updateState({ 
-      isConfigured: true, 
-      config: { ...state.config, ...config } 
-    })
-  }, [initializeManager, state.config, updateState])
+  const configure = useCallback(
+    (config: InAppConfig) => {
+      initializeManager()
+      configureInAppNotifications(config)
+      updateState({
+        isConfigured: true,
+        config: { ...state.config, ...config },
+      })
+    },
+    [initializeManager, state.config, updateState]
+  )
 
   /**
    * Show notification
    */
-  const show = useCallback(async (options: InAppOptions) => {
-    initializeManager()
-    
-    const id = await showInAppNotification(options, state.config || undefined)
-    
-    // Update active notifications
-    updateActiveNotifications()
-    
-    // Notify show callbacks
-    const notification = getActiveInAppNotifications().find(n => n.id === id)
-    if (notification) {
-      showCallbacksRef.current.forEach(callback => {
-        try {
-          callback(notification)
-        } catch (error) {
-          console.error('Error in show callback:', error)
-        }
-      })
-    }
-    
-    return id
-  }, [initializeManager, state.config, updateActiveNotifications])
+  const show = useCallback(
+    async (options: InAppOptions) => {
+      initializeManager()
+
+      const id = await showInAppNotification(options, state.config || undefined)
+
+      // Update active notifications
+      updateActiveNotifications()
+
+      // Notify show callbacks
+      const notification = getActiveInAppNotifications().find(n => n.id === id)
+      if (notification) {
+        showCallbacksRef.current.forEach(callback => {
+          try {
+            callback(notification)
+          } catch (error) {
+            console.error('Error in show callback:', error)
+          }
+        })
+      }
+
+      return id
+    },
+    [initializeManager, state.config, updateActiveNotifications]
+  )
 
   /**
    * Show success notification
    */
-  const success = useCallback(async (
-    title: string, 
-    message?: string, 
-    options?: Partial<InAppOptions>
-  ) => {
-    return await show({ title, message: message ?? title, type: 'success', ...options })
-  }, [show])
+  const success = useCallback(
+    async (
+      title: string,
+      message?: string,
+      options?: Partial<InAppOptions>
+    ) => {
+      return await show({
+        title,
+        message: message ?? title,
+        type: 'success',
+        ...options,
+      })
+    },
+    [show]
+  )
 
   /**
    * Show error notification
    */
-  const error = useCallback(async (
-    title: string, 
-    message?: string, 
-    options?: Partial<InAppOptions>
-  ) => {
-    return await show({ title, message: message ?? title, type: 'error', ...options })
-  }, [show])
+  const error = useCallback(
+    async (
+      title: string,
+      message?: string,
+      options?: Partial<InAppOptions>
+    ) => {
+      return await show({
+        title,
+        message: message ?? title,
+        type: 'error',
+        ...options,
+      })
+    },
+    [show]
+  )
 
   /**
    * Show warning notification
    */
-  const warning = useCallback(async (
-    title: string, 
-    message?: string, 
-    options?: Partial<InAppOptions>
-  ) => {
-    return await show({ title, message: message ?? title, type: 'warning', ...options })
-  }, [show])
+  const warning = useCallback(
+    async (
+      title: string,
+      message?: string,
+      options?: Partial<InAppOptions>
+    ) => {
+      return await show({
+        title,
+        message: message ?? title,
+        type: 'warning',
+        ...options,
+      })
+    },
+    [show]
+  )
 
   /**
    * Show info notification
    */
-  const info = useCallback(async (
-    title: string, 
-    message?: string, 
-    options?: Partial<InAppOptions>
-  ) => {
-    return await show({ title, message: message ?? title, type: 'info', ...options })
-  }, [show])
+  const info = useCallback(
+    async (
+      title: string,
+      message?: string,
+      options?: Partial<InAppOptions>
+    ) => {
+      return await show({
+        title,
+        message: message ?? title,
+        type: 'info',
+        ...options,
+      })
+    },
+    [show]
+  )
 
   /**
    * Dismiss notification
    */
-  const dismiss = useCallback(async (id: string) => {
-    await dismissInAppNotification(id)
-    
-    // Update active notifications
-    updateActiveNotifications()
-    
-    // Notify dismiss callbacks
-    dismissCallbacksRef.current.forEach(callback => {
-      try {
-        callback(id)
-      } catch (error) {
-        console.error('Error in dismiss callback:', error)
-      }
-    })
-  }, [updateActiveNotifications])
+  const dismiss = useCallback(
+    async (id: string) => {
+      await dismissInAppNotification(id)
+
+      // Update active notifications
+      updateActiveNotifications()
+
+      // Notify dismiss callbacks
+      dismissCallbacksRef.current.forEach(callback => {
+        try {
+          callback(id)
+        } catch (error) {
+          console.error('Error in dismiss callback:', error)
+        }
+      })
+    },
+    [updateActiveNotifications]
+  )
 
   /**
    * Dismiss all notifications
    */
   const dismissAll = useCallback(async () => {
     const activeIds = state.activeNotifications.map(n => n.id)
-    
+
     await dismissAllInAppNotifications()
-    
+
     // Update active notifications
     updateActiveNotifications()
-    
+
     // Notify dismiss callbacks for all dismissed notifications
     activeIds.forEach(id => {
       dismissCallbacksRef.current.forEach(callback => {
@@ -221,20 +285,23 @@ export function useInAppNotification(): UseInAppNotificationReturn {
   /**
    * Add show callback
    */
-  const onShow = useCallback((callback: (notification: InAppNotificationInstance) => void) => {
-    showCallbacksRef.current.add(callback)
-    
-    return () => {
-      showCallbacksRef.current.delete(callback)
-    }
-  }, [])
+  const onShow = useCallback(
+    (callback: (notification: InAppNotificationInstance) => void) => {
+      showCallbacksRef.current.add(callback)
+
+      return () => {
+        showCallbacksRef.current.delete(callback)
+      }
+    },
+    []
+  )
 
   /**
    * Add dismiss callback
    */
   const onDismiss = useCallback((callback: (id: string) => void) => {
     dismissCallbacksRef.current.add(callback)
-    
+
     return () => {
       dismissCallbacksRef.current.delete(callback)
     }
@@ -270,7 +337,7 @@ export function useInAppNotification(): UseInAppNotificationReturn {
     return () => {
       showCallbacksRef.current.clear()
       dismissCallbacksRef.current.clear()
-      
+
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
       }
@@ -291,7 +358,7 @@ export function useInAppNotification(): UseInAppNotificationReturn {
     hasActive: state.activeNotifications.length > 0,
     activeCount: state.activeNotifications.length,
     onShow,
-    onDismiss
+    onDismiss,
   }
 }
 
@@ -299,8 +366,18 @@ export function useInAppNotification(): UseInAppNotificationReturn {
  * Simplified hook for basic in-app notifications
  */
 export function useInAppNotificationSimple() {
-  const { show, success, error, warning, info, dismiss, dismissAll, hasActive, activeCount } = useInAppNotification()
-  
+  const {
+    show,
+    success,
+    error,
+    warning,
+    info,
+    dismiss,
+    dismissAll,
+    hasActive,
+    activeCount,
+  } = useInAppNotification()
+
   return {
     show,
     success,
@@ -310,7 +387,7 @@ export function useInAppNotificationSimple() {
     dismiss,
     dismissAll,
     hasActive,
-    activeCount
+    activeCount,
   }
 }
 
@@ -338,7 +415,7 @@ export function useInAppNotificationQueue() {
     }
 
     setIsProcessing(true)
-    
+
     try {
       const next = queue[0]
       if (next) {
@@ -374,7 +451,7 @@ export function useInAppNotificationQueue() {
     isProcessing,
     enqueue,
     processQueue,
-    clearQueue
+    clearQueue,
   }
 }
 
@@ -382,7 +459,9 @@ export function useInAppNotificationQueue() {
  * Hook for notification persistence
  */
 export function useInAppNotificationPersistence() {
-  const [persistedNotifications, setPersistedNotifications] = useState<InAppNotificationInstance[]>([])
+  const [persistedNotifications, setPersistedNotifications] = useState<
+    InAppNotificationInstance[]
+  >([])
   const { activeNotifications } = useInAppNotification()
 
   /**
@@ -393,9 +472,12 @@ export function useInAppNotificationPersistence() {
       const serialized = activeNotifications.map(n => ({
         id: n.id,
         options: n.options,
-        timestamp: n.timestamp.toISOString()
+        timestamp: n.timestamp.toISOString(),
       }))
-      localStorage.setItem('notification-kit-persisted', JSON.stringify(serialized))
+      localStorage.setItem(
+        'notification-kit-persisted',
+        JSON.stringify(serialized)
+      )
     } catch (error) {
       console.error('Failed to persist notifications:', error)
     }
@@ -409,10 +491,12 @@ export function useInAppNotificationPersistence() {
       const stored = localStorage.getItem('notification-kit-persisted')
       if (stored) {
         const parsed = JSON.parse(stored)
-        setPersistedNotifications(parsed.map((n: any) => ({
-          ...n,
-          timestamp: new Date(n.timestamp)
-        })))
+        setPersistedNotifications(
+          parsed.map((n: any) => ({
+            ...n,
+            timestamp: new Date(n.timestamp),
+          }))
+        )
       }
     } catch (error) {
       console.error('Failed to load persisted notifications:', error)
@@ -449,6 +533,6 @@ export function useInAppNotificationPersistence() {
     persistedNotifications,
     saveNotifications,
     loadNotifications,
-    clearPersistence
+    clearPersistence,
   }
 }

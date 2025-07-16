@@ -5,7 +5,7 @@ import type {
   OneSignalConfig,
   PushNotificationPayload,
   PermissionStatus,
-  ProviderCapabilities
+  ProviderCapabilities,
 } from '@/types'
 
 /**
@@ -27,8 +27,8 @@ export class OneSignalProvider implements NotificationProvider {
   async init(config: OneSignalConfig): Promise<void> {
     try {
       this.config = config
-      
-      const initOptions: any = {
+
+      const initOptions: Record<string, unknown> = {
         appId: config.appId,
         safari_web_id: config.safariWebId,
         autoPrompt: config.autoPrompt ?? true,
@@ -36,20 +36,23 @@ export class OneSignalProvider implements NotificationProvider {
         path: config.path,
         serviceWorkerPath: config.serviceWorkerPath,
         serviceWorkerUpdaterPath: config.serviceWorkerUpdaterPath,
-        notificationClickHandlerMatch: config.notificationClickHandlerMatch ?? 'origin',
-        notificationClickHandlerAction: config.notificationClickHandlerAction ?? 'focusOrNavigate',
-        allowLocalhostAsSecureOrigin: config.allowLocalhostAsSecureOrigin ?? false
+        notificationClickHandlerMatch:
+          config.notificationClickHandlerMatch ?? 'origin',
+        notificationClickHandlerAction:
+          config.notificationClickHandlerAction ?? 'focusOrNavigate',
+        allowLocalhostAsSecureOrigin:
+          config.allowLocalhostAsSecureOrigin ?? false,
       }
-      
+
       if (config.promptOptions) {
         initOptions.promptOptions = config.promptOptions
       }
-      
+
       if (config.welcomeNotification) {
         initOptions.welcomeNotification = config.welcomeNotification
       }
-      
-      await OneSignal.init(initOptions)
+
+      await OneSignal.init(initOptions as Parameters<typeof OneSignal.init>[0])
 
       this.initialized = true
       await this.setupEventListeners()
@@ -115,8 +118,10 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async getToken(): Promise<string> {
     try {
-      const playerId = await (OneSignal as any).getUserId()
-      
+      const playerId = await (
+        OneSignal as unknown as { getUserId: () => Promise<string> }
+      ).getUserId()
+
       if (playerId) {
         return playerId
       } else {
@@ -148,7 +153,9 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async deleteToken(): Promise<void> {
     try {
-      await (OneSignal as any).logoutUser()
+      await (
+        OneSignal as unknown as { logoutUser: () => Promise<void> }
+      ).logoutUser()
     } catch (error) {
       this.handleError(new Error(`Token deletion failed: ${error}`))
       throw error
@@ -160,7 +167,11 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async subscribe(topic: string): Promise<void> {
     try {
-      await (OneSignal as any).sendTag(topic, 'true')
+      await (
+        OneSignal as unknown as {
+          sendTag: (key: string, value: string) => Promise<void>
+        }
+      ).sendTag(topic, 'true')
     } catch (error) {
       this.handleError(new Error(`Tag subscription failed: ${error}`))
       throw error
@@ -172,7 +183,9 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async unsubscribe(topic: string): Promise<void> {
     try {
-      await (OneSignal as any).deleteTag(topic)
+      await (
+        OneSignal as unknown as { deleteTag: (key: string) => Promise<void> }
+      ).deleteTag(topic)
     } catch (error) {
       this.handleError(new Error(`Tag unsubscription failed: ${error}`))
       throw error
@@ -184,7 +197,11 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async getSubscriptions(): Promise<string[]> {
     try {
-      const tags = await (OneSignal as any).getTags()
+      const tags = await (
+        OneSignal as unknown as {
+          getTags: () => Promise<Record<string, string>>
+        }
+      ).getTags()
       return Object.keys(tags || {})
     } catch (error) {
       this.handleError(new Error(`Get subscriptions failed: ${error}`))
@@ -201,20 +218,23 @@ export class OneSignalProvider implements NotificationProvider {
     }
 
     try {
-      const response = await fetch('https://onesignal.com/api/v1/notifications', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${this.config.restApiKey}`
-        },
-        body: JSON.stringify({
-          app_id: this.config.appId,
-          headings: { en: payload.notification?.title || 'Notification' },
-          contents: { en: payload.notification?.body || '' },
-          data: payload.data,
-          included_segments: ['All']
-        })
-      })
+      const response = await fetch(
+        'https://onesignal.com/api/v1/notifications',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Basic ${this.config.restApiKey}`,
+          },
+          body: JSON.stringify({
+            app_id: this.config.appId,
+            headings: { en: payload.notification?.title || 'Notification' },
+            contents: { en: payload.notification?.body || '' },
+            data: payload.data,
+            included_segments: ['All'],
+          }),
+        }
+      )
 
       if (!response.ok) {
         throw new Error(`OneSignal API error: ${response.statusText}`)
@@ -276,11 +296,13 @@ export class OneSignalProvider implements NotificationProvider {
         return true
       } else {
         // Check if we're in a supported browser environment
-        return typeof window !== 'undefined' && 
-               'serviceWorker' in navigator && 
-               'PushManager' in window
+        return (
+          typeof window !== 'undefined' &&
+          'serviceWorker' in navigator &&
+          'PushManager' in window
+        )
       }
-    } catch (error) {
+    } catch (_error) {
       return false
     }
   }
@@ -290,7 +312,7 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async getCapabilities(): Promise<ProviderCapabilities> {
     const isWeb = !Capacitor.isNativePlatform()
-    
+
     return {
       pushNotifications: true,
       topics: true, // Using tags
@@ -326,7 +348,7 @@ export class OneSignalProvider implements NotificationProvider {
       abTesting: true,
       automation: true,
       journeys: true,
-      realTimeUpdates: true
+      realTimeUpdates: true,
     }
   }
 
@@ -335,46 +357,66 @@ export class OneSignalProvider implements NotificationProvider {
    */
   private async setupEventListeners(): Promise<void> {
     try {
+      const oneSignalInstance = OneSignal as unknown as {
+        on: (event: string, callback: (data: unknown) => void) => void
+      }
+
       // Listen for notification received
-      (OneSignal as any).on('notificationReceived', (notification: any) => {
-        const payload: PushNotificationPayload = {
-          data: notification.additionalData || {},
-          notification: {
-            title: notification.heading,
-            body: notification.content,
-            icon: notification.icon,
-            badge: notification.badge,
-            image: notification.image
-          }
+      oneSignalInstance.on('notificationReceived', notification => {
+        const notificationData = notification as Record<string, unknown>
+        const notificationObj: Record<string, unknown> = {
+          title: notificationData.heading as string,
+          body: notificationData.content as string,
         }
         
+        if (notificationData.icon) notificationObj.icon = notificationData.icon as string
+        if (notificationData.badge) notificationObj.badge = notificationData.badge as string
+        if (notificationData.image) notificationObj.image = notificationData.image as string
+        
+        const payload: PushNotificationPayload = {
+          data:
+            (notificationData.additionalData as Record<string, unknown>) || {},
+          notification: notificationObj,
+        }
+
         this.notifyMessageListeners(payload)
       })
 
       // Listen for notification clicked
-      (OneSignal as any).on('notificationClicked', (notification: any) => {
-        const payload: PushNotificationPayload = {
-          data: notification.additionalData || {},
-          notification: {
-            title: notification.heading,
-            body: notification.content,
-            icon: notification.icon,
-            badge: notification.badge,
-            image: notification.image
-          }
+      oneSignalInstance.on('notificationClicked', notification => {
+        const notificationData = notification as Record<string, unknown>
+        const notificationObj: Record<string, unknown> = {
+          title: notificationData.heading as string,
+          body: notificationData.content as string,
         }
         
+        if (notificationData.icon) notificationObj.icon = notificationData.icon as string
+        if (notificationData.badge) notificationObj.badge = notificationData.badge as string
+        if (notificationData.image) notificationObj.image = notificationData.image as string
+        
+        const payload: PushNotificationPayload = {
+          data:
+            (notificationData.additionalData as Record<string, unknown>) || {},
+          notification: notificationObj,
+        }
+
         this.notifyMessageListeners(payload)
       })
 
       // Listen for subscription changes
-      (OneSignal as any).on('subscriptionChanged', (isSubscribed: any) => {
+      oneSignalInstance.on('subscriptionChanged', isSubscribed => {
         if (isSubscribed) {
-          this.getToken().then(token => {
-            this.notifyTokenListeners(token)
-          }).catch(error => {
-            this.handleError(new Error(`Token refresh on subscription change failed: ${error}`))
-          })
+          this.getToken()
+            .then(token => {
+              this.notifyTokenListeners(token)
+            })
+            .catch(error => {
+              this.handleError(
+                new Error(
+                  `Token refresh on subscription change failed: ${error}`
+                )
+              )
+            })
         }
       })
     } catch (error) {
@@ -387,10 +429,12 @@ export class OneSignalProvider implements NotificationProvider {
    */
   private async requestNativePermission(): Promise<boolean> {
     try {
-      const { PushNotifications } = await import('@capacitor/push-notifications')
+      const { PushNotifications } = await import(
+        '@capacitor/push-notifications'
+      )
       const result = await PushNotifications.requestPermissions()
       return result.receive === 'granted'
-    } catch (error) {
+    } catch (_error) {
       return false
     }
   }
@@ -400,9 +444,11 @@ export class OneSignalProvider implements NotificationProvider {
    */
   private async checkNativePermission(): Promise<PermissionStatus> {
     try {
-      const { PushNotifications } = await import('@capacitor/push-notifications')
+      const { PushNotifications } = await import(
+        '@capacitor/push-notifications'
+      )
       const result = await PushNotifications.checkPermissions()
-      
+
       if (result.receive === 'granted') {
         return 'granted'
       } else if (result.receive === 'denied') {
@@ -412,7 +458,7 @@ export class OneSignalProvider implements NotificationProvider {
       } else {
         return 'unknown'
       }
-    } catch (error) {
+    } catch (_error) {
       return 'denied'
     }
   }
@@ -422,9 +468,11 @@ export class OneSignalProvider implements NotificationProvider {
    */
   private async requestWebPermission(): Promise<boolean> {
     try {
-      const permission = await (OneSignal as any).showSlidedownPrompt()
+      const permission = await (
+        OneSignal as unknown as { showSlidedownPrompt: () => Promise<boolean> }
+      ).showSlidedownPrompt()
       return permission
-    } catch (error) {
+    } catch (_error) {
       // Fallback to native browser permission
       if ('Notification' in window) {
         const permission = await Notification.requestPermission()
@@ -439,9 +487,13 @@ export class OneSignalProvider implements NotificationProvider {
    */
   private async checkWebPermission(): Promise<PermissionStatus> {
     try {
-      const isSubscribed = await (OneSignal as any).isPushNotificationsEnabled()
+      const isSubscribed = await (
+        OneSignal as unknown as {
+          isPushNotificationsEnabled: () => Promise<boolean>
+        }
+      ).isPushNotificationsEnabled()
       return isSubscribed ? 'granted' : 'prompt'
-    } catch (error) {
+    } catch (_error) {
       // Fallback to native browser permission
       if ('Notification' in window) {
         const permission = Notification.permission

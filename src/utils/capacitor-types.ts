@@ -2,29 +2,31 @@
  * Type conversion utilities for Capacitor compatibility
  */
 
-import type { 
+import type {
   LocalNotificationSchema,
   Channel as CapacitorChannel,
-  Importance as CapacitorImportance
+  Importance as CapacitorImportance,
 } from '@capacitor/local-notifications'
-import type { 
-  ScheduleOptions, 
-  NotificationChannel, 
+import type {
+  ScheduleOptions,
+  NotificationChannel,
   ChannelImportance,
-  LocalNotificationPayload
+  LocalNotificationPayload,
 } from '@/types'
 
 /**
  * Convert our ChannelImportance to Capacitor's Importance
  */
-export function toCapacitorImportance(importance: ChannelImportance): CapacitorImportance {
+export function toCapacitorImportance(
+  importance: ChannelImportance
+): CapacitorImportance {
   const map: Record<ChannelImportance, CapacitorImportance> = {
-    'none': 1,
-    'min': 2,
-    'low': 2,
-    'default': 3,
-    'high': 4,
-    'max': 5
+    none: 1,
+    min: 2,
+    low: 2,
+    default: 3,
+    high: 4,
+    max: 5,
   }
   return map[importance] || 3
 }
@@ -32,13 +34,15 @@ export function toCapacitorImportance(importance: ChannelImportance): CapacitorI
 /**
  * Convert Capacitor's Importance to our ChannelImportance
  */
-export function fromCapacitorImportance(importance: CapacitorImportance): ChannelImportance {
+export function fromCapacitorImportance(
+  importance: CapacitorImportance
+): ChannelImportance {
   const map: Record<CapacitorImportance, ChannelImportance> = {
     1: 'none',
     2: 'low',
     3: 'default',
     4: 'high',
-    5: 'max'
+    5: 'max',
   }
   return map[importance] || 'default'
 }
@@ -46,54 +50,62 @@ export function fromCapacitorImportance(importance: CapacitorImportance): Channe
 /**
  * Convert our NotificationChannel to Capacitor's Channel
  */
-export function toCapacitorChannel(channel: NotificationChannel): CapacitorChannel {
+export function toCapacitorChannel(
+  channel: NotificationChannel
+): CapacitorChannel {
   const capacitorChannel: any = {
     id: channel.id,
     name: channel.name,
     description: channel.description ?? '',
-    importance: channel.importance ? toCapacitorImportance(channel.importance) : undefined,
-    visibility: channel.visibility as any // Capacitor uses similar values
+    importance: channel.importance
+      ? toCapacitorImportance(channel.importance)
+      : undefined,
+    visibility: channel.visibility as any, // Capacitor uses similar values
   }
-  
+
   if (channel.sound !== undefined) {
     capacitorChannel.sound = channel.sound
   }
-  
+
   if (channel.vibration !== undefined) {
     capacitorChannel.vibration = channel.vibration
   }
-  
+
   if (channel.lights !== undefined) {
     capacitorChannel.lights = channel.lights
   }
-  
+
   return capacitorChannel as CapacitorChannel
 }
 
 /**
  * Convert Capacitor's Channel to our NotificationChannel
  */
-export function fromCapacitorChannel(channel: CapacitorChannel): NotificationChannel {
+export function fromCapacitorChannel(
+  channel: CapacitorChannel
+): NotificationChannel {
   const notificationChannel: any = {
     id: channel.id,
     name: channel.name,
     description: channel.description ?? '',
-    importance: channel.importance ? fromCapacitorImportance(channel.importance) : 'default',
-    visibility: channel.visibility as any
+    importance: channel.importance
+      ? fromCapacitorImportance(channel.importance)
+      : 'default',
+    visibility: channel.visibility as any,
   }
-  
+
   if (channel.sound !== undefined) {
     notificationChannel.sound = channel.sound
   }
-  
+
   if (channel.vibration !== undefined) {
     notificationChannel.vibration = channel.vibration
   }
-  
+
   if (channel.lights !== undefined) {
     notificationChannel.lights = channel.lights
   }
-  
+
   return notificationChannel as NotificationChannel
 }
 
@@ -104,60 +116,63 @@ export function toCapacitorLocalNotification(
   options: ScheduleOptions & LocalNotificationPayload
 ): LocalNotificationSchema {
   const notification: any = {
-    id: typeof options.id === 'string' ? parseInt(options.id, 10) : (options.id || Date.now()),
+    id:
+      typeof options.id === 'string'
+        ? parseInt(options.id, 10)
+        : options.id || Date.now(),
     title: options.title || '',
     body: options.body || '',
-    largeBody: options.body
+    largeBody: options.body,
   }
-  
+
   if (options.summaryText !== undefined) {
     notification.summaryText = options.summaryText
   }
-  
+
   if (options.at) {
     notification.schedule = { at: options.at }
   }
-  
+
   if (options.sound !== undefined) {
     notification.sound = options.sound
   }
-  
+
   if (options.smallIcon !== undefined) {
     notification.smallIcon = options.smallIcon
   }
-  
+
   if (options.largeIcon !== undefined) {
     notification.largeIcon = options.largeIcon
   }
-  
+
   if (options.color !== undefined) {
     notification.iconColor = options.color
   }
-  
+
   if (options.channelId !== undefined) {
     notification.channelId = options.channelId
   }
-  
+
   if (options.ongoing !== undefined) {
     notification.ongoing = options.ongoing
   }
-  
+
   if (options.autoCancel !== undefined) {
     notification.autoCancel = options.autoCancel
   }
-  
+
   if (options.group !== undefined) {
     notification.group = options.group
   }
-  
+
   if (options.groupSummary !== undefined) {
     notification.groupSummary = options.groupSummary
   }
-  
+
   if (options.extra || options.data) {
     notification.extra = options.extra || options.data
   }
-  
+
   return notification as LocalNotificationSchema
 }
 
@@ -170,54 +185,54 @@ export function fromCapacitorLocalNotification(
   const payload: any = {
     id: notification.id.toString(),
     title: notification.title,
-    body: notification.body
+    body: notification.body,
   }
-  
+
   if (notification.summaryText !== undefined) {
     payload.summaryText = notification.summaryText
   }
-  
+
   if (notification.sound !== undefined) {
     payload.sound = notification.sound
   }
-  
+
   if (notification.smallIcon !== undefined) {
     payload.smallIcon = notification.smallIcon
   }
-  
+
   if (notification.largeIcon !== undefined) {
     payload.largeIcon = notification.largeIcon
   }
-  
+
   if (notification.iconColor !== undefined) {
     payload.color = notification.iconColor
   }
-  
+
   if (notification.channelId !== undefined) {
     payload.channelId = notification.channelId
   }
-  
+
   if (notification.ongoing !== undefined) {
     payload.ongoing = notification.ongoing
   }
-  
+
   if (notification.autoCancel !== undefined) {
     payload.autoCancel = notification.autoCancel
   }
-  
+
   if (notification.group !== undefined) {
     payload.group = notification.group
   }
-  
+
   if (notification.groupSummary !== undefined) {
     payload.groupSummary = notification.groupSummary
   }
-  
+
   if (notification.extra !== undefined) {
     payload.extra = notification.extra
     payload.data = notification.extra
   }
-  
+
   return payload as LocalNotificationPayload
 }
 
@@ -261,6 +276,6 @@ export function toPlatformCapabilities(providerCaps: any): any {
     provisionalAuth: false,
     appBadge: providerCaps.badges || false,
     quietHours: providerCaps.quietHours || false,
-    doNotDisturb: false
+    doNotDisturb: false,
   }
 }

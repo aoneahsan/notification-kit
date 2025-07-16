@@ -128,6 +128,7 @@ Object.defineProperty(window, 'matchMedia', {
 })
 
 // Mock ResizeObserver
+// eslint-disable-next-line no-undef
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
@@ -135,6 +136,7 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
 }))
 
 // Mock IntersectionObserver
+// eslint-disable-next-line no-undef
 global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),

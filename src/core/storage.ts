@@ -16,7 +16,7 @@ export class StorageManager {
       adapter: 'preferences',
       encryption: false,
       ttl: 0,
-      ...config
+      ...config,
     }
     this.prefix = this.config.prefix!
   }
@@ -48,7 +48,7 @@ export class StorageManager {
 
     try {
       let data: string | null
-      
+
       if (this.platform === 'web' || this.config.adapter === 'localStorage') {
         data = await this.getWebStorage(fullKey)
       } else {
@@ -179,16 +179,17 @@ export class StorageManager {
    * Get web storage keys
    */
   private async getWebStorageKeys(): Promise<string[]> {
-    const storage = this.config.adapter === 'sessionStorage' ? sessionStorage : localStorage
+    const storage =
+      this.config.adapter === 'sessionStorage' ? sessionStorage : localStorage
     const keys: string[] = []
-    
+
     for (let i = 0; i < storage.length; i++) {
       const key = storage.key(i)
       if (key && key.startsWith(this.prefix)) {
         keys.push(key.substring(this.prefix.length))
       }
     }
-    
+
     return keys
   }
 
@@ -223,7 +224,7 @@ export class StorageManager {
   private async clearNativeStorage(): Promise<void> {
     const { Preferences } = await import('@capacitor/preferences')
     const keys = await this.getNativeStorageKeys()
-    
+
     for (const key of keys) {
       await Preferences.remove({ key: this.prefix + key })
     }
@@ -235,7 +236,7 @@ export class StorageManager {
   private async getNativeStorageKeys(): Promise<string[]> {
     const { Preferences } = await import('@capacitor/preferences')
     const result = await Preferences.keys()
-    
+
     return result.keys
       .filter(key => key.startsWith(this.prefix))
       .map(key => key.substring(this.prefix.length))
@@ -248,7 +249,7 @@ export class StorageManager {
     const data = {
       value,
       timestamp: Date.now(),
-      ttl: this.config.ttl
+      ttl: this.config.ttl,
     }
 
     let serialized = JSON.stringify(data)
@@ -272,12 +273,12 @@ export class StorageManager {
       }
 
       const parsed = JSON.parse(decrypted)
-      
+
       // Check TTL
       if (this.config.ttl && this.config.ttl > 0) {
         const now = Date.now()
         const age = now - parsed.timestamp
-        
+
         if (age > this.config.ttl) {
           return null
         }
@@ -328,4 +329,5 @@ export const storage = new StorageManager()
 /**
  * Create storage instance with custom config
  */
-export const createStorage = (config: StorageConfig) => new StorageManager(config)
+export const createStorage = (config: StorageConfig) =>
+  new StorageManager(config)

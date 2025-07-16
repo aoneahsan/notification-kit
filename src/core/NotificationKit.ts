@@ -14,14 +14,14 @@ import type {
   NotificationEventCallback,
   NotificationEventMap,
   Platform,
-  PlatformCapabilities
+  PlatformCapabilities,
 } from '@/types'
-import { 
-  toCapacitorLocalNotification, 
+import {
+  toCapacitorLocalNotification,
   fromCapacitorLocalNotification,
   toCapacitorChannel,
   fromCapacitorChannel,
-  toPlatformCapabilities
+  toPlatformCapabilities,
 } from '@/utils/capacitor-types'
 
 /**
@@ -54,12 +54,19 @@ export class NotificationKit {
    * Initialize notification kit with configuration
    */
   async init(config: NotificationConfig): Promise<void> {
+    if (this.initialized) {
+      return
+    }
+    
     try {
       this.config = config
       await this.initializeProvider()
       await this.setupEventListeners()
       this.initialized = true
-      this.emit('ready', { platform: this.platform, capabilities: this.capabilities })
+      this.emit('ready', {
+        platform: this.platform,
+        capabilities: this.capabilities,
+      })
     } catch (error) {
       this.emit('error', { error, context: 'initialization' })
       throw error
@@ -102,13 +109,23 @@ export class NotificationKit {
   }
 
   /**
+   * Get current provider
+   */
+  getProvider(): NotificationProvider | null {
+    return this.provider
+  }
+
+  /**
    * Request notification permission
    */
   async requestPermission(): Promise<boolean> {
     this.ensureInitialized()
     try {
       const granted = await this.provider!.requestPermission()
-      this.emit('permissionChanged', { granted, status: granted ? 'granted' : 'denied' })
+      this.emit('permissionChanged', {
+        granted,
+        status: granted ? 'granted' : 'denied',
+      })
       return granted
     } catch (error) {
       this.emit('error', { error, context: 'permission' })
@@ -189,13 +206,17 @@ export class NotificationKit {
   /**
    * Schedule local notification
    */
-  async scheduleLocalNotification(options: ScheduleOptions & LocalNotificationPayload): Promise<void> {
+  async scheduleLocalNotification(
+    options: ScheduleOptions & LocalNotificationPayload
+  ): Promise<void> {
     this.ensureInitialized()
     try {
-      const { LocalNotifications } = await import('@capacitor/local-notifications')
+      const { LocalNotifications } = await import(
+        '@capacitor/local-notifications'
+      )
       const capacitorNotification = toCapacitorLocalNotification(options)
       await LocalNotifications.schedule({
-        notifications: [capacitorNotification]
+        notifications: [capacitorNotification],
       })
       this.emit('notificationScheduled', { options, type: 'local' })
     } catch (error) {
@@ -210,10 +231,12 @@ export class NotificationKit {
   async cancelLocalNotification(id: string | number): Promise<void> {
     this.ensureInitialized()
     try {
-      const { LocalNotifications } = await import('@capacitor/local-notifications')
+      const { LocalNotifications } = await import(
+        '@capacitor/local-notifications'
+      )
       const numericId = typeof id === 'string' ? parseInt(id, 10) : id
       await LocalNotifications.cancel({
-        notifications: [{ id: numericId }]
+        notifications: [{ id: numericId }],
       })
       this.emit('notificationCancelled', { id, type: 'local' })
     } catch (error) {
@@ -228,7 +251,9 @@ export class NotificationKit {
   async getPendingLocalNotifications(): Promise<Notification[]> {
     this.ensureInitialized()
     try {
-      const { LocalNotifications } = await import('@capacitor/local-notifications')
+      const { LocalNotifications } = await import(
+        '@capacitor/local-notifications'
+      )
       const result = await LocalNotifications.getPending()
       return result.notifications.map(n => ({
         id: n.id.toString(),
@@ -237,7 +262,7 @@ export class NotificationKit {
         data: n.extra,
         platform: this.platform,
         type: 'local',
-        timestamp: new Date()
+        timestamp: new Date(),
       }))
     } catch (error) {
       this.emit('error', { error, context: 'local' })
@@ -248,15 +273,30 @@ export class NotificationKit {
   /**
    * Show in-app notification
    */
-  async showInAppNotification(options: InAppOptions): Promise<void> {
+  async showInAppNotification(options: InAppOptions): Promise<string> {
     try {
       // Import the in-app notification utility
       const { showInAppNotification } = await import('@/utils/inApp')
-      await showInAppNotification(options, this.config?.inApp)
-      this.emit('notificationShown', { options, type: 'inApp' })
+      const id = await showInAppNotification(options, this.config?.inApp)
+      this.emit('notificationShown', { options, type: 'inApp', id })
+      return id
     } catch (error) {
       this.emit('error', { error, context: 'inApp' })
       throw error
+    }
+  }
+
+  /**
+   * Check if notifications are supported
+   */
+  async isSupported(): Promise<boolean> {
+    try {
+      const { platform } = await import('@/core/platform')
+      const capabilities = platform.getCapabilities()
+      return capabilities.pushNotifications || capabilities.localNotifications || false
+    } catch (error) {
+      console.warn('Failed to check support:', error)
+      return false
     }
   }
 
@@ -267,9 +307,11 @@ export class NotificationKit {
     if (this.platform !== 'android') {
       return
     }
-    
+
     try {
-      const { LocalNotifications } = await import('@capacitor/local-notifications')
+      const { LocalNotifications } = await import(
+        '@capacitor/local-notifications'
+      )
       const capacitorChannel = toCapacitorChannel(channel)
       await LocalNotifications.createChannel(capacitorChannel)
       this.emit('channelCreated', { channel })
@@ -286,9 +328,11 @@ export class NotificationKit {
     if (this.platform !== 'android') {
       return
     }
-    
+
     try {
-      const { LocalNotifications } = await import('@capacitor/local-notifications')
+      const { LocalNotifications } = await import(
+        '@capacitor/local-notifications'
+      )
       await LocalNotifications.deleteChannel({ id: channelId })
       this.emit('channelDeleted', { channelId })
     } catch (error) {
@@ -304,9 +348,11 @@ export class NotificationKit {
     if (this.platform !== 'android') {
       return []
     }
-    
+
     try {
-      const { LocalNotifications } = await import('@capacitor/local-notifications')
+      const { LocalNotifications } = await import(
+        '@capacitor/local-notifications'
+      )
       const result = await LocalNotifications.listChannels()
       return result.channels.map(channel => fromCapacitorChannel(channel))
     } catch (error) {
@@ -360,17 +406,14 @@ export class NotificationKit {
   /**
    * Emit event to listeners
    */
-  private emit(
-    event: string,
-    data: any
-  ): void {
+  private emit(event: string, data: any): void {
     const listeners = this.eventListeners.get(event) || []
     const notificationEvent: NotificationEvent = {
       id: Date.now().toString(),
       type: event,
       timestamp: new Date(),
       data,
-      ...data
+      ...data,
     }
     listeners.forEach(callback => {
       try {
@@ -404,10 +447,14 @@ export class NotificationKit {
 
     try {
       if (this.config.provider === 'firebase') {
-        const { FirebaseProvider } = await import('@/providers/FirebaseProvider')
+        const { FirebaseProvider } = await import(
+          '@/providers/FirebaseProvider'
+        )
         this.provider = new FirebaseProvider()
       } else if (this.config.provider === 'onesignal') {
-        const { OneSignalProvider } = await import('@/providers/OneSignalProvider')
+        const { OneSignalProvider } = await import(
+          '@/providers/OneSignalProvider'
+        )
         this.provider = new OneSignalProvider()
       } else {
         throw new Error(`Unknown provider: ${this.config.provider}`)
@@ -431,10 +478,10 @@ export class NotificationKit {
 
     // Listen for provider messages
     this.provider.onMessage((payload: PushNotificationPayload) => {
-      this.emit('notificationReceived', { 
-        payload, 
+      this.emit('notificationReceived', {
+        payload,
         type: 'push',
-        platform: this.platform 
+        platform: this.platform,
       })
     })
 
@@ -451,24 +498,32 @@ export class NotificationKit {
     // Setup local notification listeners
     if (this.platform !== 'web') {
       try {
-        const { LocalNotifications } = await import('@capacitor/local-notifications')
-        
-        LocalNotifications.addListener('localNotificationReceived', (notification) => {
-          this.emit('notificationReceived', {
-            payload: fromCapacitorLocalNotification(notification),
-            type: 'local',
-            platform: this.platform
-          })
-        })
+        const { LocalNotifications } = await import(
+          '@capacitor/local-notifications'
+        )
 
-        LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
-          this.emit('notificationActionPerformed', {
-            action: action.actionId,
-            notification: action.notification,
-            inputValue: action.inputValue,
-            platform: this.platform
-          })
-        })
+        LocalNotifications.addListener(
+          'localNotificationReceived',
+          notification => {
+            this.emit('notificationReceived', {
+              payload: fromCapacitorLocalNotification(notification),
+              type: 'local',
+              platform: this.platform,
+            })
+          }
+        )
+
+        LocalNotifications.addListener(
+          'localNotificationActionPerformed',
+          action => {
+            this.emit('notificationActionPerformed', {
+              action: action.actionId,
+              notification: action.notification,
+              inputValue: action.inputValue,
+              platform: this.platform,
+            })
+          }
+        )
       } catch (error) {
         console.warn('Local notifications not available:', error)
       }
@@ -492,93 +547,99 @@ export const notifications = {
   /**
    * Initialize notification kit
    */
-  init: (config: NotificationConfig) => NotificationKit.getInstance().init(config),
-  
+  init: (config: NotificationConfig) =>
+    NotificationKit.getInstance().init(config),
+
   /**
    * Request permission
    */
   requestPermission: () => NotificationKit.getInstance().requestPermission(),
-  
+
   /**
    * Check permission
    */
   checkPermission: () => NotificationKit.getInstance().checkPermission(),
-  
+
   /**
    * Get token
    */
   getToken: () => NotificationKit.getInstance().getToken(),
-  
+
   /**
    * Subscribe to topic
    */
   subscribe: (topic: string) => NotificationKit.getInstance().subscribe(topic),
-  
+
   /**
    * Unsubscribe from topic
    */
-  unsubscribe: (topic: string) => NotificationKit.getInstance().unsubscribe(topic),
-  
+  unsubscribe: (topic: string) =>
+    NotificationKit.getInstance().unsubscribe(topic),
+
   /**
    * Schedule local notification
    */
-  schedule: (options: ScheduleOptions & LocalNotificationPayload) => NotificationKit.getInstance().scheduleLocalNotification(options),
-  
+  schedule: (options: ScheduleOptions & LocalNotificationPayload) =>
+    NotificationKit.getInstance().scheduleLocalNotification(options),
+
   /**
    * Cancel local notification
    */
-  cancel: (id: number) => NotificationKit.getInstance().cancelLocalNotification(id),
-  
+  cancel: (id: number) =>
+    NotificationKit.getInstance().cancelLocalNotification(id),
+
   /**
    * Get pending notifications
    */
-  getPending: () => NotificationKit.getInstance().getPendingLocalNotifications(),
-  
+  getPending: () =>
+    NotificationKit.getInstance().getPendingLocalNotifications(),
+
   /**
    * Show in-app notification
    */
-  showInApp: (options: InAppOptions) => NotificationKit.getInstance().showInAppNotification(options),
-  
+  showInApp: (options: InAppOptions): Promise<string> =>
+    NotificationKit.getInstance().showInAppNotification(options),
+
   /**
    * Success notification
    */
-  success: (title: string, message?: string) => 
+  success: (title: string, message?: string): Promise<string> =>
     NotificationKit.getInstance().showInAppNotification({
       title,
       message: message ?? title,
-      type: 'success'
+      type: 'success',
     }),
-  
+
   /**
    * Error notification
    */
-  error: (title: string, message?: string) =>
+  error: (title: string, message?: string): Promise<string> =>
     NotificationKit.getInstance().showInAppNotification({
       title,
       message: message ?? title,
-      type: 'error'
+      type: 'error',
     }),
-  
+
   /**
    * Warning notification
    */
-  warning: (title: string, message?: string) =>
+  warning: (title: string, message?: string): Promise<string> =>
     NotificationKit.getInstance().showInAppNotification({
       title,
       message: message ?? title,
-      type: 'warning'
+      type: 'warning',
     }),
-  
+
   /**
    * Info notification
    */
-  info: (title: string, message?: string) =>
+  info: (title: string, message?: string): Promise<string> =>
     NotificationKit.getInstance().showInAppNotification({
       title,
       message: message ?? title,
-      type: 'info'
+      type: 'info',
     }),
-  
+
   /**
    * Add event listener
    */
@@ -586,12 +647,12 @@ export const notifications = {
     event: T,
     callback: NotificationEventCallback<NotificationEventMap[T]>
   ) => NotificationKit.getInstance().on(event, callback),
-  
+
   /**
    * Remove event listener
    */
   off: <T extends keyof NotificationEventMap>(
     event: T,
     callback?: NotificationEventCallback<NotificationEventMap[T]>
-  ) => NotificationKit.getInstance().off(event, callback)
+  ) => NotificationKit.getInstance().off(event, callback),
 }

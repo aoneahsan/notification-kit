@@ -10,8 +10,12 @@ export default defineConfig({
       include: ['src/**/*'],
       exclude: ['**/*.test.*', '**/*.spec.*'],
       insertTypesEntry: true,
-      rollupTypes: true,
+      rollupTypes: false,
       tsconfigPath: './tsconfig.build.json',
+      copyDtsFiles: true,
+      staticImport: true,
+      skipDiagnostics: false,
+      logDiagnostics: true,
     }),
   ],
   resolve: {
@@ -61,13 +65,7 @@ export default defineConfig({
       },
     },
     sourcemap: true,
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
+    minify: false,
   },
   test: {
     globals: true,

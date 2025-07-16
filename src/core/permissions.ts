@@ -111,7 +111,7 @@ export class PermissionManager {
     }
 
     const permission = Notification.permission
-    
+
     // Map web permission values to our PermissionStatus type
     if (permission === 'default') {
       return 'prompt'
@@ -124,7 +124,9 @@ export class PermissionManager {
    */
   private async requestNativePermission(): Promise<boolean> {
     try {
-      const { PushNotifications } = await import('@capacitor/push-notifications')
+      const { PushNotifications } = await import(
+        '@capacitor/push-notifications'
+      )
       const result = await PushNotifications.requestPermissions()
       return result.receive === 'granted'
     } catch (error) {
@@ -138,9 +140,11 @@ export class PermissionManager {
    */
   private async checkNativePermission(): Promise<PermissionStatus> {
     try {
-      const { PushNotifications } = await import('@capacitor/push-notifications')
+      const { PushNotifications } = await import(
+        '@capacitor/push-notifications'
+      )
       const result = await PushNotifications.checkPermissions()
-      
+
       // Map Capacitor permission values to our PermissionStatus type
       if (result.receive === 'granted') {
         return 'granted'
@@ -184,5 +188,5 @@ export const permissions = {
   check: () => permissionManager.checkPermission(),
   isGranted: () => permissionManager.isPermissionGranted(),
   canRequest: () => permissionManager.canRequestPermission(),
-  openSettings: () => permissionManager.openSettings()
+  openSettings: () => permissionManager.openSettings(),
 }

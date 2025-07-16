@@ -1,10 +1,10 @@
 import { Capacitor } from '@capacitor/core'
-import type { 
-  Platform, 
-  PlatformCapabilities, 
-  PlatformDetection, 
+import type {
+  Platform,
+  PlatformCapabilities,
+  PlatformDetection,
   PlatformDefaults,
-  PlatformCompatibility
+  PlatformCompatibility,
 } from '@/types'
 
 /**
@@ -30,7 +30,8 @@ export class PlatformManager {
     const isMobile = platform === 'ios' || platform === 'android'
     const isDesktop = platform === 'electron' || (!isMobile && isWeb)
     const isTablet = false // TODO: Implement tablet detection
-    const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : ''
+    const userAgent =
+      typeof navigator !== 'undefined' ? navigator.userAgent : ''
     const version = this.getVersion()
 
     this.detection = {
@@ -46,7 +47,7 @@ export class PlatformManager {
       userAgent,
       supportedFeatures: this.getSupportedFeatures(platform),
       limitations: this.getLimitations(platform),
-      warnings: this.getWarnings(platform)
+      warnings: this.getWarnings(platform),
     }
 
     return this.detection
@@ -57,24 +58,27 @@ export class PlatformManager {
    */
   getCapabilities(platform?: Platform): PlatformCapabilities {
     const targetPlatform = platform || this.getPlatform()
-    
+
     if (this.capabilities && !platform) {
       return this.capabilities
     }
 
     const capabilities = this.buildCapabilities(targetPlatform)
-    
+
     if (!platform) {
       this.capabilities = capabilities
     }
-    
+
     return capabilities
   }
 
   /**
    * Check if feature is supported
    */
-  isSupported(feature: keyof PlatformCapabilities, platform?: Platform): boolean {
+  isSupported(
+    feature: keyof PlatformCapabilities,
+    platform?: Platform
+  ): boolean {
     const capabilities = this.getCapabilities(platform)
     return capabilities[feature] || false
   }
@@ -95,7 +99,7 @@ export class PlatformManager {
         notificationVibration: false,
         serviceWorker: true,
         webPushProtocol: true,
-        backgroundSync: true
+        backgroundSync: true,
       },
       ios: {
         pushNotifications: true,
@@ -108,7 +112,7 @@ export class PlatformManager {
         notificationVibration: true,
         criticalAlerts: true,
         provisionalAuth: true,
-        appBadge: true
+        appBadge: true,
       },
       android: {
         pushNotifications: true,
@@ -123,7 +127,7 @@ export class PlatformManager {
         notificationGrouping: true,
         notificationImportance: true,
         notificationVisibility: true,
-        foregroundService: true
+        foregroundService: true,
       },
       electron: {
         pushNotifications: true,
@@ -131,7 +135,7 @@ export class PlatformManager {
         inAppNotifications: true,
         notificationActions: true,
         notificationBadging: true,
-        notificationSound: true
+        notificationSound: true,
       },
       unknown: {
         pushNotifications: false,
@@ -141,8 +145,8 @@ export class PlatformManager {
         notificationActions: false,
         notificationBadging: false,
         notificationSound: false,
-        notificationVibration: false
-      }
+        notificationVibration: false,
+      },
     }
   }
 
@@ -156,78 +160,78 @@ export class PlatformManager {
         ios: true,
         android: true,
         electron: true,
-        notes: 'Requires service worker on web'
+        notes: 'Requires service worker on web',
       },
       localNotifications: {
         web: false,
         ios: true,
         android: true,
         electron: true,
-        notes: 'Not supported in browsers'
+        notes: 'Not supported in browsers',
       },
       inAppNotifications: {
         web: true,
         ios: true,
         android: true,
         electron: true,
-        notes: 'Custom implementation across platforms'
+        notes: 'Custom implementation across platforms',
       },
       notificationChannels: {
         web: false,
         ios: false,
         android: true,
         electron: false,
-        notes: 'Android 8.0+ only'
+        notes: 'Android 8.0+ only',
       },
       notificationActions: {
         web: true,
         ios: true,
         android: true,
         electron: true,
-        notes: 'Limited on some platforms'
+        notes: 'Limited on some platforms',
       },
       notificationBadging: {
         web: false,
         ios: true,
         android: true,
         electron: true,
-        notes: 'iOS and Android native support'
+        notes: 'iOS and Android native support',
       },
       criticalAlerts: {
         web: false,
         ios: true,
         android: false,
         electron: false,
-        notes: 'iOS only with special entitlement'
+        notes: 'iOS only with special entitlement',
       },
       provisionalAuth: {
         web: false,
         ios: true,
         android: false,
         electron: false,
-        notes: 'iOS 12+ quiet notifications'
+        notes: 'iOS 12+ quiet notifications',
       },
       backgroundSync: {
         web: true,
         ios: true,
         android: true,
         electron: true,
-        notes: 'Service worker required on web'
+        notes: 'Service worker required on web',
       },
       quietHours: {
         web: false,
         ios: true,
         android: true,
         electron: false,
-        notes: 'System-level feature'
+        notes: 'System-level feature',
       },
       doNotDisturb: {
         web: false,
         ios: true,
         android: true,
         electron: false,
-        notes: 'Respects system settings'
-      }
+        notes: 'Respects system settings',
+      },
     }
   }
 
@@ -299,7 +303,7 @@ export class PlatformManager {
       appBadge: false,
       quietHours: false,
       doNotDisturb: false,
-      ...platformDefaults
+      ...platformDefaults,
     }
   }
 
@@ -358,7 +362,10 @@ export class PlatformManager {
         if (typeof window !== 'undefined' && !window.isSecureContext) {
           warnings.push('HTTPS required for push notifications')
         }
-        if (typeof navigator !== 'undefined' && !('serviceWorker' in navigator)) {
+        if (
+          typeof navigator !== 'undefined' &&
+          !('serviceWorker' in navigator)
+        ) {
           warnings.push('Service Worker not supported')
         }
         break
@@ -386,9 +393,10 @@ export const platformManager = new PlatformManager()
  */
 export const platform = {
   detect: () => platformManager.detect(),
-  getCapabilities: (platform?: Platform) => platformManager.getCapabilities(platform),
-  isSupported: (feature: keyof PlatformCapabilities, platform?: Platform) => 
+  getCapabilities: (platform?: Platform) =>
+    platformManager.getCapabilities(platform),
+  isSupported: (feature: keyof PlatformCapabilities, platform?: Platform) =>
     platformManager.isSupported(feature, platform),
   getDefaults: () => platformManager.getDefaults(),
-  getCompatibility: () => platformManager.getCompatibility()
+  getCompatibility: () => platformManager.getCompatibility(),
 }

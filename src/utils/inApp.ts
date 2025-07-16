@@ -6,7 +6,8 @@ import type { InAppOptions, InAppConfig } from '@/types'
 export class InAppNotificationManager {
   private static instance: InAppNotificationManager | null = null
   private container: HTMLElement | null = null
-  private activeNotifications: Map<string, InAppNotificationInstance> = new Map()
+  private activeNotifications: Map<string, InAppNotificationInstance> =
+    new Map()
   private config: InAppConfig = {}
 
   private constructor() {
@@ -36,12 +37,12 @@ export class InAppNotificationManager {
   async show(options: InAppOptions): Promise<string> {
     const id = this.generateId()
     const notification = this.createNotification(id, options)
-    
+
     this.activeNotifications.set(id, notification)
-    
+
     if (this.container) {
       this.container.appendChild(notification.element)
-      
+
       // Trigger animation
       setTimeout(() => {
         notification.element.classList.add('notification-kit-enter')
@@ -66,9 +67,12 @@ export class InAppNotificationManager {
     if (!notification) return
 
     notification.element.classList.add('notification-kit-exit')
-    
+
     setTimeout(() => {
-      if (this.container && notification.element.parentNode === this.container) {
+      if (
+        this.container &&
+        notification.element.parentNode === this.container
+      ) {
         this.container.removeChild(notification.element)
       }
       this.activeNotifications.delete(id)
@@ -120,11 +124,14 @@ export class InAppNotificationManager {
   /**
    * Create notification element
    */
-  private createNotification(id: string, options: InAppOptions): InAppNotificationInstance {
+  private createNotification(
+    id: string,
+    options: InAppOptions
+  ): InAppNotificationInstance {
     const element = document.createElement('div')
     element.id = `notification-kit-${id}`
     element.className = `notification-kit-notification notification-kit-${options.type || 'info'} notification-kit-${options.position || 'top'}`
-    
+
     const styles = this.getNotificationStyles(options)
     Object.assign(element.style, styles)
 
@@ -147,7 +154,7 @@ export class InAppNotificationManager {
       id,
       element,
       options,
-      timestamp: new Date()
+      timestamp: new Date(),
     }
   }
 
@@ -266,8 +273,8 @@ export class InAppNotificationManager {
           cursor: pointer;
           transition: all 0.2s;
         `
-        
-        button.addEventListener('click', (e) => {
+
+        button.addEventListener('click', e => {
           e.stopPropagation()
           if (action.onClick) {
             action.onClick()
@@ -304,10 +311,12 @@ export class InAppNotificationManager {
         justify-content: center;
         transition: color 0.2s;
       `
-      
-      dismissButton.addEventListener('click', (e) => {
+
+      dismissButton.addEventListener('click', e => {
         e.stopPropagation()
-        const elementId = (e.target as HTMLElement).closest('.notification-kit-notification')?.id || ''
+        const elementId =
+          (e.target as HTMLElement).closest('.notification-kit-notification')
+            ?.id || ''
         const id = elementId.replace('notification-kit-', '')
         this.dismiss(id)
       })
@@ -322,17 +331,19 @@ export class InAppNotificationManager {
   /**
    * Get notification styles
    */
-  private getNotificationStyles(options: InAppOptions): Partial<CSSStyleDeclaration> {
+  private getNotificationStyles(
+    options: InAppOptions
+  ): Partial<CSSStyleDeclaration> {
     const position = options.position || 'top-center'
     const type = options.type || 'info'
-    
+
     const baseStyles: any = {
       position: 'fixed',
       pointerEvents: 'auto',
       transition: 'all 0.3s ease',
       transform: 'translateX(-50%)',
       left: '50%',
-      zIndex: '10000'
+      zIndex: '10000',
     }
 
     // Position styles
@@ -351,7 +362,7 @@ export class InAppNotificationManager {
       error: '#ef4444',
       warning: '#f59e0b',
       info: '#3b82f6',
-      custom: '#3b82f6'
+      custom: '#3b82f6',
     }
 
     const typeColor = typeColors[type] || typeColors.info
@@ -369,7 +380,7 @@ export class InAppNotificationManager {
       success: '✓',
       error: '✕',
       warning: '⚠',
-      info: 'ℹ'
+      info: 'ℹ',
     }
 
     return icons[type as keyof typeof icons] || icons.info
@@ -383,7 +394,7 @@ export class InAppNotificationManager {
       success: '#22c55e',
       error: '#ef4444',
       warning: '#f59e0b',
-      info: '#3b82f6'
+      info: '#3b82f6',
     }
 
     return colors[type as keyof typeof colors] || colors.info
@@ -466,11 +477,11 @@ export async function showInAppNotification(
   config?: InAppConfig
 ): Promise<string> {
   const manager = InAppNotificationManager.getInstance()
-  
+
   if (config) {
     manager.configure(config)
   }
-  
+
   return await manager.show(options)
 }
 
@@ -515,17 +526,37 @@ export const inApp = {
   dismissAll: dismissAllInAppNotifications,
   getActive: getActiveInAppNotifications,
   configure: configureInAppNotifications,
-  
+
   // Type-specific shortcuts
   success: (title: string, message?: string, options?: Partial<InAppOptions>) =>
-    showInAppNotification({ title, message: message || title, type: 'success', ...options }),
-  
+    showInAppNotification({
+      title,
+      message: message || title,
+      type: 'success',
+      ...options,
+    }),
+
   error: (title: string, message?: string, options?: Partial<InAppOptions>) =>
-    showInAppNotification({ title, message: message || title, type: 'error', ...options }),
-  
+    showInAppNotification({
+      title,
+      message: message || title,
+      type: 'error',
+      ...options,
+    }),
+
   warning: (title: string, message?: string, options?: Partial<InAppOptions>) =>
-    showInAppNotification({ title, message: message || title, type: 'warning', ...options }),
-  
+    showInAppNotification({
+      title,
+      message: message || title,
+      type: 'warning',
+      ...options,
+    }),
+
   info: (title: string, message?: string, options?: Partial<InAppOptions>) =>
-    showInAppNotification({ title, message: message || title, type: 'info', ...options })
+    showInAppNotification({
+      title,
+      message: message || title,
+      type: 'info',
+      ...options,
+    }),
 }

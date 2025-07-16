@@ -10,7 +10,7 @@ import type {
   FormattedLocalPayload,
   FormattedInAppPayload,
   FormattedScheduleOptions,
-  FormattedInAppOptions
+  FormattedInAppOptions,
 } from '@/types'
 
 /**
@@ -26,47 +26,51 @@ export class FormattingUtils {
       title: this.formatTitle(notification.title),
       body: this.formatBody(notification.body),
       data: notification.data || {},
-      formatted: true
+      formatted: true,
     }
   }
 
   /**
    * Format push notification payload
    */
-  static formatPushPayload(payload: PushNotificationPayload): FormattedPushPayload {
+  static formatPushPayload(
+    payload: PushNotificationPayload
+  ): FormattedPushPayload {
     const formatted: any = {
       ...payload,
       data: payload.data || {},
-      formatted: true
+      formatted: true,
     }
-    
+
     if (payload.notification) {
       formatted.notification = {
         ...payload.notification,
         title: this.formatTitle(payload.notification.title || ''),
-        body: this.formatBody(payload.notification.body || '')
+        body: this.formatBody(payload.notification.body || ''),
       }
     }
-    
+
     return formatted as FormattedPushPayload
   }
 
   /**
    * Format local notification payload
    */
-  static formatLocalPayload(payload: LocalNotificationPayload): FormattedLocalPayload {
+  static formatLocalPayload(
+    payload: LocalNotificationPayload
+  ): FormattedLocalPayload {
     const formatted: any = {
       ...payload,
       title: this.formatTitle(payload.title),
       body: this.formatBody(payload.body),
       extra: payload.extra || {},
-      formatted: true
+      formatted: true,
     }
-    
+
     if (payload.summaryText) {
       formatted.summaryText = this.formatTitle(payload.summaryText)
     }
-    
+
     return formatted as FormattedLocalPayload
   }
 
@@ -84,25 +88,27 @@ export class FormattingUtils {
       actions: options.actions,
       icon: options.icon,
       data: options.data || {},
-      formatted: true
+      formatted: true,
     }
-    
+
     if (options.title) {
       formatted.title = this.formatTitle(options.title)
     }
-    
+
     return formatted as FormattedInAppPayload
   }
 
   /**
    * Format schedule options
    */
-  static formatScheduleOptions(options: ScheduleOptions): FormattedScheduleOptions {
+  static formatScheduleOptions(
+    options: ScheduleOptions
+  ): FormattedScheduleOptions {
     const formatted: any = {
       ...options,
-      formatted: true
+      formatted: true,
     }
-    
+
     return formatted as FormattedScheduleOptions
   }
 
@@ -120,13 +126,13 @@ export class FormattingUtils {
       actions: options.actions,
       icon: options.icon,
       data: options.data || {},
-      formatted: true
+      formatted: true,
     }
-    
+
     if (options.title) {
       formatted.title = this.formatTitle(options.title)
     }
-    
+
     return formatted as FormattedInAppOptions
   }
 
@@ -277,8 +283,9 @@ export class FormattingUtils {
       return ''
     }
 
-    return text.replace(/\w\S*/g, (txt) => 
-      txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+    return text.replace(
+      /\w\S*/g,
+      txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
     )
   }
 
@@ -357,7 +364,9 @@ export class FormattingUtils {
   /**
    * Format notification data
    */
-  static formatNotificationData(data: Record<string, any>): Record<string, string> {
+  static formatNotificationData(
+    data: Record<string, any>
+  ): Record<string, string> {
     const formatted: Record<string, string> = {}
 
     for (const [key, value] of Object.entries(data)) {
@@ -385,27 +394,39 @@ export class FormattingUtils {
  * Convenience formatting functions
  */
 export const format = {
-  notification: (notification: Notification) => FormattingUtils.formatNotification(notification),
-  pushPayload: (payload: PushNotificationPayload) => FormattingUtils.formatPushPayload(payload),
-  localPayload: (payload: LocalNotificationPayload) => FormattingUtils.formatLocalPayload(payload),
-  inAppPayload: (options: InAppOptions) => FormattingUtils.formatInAppPayload(options),
-  scheduleOptions: (options: ScheduleOptions) => FormattingUtils.formatScheduleOptions(options),
-  inAppOptions: (options: InAppOptions) => FormattingUtils.formatInAppOptions(options),
+  notification: (notification: Notification) =>
+    FormattingUtils.formatNotification(notification),
+  pushPayload: (payload: PushNotificationPayload) =>
+    FormattingUtils.formatPushPayload(payload),
+  localPayload: (payload: LocalNotificationPayload) =>
+    FormattingUtils.formatLocalPayload(payload),
+  inAppPayload: (options: InAppOptions) =>
+    FormattingUtils.formatInAppPayload(options),
+  scheduleOptions: (options: ScheduleOptions) =>
+    FormattingUtils.formatScheduleOptions(options),
+  inAppOptions: (options: InAppOptions) =>
+    FormattingUtils.formatInAppOptions(options),
   title: (title: string) => FormattingUtils.formatTitle(title),
   body: (body: string) => FormattingUtils.formatBody(body),
-  timestamp: (timestamp: Date | string | number) => FormattingUtils.formatTimestamp(timestamp),
+  timestamp: (timestamp: Date | string | number) =>
+    FormattingUtils.formatTimestamp(timestamp),
   duration: (duration: number) => FormattingUtils.formatDuration(duration),
   fileSize: (bytes: number) => FormattingUtils.formatFileSize(bytes),
   platform: (platform: Platform) => FormattingUtils.formatPlatform(platform),
-  notificationType: (type: string) => FormattingUtils.formatNotificationType(type),
-  truncate: (text: string, maxLength: number) => FormattingUtils.truncateText(text, maxLength),
+  notificationType: (type: string) =>
+    FormattingUtils.formatNotificationType(type),
+  truncate: (text: string, maxLength: number) =>
+    FormattingUtils.truncateText(text, maxLength),
   capitalize: (text: string) => FormattingUtils.capitalize(text),
   titleCase: (text: string) => FormattingUtils.toTitleCase(text),
   relativeTime: (date: Date) => FormattingUtils.formatRelativeTime(date),
   absoluteTime: (date: Date) => FormattingUtils.formatAbsoluteTime(date),
-  notificationCount: (count: number) => FormattingUtils.formatNotificationCount(count),
+  notificationCount: (count: number) =>
+    FormattingUtils.formatNotificationCount(count),
   badgeCount: (count: number) => FormattingUtils.formatBadgeCount(count),
   stripHtml: (html: string) => FormattingUtils.stripHtml(html),
-  notificationData: (data: Record<string, any>) => FormattingUtils.formatNotificationData(data),
-  errorMessage: (error: Error | string) => FormattingUtils.formatErrorMessage(error)
+  notificationData: (data: Record<string, any>) =>
+    FormattingUtils.formatNotificationData(data),
+  errorMessage: (error: Error | string) =>
+    FormattingUtils.formatErrorMessage(error),
 }
