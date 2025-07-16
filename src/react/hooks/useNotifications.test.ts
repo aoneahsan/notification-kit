@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { renderHook, act, waitFor } from '@testing-library/react'
+import { renderHook, act } from '@testing-library/react'
 import { useNotifications } from './useNotifications'
 import { NotificationKit } from '@/core/NotificationKit'
 import type { NotificationConfig } from '@/types'
@@ -216,7 +216,9 @@ describe('useNotifications', () => {
       })
 
       expect(result.current.subscriptions).toContain('news')
-      expect(NotificationKit.getInstance().subscribe).toHaveBeenCalledWith('news')
+      expect(NotificationKit.getInstance().subscribe).toHaveBeenCalledWith(
+        'news'
+      )
     })
 
     it('should unsubscribe from topic', async () => {
@@ -252,7 +254,9 @@ describe('useNotifications', () => {
       })
 
       expect(result.current.subscriptions).not.toContain('news')
-      expect(NotificationKit.getInstance().unsubscribe).toHaveBeenCalledWith('news')
+      expect(NotificationKit.getInstance().unsubscribe).toHaveBeenCalledWith(
+        'news'
+      )
     })
   })
 
@@ -262,11 +266,17 @@ describe('useNotifications', () => {
       const { notifications } = await import('@/core/NotificationKit')
 
       await act(async () => {
-        const id = await result.current.showInApp.success('Success!', 'Operation completed')
+        const id = await result.current.showInApp.success(
+          'Success!',
+          'Operation completed'
+        )
         expect(id).toBe('success-id')
       })
 
-      expect(notifications.success).toHaveBeenCalledWith('Success!', 'Operation completed')
+      expect(notifications.success).toHaveBeenCalledWith(
+        'Success!',
+        'Operation completed'
+      )
     })
 
     it('should show error notification', async () => {
@@ -274,11 +284,17 @@ describe('useNotifications', () => {
       const { notifications } = await import('@/core/NotificationKit')
 
       await act(async () => {
-        const id = await result.current.showInApp.error('Error!', 'Something went wrong')
+        const id = await result.current.showInApp.error(
+          'Error!',
+          'Something went wrong'
+        )
         expect(id).toBe('error-id')
       })
 
-      expect(notifications.error).toHaveBeenCalledWith('Error!', 'Something went wrong')
+      expect(notifications.error).toHaveBeenCalledWith(
+        'Error!',
+        'Something went wrong'
+      )
     })
 
     it('should show warning notification', async () => {
@@ -286,11 +302,17 @@ describe('useNotifications', () => {
       const { notifications } = await import('@/core/NotificationKit')
 
       await act(async () => {
-        const id = await result.current.showInApp.warning('Warning!', 'Please be careful')
+        const id = await result.current.showInApp.warning(
+          'Warning!',
+          'Please be careful'
+        )
         expect(id).toBe('warning-id')
       })
 
-      expect(notifications.warning).toHaveBeenCalledWith('Warning!', 'Please be careful')
+      expect(notifications.warning).toHaveBeenCalledWith(
+        'Warning!',
+        'Please be careful'
+      )
     })
 
     it('should show info notification', async () => {
@@ -341,7 +363,9 @@ describe('useNotifications', () => {
         await result.current.scheduleNotification(options)
       })
 
-      expect(NotificationKit.getInstance().scheduleLocalNotification).toHaveBeenCalled()
+      expect(
+        NotificationKit.getInstance().scheduleLocalNotification
+      ).toHaveBeenCalled()
     })
 
     it('should cancel notification', async () => {
@@ -371,7 +395,9 @@ describe('useNotifications', () => {
         await result.current.cancelNotification(123)
       })
 
-      expect(NotificationKit.getInstance().cancelLocalNotification).toHaveBeenCalledWith(123)
+      expect(
+        NotificationKit.getInstance().cancelLocalNotification
+      ).toHaveBeenCalledWith(123)
     })
   })
 

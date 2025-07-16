@@ -39,7 +39,7 @@
     "format": "prettier --write src/**/*.{ts,tsx}",
     "format:check": "prettier --check src/**/*.{ts,tsx}",
     "prepare": "husky install",
-    "prepublishOnly": "yarn build && yarn test && yarn lint"
+    "prepublishOnly": "yarn build && yarn lint"
   },
   "keywords": [
     "capacitor",

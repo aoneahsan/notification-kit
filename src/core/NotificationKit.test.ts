@@ -110,7 +110,9 @@ describe('NotificationKit', () => {
         config: {},
       }
 
-      await expect(kit.init(config)).rejects.toThrow('Failed to initialize provider: Error: Unknown provider: invalid')
+      await expect(kit.init(config)).rejects.toThrow(
+        'Failed to initialize provider: Error: Unknown provider: invalid'
+      )
     })
 
     it('should not reinitialize if already initialized', async () => {
@@ -263,7 +265,7 @@ describe('NotificationKit', () => {
     it('should throw error if not initialized', async () => {
       // Destroy the current instance first
       await kit.destroy()
-      
+
       // Now create a fresh instance that's not initialized
       const uninitializedKit = NotificationKit.getInstance()
       await expect(uninitializedKit.requestPermission()).rejects.toThrow(
@@ -322,7 +324,6 @@ describe('NotificationKit', () => {
       expect(token).toBe('test-token')
       expect(mockProvider.getToken).toHaveBeenCalled()
     })
-
   })
 
   describe('subscription methods', () => {
@@ -379,7 +380,6 @@ describe('NotificationKit', () => {
       await kit.unsubscribe('news')
       expect(mockProvider.unsubscribe).toHaveBeenCalledWith('news')
     })
-
   })
 
   describe('event emitter', () => {

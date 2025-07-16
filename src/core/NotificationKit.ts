@@ -57,7 +57,7 @@ export class NotificationKit {
     if (this.initialized) {
       return
     }
-    
+
     try {
       this.config = config
       await this.initializeProvider()
@@ -293,7 +293,11 @@ export class NotificationKit {
     try {
       const { platform } = await import('@/core/platform')
       const capabilities = platform.getCapabilities()
-      return capabilities.pushNotifications || capabilities.localNotifications || false
+      return (
+        capabilities.pushNotifications ||
+        capabilities.localNotifications ||
+        false
+      )
     } catch (error) {
       console.warn('Failed to check support:', error)
       return false

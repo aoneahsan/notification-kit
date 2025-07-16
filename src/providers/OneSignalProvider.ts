@@ -368,11 +368,14 @@ export class OneSignalProvider implements NotificationProvider {
           title: notificationData.heading as string,
           body: notificationData.content as string,
         }
-        
-        if (notificationData.icon) notificationObj.icon = notificationData.icon as string
-        if (notificationData.badge) notificationObj.badge = notificationData.badge as string
-        if (notificationData.image) notificationObj.image = notificationData.image as string
-        
+
+        if (notificationData.icon)
+          notificationObj.icon = notificationData.icon as string
+        if (notificationData.badge)
+          notificationObj.badge = notificationData.badge as string
+        if (notificationData.image)
+          notificationObj.image = notificationData.image as string
+
         const payload: PushNotificationPayload = {
           data:
             (notificationData.additionalData as Record<string, unknown>) || {},
@@ -389,11 +392,14 @@ export class OneSignalProvider implements NotificationProvider {
           title: notificationData.heading as string,
           body: notificationData.content as string,
         }
-        
-        if (notificationData.icon) notificationObj.icon = notificationData.icon as string
-        if (notificationData.badge) notificationObj.badge = notificationData.badge as string
-        if (notificationData.image) notificationObj.image = notificationData.image as string
-        
+
+        if (notificationData.icon)
+          notificationObj.icon = notificationData.icon as string
+        if (notificationData.badge)
+          notificationObj.badge = notificationData.badge as string
+        if (notificationData.image)
+          notificationObj.image = notificationData.image as string
+
         const payload: PushNotificationPayload = {
           data:
             (notificationData.additionalData as Record<string, unknown>) || {},

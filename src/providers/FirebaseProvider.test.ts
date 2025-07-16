@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { FirebaseProvider } from './FirebaseProvider'
-import type { FirebaseConfig, PushNotificationPayload } from '@/types'
+import type { FirebaseConfig } from '@/types'
 
 // Mock Capacitor first
 vi.mock('@capacitor/core', () => ({
@@ -21,7 +21,7 @@ vi.mock('firebase/app', () => ({
 
 vi.mock('firebase/messaging', () => {
   const onMessageCallback = vi.fn()
-  
+
   return {
     getMessaging: vi.fn(() => mockMessaging),
     getToken: vi.fn(() => Promise.resolve('test-token')),
@@ -40,12 +40,14 @@ vi.mock('@capacitor/push-notifications', () => ({
     requestPermissions: vi.fn(() => Promise.resolve({ receive: 'granted' })),
     checkPermissions: vi.fn(() => Promise.resolve({ receive: 'prompt' })),
     register: vi.fn(() => Promise.resolve()),
-    addListener: vi.fn((event: string, callback: Function) => {
-      if (event === 'registration') {
-        setTimeout(() => callback({ value: 'native-token' }), 0)
+    addListener: vi.fn(
+      (event: string, callback: (data: { value: string }) => void) => {
+        if (event === 'registration') {
+          setTimeout(() => callback({ value: 'native-token' }), 0)
+        }
+        return { remove: vi.fn() }
       }
-      return { remove: vi.fn() }
-    }),
+    ),
     getToken: vi.fn(() => Promise.resolve({ value: 'native-token' })),
   },
 }))
@@ -73,36 +75,36 @@ describe('FirebaseProvider', () => {
   describe('init', () => {
     it('should initialize Firebase app', async () => {
       const { initializeApp } = await import('firebase/app')
-      
+
       await provider.init(mockConfig)
-      
+
       expect(initializeApp).toHaveBeenCalledWith(mockConfig)
     })
 
     it('should handle multiple initialization attempts', async () => {
       const { initializeApp } = await import('firebase/app')
-      
+
       await provider.init(mockConfig)
       await provider.init(mockConfig)
-      
+
       // Firebase provider doesn't check for existing app, so it will try to init twice
       expect(initializeApp).toHaveBeenCalledTimes(2)
     })
 
     it('should initialize messaging for web platform', async () => {
       const { getMessaging } = await import('firebase/messaging')
-      
+
       await provider.init(mockConfig)
-      
+
       expect(getMessaging).toHaveBeenCalled()
     })
 
     it('should initialize for native platform', async () => {
       const { Capacitor } = await import('@capacitor/core')
       ;(Capacitor.isNativePlatform as any).mockReturnValue(true)
-      
+
       await provider.init(mockConfig)
-      
+
       // Provider initializes successfully for native platforms
       expect(provider).toBeDefined()
     })
@@ -116,7 +118,7 @@ describe('FirebaseProvider', () => {
     it('should request permission on web', async () => {
       const { Capacitor } = await import('@capacitor/core')
       ;(Capacitor.isNativePlatform as any).mockReturnValue(false)
-      
+
       // Mock Notification API
       const mockNotification = {
         permission: 'default',
@@ -127,9 +129,9 @@ describe('FirebaseProvider', () => {
         writable: true,
         configurable: true,
       })
-      
+
       const result = await provider.requestPermission()
-      
+
       expect(result).toBe(true)
       expect(mockNotification.requestPermission).toHaveBeenCalled()
     })
@@ -137,14 +139,16 @@ describe('FirebaseProvider', () => {
     it('should request permission on native platform', async () => {
       const { Capacitor } = await import('@capacitor/core')
       ;(Capacitor.isNativePlatform as any).mockReturnValue(true)
-      
-      const { PushNotifications } = await import('@capacitor/push-notifications')
+
+      const { PushNotifications } = await import(
+        '@capacitor/push-notifications'
+      )
       ;(PushNotifications.requestPermissions as any).mockResolvedValue({
         receive: 'granted',
       })
-      
+
       const result = await provider.requestPermission()
-      
+
       expect(result).toBe(true)
       expect(PushNotifications.requestPermissions).toHaveBeenCalled()
     })
@@ -152,14 +156,16 @@ describe('FirebaseProvider', () => {
     it('should return false if permission denied', async () => {
       const { Capacitor } = await import('@capacitor/core')
       ;(Capacitor.isNativePlatform as any).mockReturnValue(true)
-      
-      const { PushNotifications } = await import('@capacitor/push-notifications')
+
+      const { PushNotifications } = await import(
+        '@capacitor/push-notifications'
+      )
       ;(PushNotifications.requestPermissions as any).mockResolvedValueOnce({
         receive: 'denied',
       })
-      
+
       const result = await provider.requestPermission()
-      
+
       expect(result).toBe(false)
     })
   })
@@ -172,30 +178,32 @@ describe('FirebaseProvider', () => {
     it('should check permission on web', async () => {
       const { Capacitor } = await import('@capacitor/core')
       ;(Capacitor.isNativePlatform as any).mockReturnValue(false)
-      
+
       // Mock Notification API
       Object.defineProperty(window, 'Notification', {
         value: { permission: 'granted' },
         writable: true,
         configurable: true,
       })
-      
+
       const result = await provider.checkPermission()
-      
+
       expect(result).toBe('granted')
     })
 
     it('should check permission on native platform', async () => {
       const { Capacitor } = await import('@capacitor/core')
       ;(Capacitor.isNativePlatform as any).mockReturnValue(true)
-      
-      const { PushNotifications } = await import('@capacitor/push-notifications')
+
+      const { PushNotifications } = await import(
+        '@capacitor/push-notifications'
+      )
       ;(PushNotifications.checkPermissions as any).mockResolvedValueOnce({
         receive: 'prompt',
       })
-      
+
       const result = await provider.checkPermission()
-      
+
       expect(result).toBe('prompt')
     })
   })
@@ -208,18 +216,18 @@ describe('FirebaseProvider', () => {
     it('should get token on web', async () => {
       const { getToken } = await import('firebase/messaging')
       ;(getToken as any).mockResolvedValue('web-token')
-      
+
       const token = await provider.getToken()
-      
+
       expect(token).toBe('web-token')
     })
 
     it('should get token on native platform', async () => {
       const { Capacitor } = await import('@capacitor/core')
       ;(Capacitor.isNativePlatform as any).mockReturnValue(true)
-      
+
       const token = await provider.getToken()
-      
+
       // Native platforms return the cached token from Firebase
       expect(token).toBe('test-token')
     })
@@ -227,8 +235,10 @@ describe('FirebaseProvider', () => {
     it('should throw error if no messaging instance', async () => {
       // Destroy to clear messaging instance
       await provider.destroy()
-      
-      await expect(provider.getToken()).rejects.toThrow('Firebase messaging not initialized')
+
+      await expect(provider.getToken()).rejects.toThrow(
+        'Firebase messaging not initialized'
+      )
     })
   })
 
@@ -240,11 +250,11 @@ describe('FirebaseProvider', () => {
     it('should register message listener', async () => {
       const callback = vi.fn()
       provider.onMessage(callback)
-      
+
       // Simulate message reception
       const messaging = await import('firebase/messaging')
       const onMessageCallback = (messaging as any).__onMessageCallback
-      
+
       if (onMessageCallback) {
         onMessageCallback({
           notification: {
@@ -256,7 +266,7 @@ describe('FirebaseProvider', () => {
           collapseKey: 'test-key',
         })
       }
-      
+
       // Check the transformed payload structure matches FirebaseProvider implementation
       expect(callback).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -275,7 +285,7 @@ describe('FirebaseProvider', () => {
     it('should register token refresh listener', async () => {
       const callback = vi.fn()
       const unsubscribe = provider.onTokenRefresh(callback)
-      
+
       // Verify the callback is registered and can be unsubscribed
       expect(typeof unsubscribe).toBe('function')
       unsubscribe()
@@ -284,7 +294,7 @@ describe('FirebaseProvider', () => {
     it('should register error listener', () => {
       const callback = vi.fn()
       const unsubscribe = provider.onError(callback)
-      
+
       // Verify the callback is registered and can be unsubscribed
       expect(typeof unsubscribe).toBe('function')
       unsubscribe()
@@ -294,9 +304,9 @@ describe('FirebaseProvider', () => {
   describe('capabilities', () => {
     it('should return provider capabilities', async () => {
       await provider.init(mockConfig)
-      
+
       const capabilities = await provider.getCapabilities()
-      
+
       expect(capabilities).toMatchObject({
         pushNotifications: true,
         topics: true,
@@ -314,17 +324,17 @@ describe('FirebaseProvider', () => {
   describe('destroy', () => {
     it('should clean up resources', async () => {
       await provider.init(mockConfig)
-      
+
       const { deleteToken } = await import('firebase/messaging')
-      
+
       // Set a token first
       await provider.getToken()
-      
+
       await provider.destroy()
-      
+
       // Should have deleted the token
       expect(deleteToken).toHaveBeenCalled()
-      
+
       // Provider can be reinitialized
       await expect(provider.init(mockConfig)).resolves.not.toThrow()
     })

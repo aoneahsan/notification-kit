@@ -83,7 +83,7 @@ describe('ValidationUtils', () => {
 
     it('should accept valid priorities', () => {
       const validPriorities = ['min', 'low', 'default', 'high', 'max']
-      
+
       validPriorities.forEach(priority => {
         const notification = {
           title: 'Test',
@@ -115,7 +115,7 @@ describe('ValidationUtils', () => {
 
     it('should accept valid visibilities', () => {
       const validVisibilities = ['public', 'private', 'secret']
-      
+
       validVisibilities.forEach(visibility => {
         const notification = {
           title: 'Test',
@@ -198,7 +198,7 @@ describe('ValidationUtils', () => {
 
     it('should accept valid types', () => {
       const validTypes = ['success', 'error', 'warning', 'info', 'custom']
-      
+
       validTypes.forEach(type => {
         const options: InAppOptions = {
           message: 'Test',
@@ -252,7 +252,7 @@ describe('ValidationUtils', () => {
         'bottom-right',
         'center',
       ]
-      
+
       validPositions.forEach(position => {
         const options: InAppOptions = {
           message: 'Test',
@@ -337,7 +337,7 @@ describe('ValidationUtils', () => {
 
     it('should accept valid importance levels', () => {
       const validLevels = ['none', 'min', 'low', 'default', 'high', 'max']
-      
+
       validLevels.forEach(importance => {
         const channel = {
           id: 'test',
@@ -354,7 +354,7 @@ describe('ValidationUtils', () => {
   describe('permissionStatus', () => {
     it('should validate valid permission statuses', () => {
       const validStatuses = ['prompt', 'granted', 'denied']
-      
+
       validStatuses.forEach(status => {
         expect(ValidationUtils.permissionStatus(status)).toBe(true)
       })
@@ -368,7 +368,7 @@ describe('ValidationUtils', () => {
   describe('platform', () => {
     it('should validate valid platforms', () => {
       const validPlatforms = ['web', 'ios', 'android', 'electron']
-      
+
       validPlatforms.forEach(platform => {
         expect(ValidationUtils.platform(platform)).toBe(true)
       })
@@ -382,7 +382,7 @@ describe('ValidationUtils', () => {
   describe('provider', () => {
     it('should validate valid providers', () => {
       const validProviders = ['firebase', 'onesignal']
-      
+
       validProviders.forEach(provider => {
         expect(ValidationUtils.provider(provider)).toBe(true)
       })

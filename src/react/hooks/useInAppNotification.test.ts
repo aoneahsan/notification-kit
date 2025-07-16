@@ -79,7 +79,10 @@ describe('useInAppNotification', () => {
       const { showInAppNotification } = await import('@/utils/inApp')
 
       await act(async () => {
-        const id = await result.current.success('Success!', 'Operation completed')
+        const id = await result.current.success(
+          'Success!',
+          'Operation completed'
+        )
         expect(id).toBe('notification-id')
       })
 
@@ -148,7 +151,11 @@ describe('useInAppNotification', () => {
       // Mock active notifications after show
       const { getActiveInAppNotifications } = await import('@/utils/inApp')
       ;(getActiveInAppNotifications as any).mockReturnValue([
-        { id: 'notification-id', options: { message: 'Test' }, timestamp: new Date() },
+        {
+          id: 'notification-id',
+          options: { message: 'Test' },
+          timestamp: new Date(),
+        },
       ])
 
       // Show notification
@@ -317,7 +324,10 @@ describe('useInAppNotificationPersistence', () => {
         timestamp: '2024-01-01T00:00:00.000Z',
       },
     ]
-    localStorage.setItem('notification-kit-persisted', JSON.stringify(persistedData))
+    localStorage.setItem(
+      'notification-kit-persisted',
+      JSON.stringify(persistedData)
+    )
 
     const { result } = renderHook(() => useInAppNotificationPersistence())
 
@@ -328,7 +338,10 @@ describe('useInAppNotificationPersistence', () => {
 
   it('should clear persistence', () => {
     // Set up localStorage
-    localStorage.setItem('notification-kit-persisted', JSON.stringify([{ id: 'test' }]))
+    localStorage.setItem(
+      'notification-kit-persisted',
+      JSON.stringify([{ id: 'test' }])
+    )
 
     const { result } = renderHook(() => useInAppNotificationPersistence())
 
