@@ -74,9 +74,9 @@
     "node": ">=20.0.0"
   },
   "peerDependencies": {
+    "@capacitor/core": ">=6.0.0",
     "react": ">=18.0.0",
-    "react-dom": ">=18.0.0",
-    "@capacitor/core": ">=6.0.0"
+    "react-dom": ">=18.0.0"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -87,13 +87,14 @@
     }
   },
   "dependencies": {
-    "@capacitor/push-notifications": "^7.0.0",
     "@capacitor/local-notifications": "^7.0.0",
     "@capacitor/preferences": "^7.0.0",
+    "@capacitor/push-notifications": "^7.0.0",
     "firebase": "^11.10.0",
     "react-onesignal": "^3.0.1"
   },
   "devDependencies": {
+    "@capacitor/core": "^7.0.0",
     "@types/node": "^22.10.1",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.6",
@@ -113,7 +114,7 @@
     "prettier": "^3.3.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "typescript": "^5.8.4",
+    "typescript": "^5.8.3",
     "vite": "^7.0.4",
     "vite-plugin-dts": "^4.3.0",
     "vitest": "^3.0.4"
