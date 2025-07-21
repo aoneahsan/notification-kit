@@ -1,6 +1,6 @@
 {
   "name": "notification-kit",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "A unified notification library for React + Capacitor apps. One API for push notifications, in-app notifications, and local notifications across Web, iOS, and Android.",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
