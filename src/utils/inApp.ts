@@ -130,7 +130,7 @@ export class InAppNotificationManager {
   ): InAppNotificationInstance {
     const element = document.createElement('div')
     element.id = `notification-kit-${id}`
-    element.className = `notification-kit-notification notification-kit-${options.type || 'info'} notification-kit-${options.position || 'top'}`
+    element.className = `notification-kit-notification notification-kit-${options.type ?? 'info'} notification-kit-${options.position ?? 'top'}`
 
     const styles = this.getNotificationStyles(options)
     Object.assign(element.style, styles)
@@ -334,8 +334,8 @@ export class InAppNotificationManager {
   private getNotificationStyles(
     options: InAppOptions
   ): Partial<CSSStyleDeclaration> {
-    const position = options.position || 'top-center'
-    const type = options.type || 'info'
+    const position = options.position ?? 'top-center'
+    const type = options.type ?? 'info'
 
     const baseStyles: any = {
       position: 'fixed',

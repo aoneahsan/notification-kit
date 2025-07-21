@@ -565,9 +565,35 @@ export const notifications = {
   checkPermission: () => NotificationKit.getInstance().checkPermission(),
 
   /**
+   * Check if permission is granted
+   */
+  isPermissionGranted: async () => {
+    const kit = NotificationKit.getInstance()
+    const status = await kit.checkPermission()
+    return status === 'granted'
+  },
+
+  /**
+   * Get permission state
+   */
+  getPermissionState: () => NotificationKit.getInstance().checkPermission(),
+
+  /**
    * Get token
    */
   getToken: () => NotificationKit.getInstance().getToken(),
+
+  /**
+   * Delete token
+   */
+  deleteToken: async () => {
+    const kit = NotificationKit.getInstance()
+    if (kit.provider && 'deleteToken' in kit.provider) {
+      await kit.provider.deleteToken()
+    } else {
+      throw new Error('deleteToken not supported by current provider')
+    }
+  },
 
   /**
    * Subscribe to topic
@@ -597,6 +623,84 @@ export const notifications = {
    */
   getPending: () =>
     NotificationKit.getInstance().getPendingLocalNotifications(),
+
+  /**
+   * Get delivered notifications
+   */
+  getDelivered: async () => {
+    const kit = NotificationKit.getInstance()
+    if (kit.platform === 'web') {
+      throw new Error('getDelivered not supported on web platform')
+    }
+    const { LocalNotifications } = await import('@capacitor/local-notifications')
+    const result = await LocalNotifications.getDeliveredNotifications()
+    return result.notifications
+  },
+
+  /**
+   * Remove delivered notification
+   */
+  removeDelivered: async (id: string) => {
+    const kit = NotificationKit.getInstance()
+    if (kit.platform === 'web') {
+      throw new Error('removeDelivered not supported on web platform')
+    }
+    const { LocalNotifications } = await import('@capacitor/local-notifications')
+    await LocalNotifications.removeDeliveredNotifications({
+      notifications: [{ id }]
+    })
+  },
+
+  /**
+   * Remove all delivered notifications
+   */
+  removeAllDelivered: async () => {
+    const kit = NotificationKit.getInstance()
+    if (kit.platform === 'web') {
+      throw new Error('removeAllDelivered not supported on web platform')
+    }
+    const { LocalNotifications } = await import('@capacitor/local-notifications')
+    await LocalNotifications.removeAllDeliveredNotifications()
+  },
+
+  /**
+   * Cancel all pending notifications
+   */
+  cancelAll: async () => {
+    const kit = NotificationKit.getInstance()
+    if (kit.platform === 'web') {
+      throw new Error('cancelAll not supported on web platform')
+    }
+    const { LocalNotifications } = await import('@capacitor/local-notifications')
+    const pending = await LocalNotifications.getPending()
+    if (pending.notifications.length > 0) {
+      await LocalNotifications.cancel({
+        notifications: pending.notifications.map(n => ({ id: n.id }))
+      })
+    }
+  },
+
+  /**
+   * Listen for push notifications
+   */
+  onPush: (callback: (notification: any) => void) => {
+    return NotificationKit.getInstance().on('notificationReceived', (event) => {
+      if (event.type === 'push') {
+        callback(event.payload)
+      }
+    })
+  },
+
+  /**
+   * Listen for push notification opened
+   */
+  onPushOpened: (callback: (notification: any) => void) => {
+    return NotificationKit.getInstance().on('notificationActionPerformed', (event) => {
+      if (event.action === 'tap') {
+        callback(event.notification)
+      }
+    })
+  },
 
   /**
    * Show in-app notification
