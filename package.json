@@ -1,6 +1,6 @@
 {
   "name": "notification-kit",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A unified notification library for React + Capacitor apps. One API for push notifications, in-app notifications, and local notifications across Web, iOS, and Android.",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
@@ -71,12 +71,12 @@
   },
   "homepage": "https://github.com/aoneahsan/notification-kit#readme",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "peerDependencies": {
-    "@capacitor/core": ">=6.0.0",
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "@capacitor/core": ">=7.4.2",
+    "react": ">=19.1.0",
+    "react-dom": ">=19.1.0"
   },
   "peerDependenciesMeta": {
     "react": {
