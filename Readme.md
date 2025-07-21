@@ -2,14 +2,38 @@
 
 A unified notification library for React + Capacitor apps. One API for push notifications, in-app notifications, and local notifications across Web, iOS, and Android.
 
-## Features
+## 📚 Documentation
 
-- 🔔 **Push Notifications** - Firebase & OneSignal support
-- 💬 **In-App Notifications** - Toast-style notifications within your app
-- ⏰ **Local Notifications** - Schedule notifications with a simple API
-- 📱 **Cross-Platform** - Works on Web, iOS, and Android
-- 🔧 **TypeScript** - Full type safety and autocompletion
-- 🎯 **Zero Config** - No providers or wrappers needed
+- [**Full Documentation**](https://github.com/aoneahsan/notification-kit/wiki) - Comprehensive guides and API reference
+- [**API Reference**](https://github.com/aoneahsan/notification-kit/wiki/api-reference) - Complete API documentation
+- [**Quick Start Guide**](https://github.com/aoneahsan/notification-kit/wiki/quick-start) - Get up and running in minutes
+- [**Examples**](https://github.com/aoneahsan/notification-kit/tree/main/examples) - Sample implementations
+- [**Migration Guide**](https://github.com/aoneahsan/notification-kit/wiki/migration) - Upgrade from previous versions
+- [**Troubleshooting**](https://github.com/aoneahsan/notification-kit/wiki/troubleshooting) - Common issues and solutions
+
+## ✨ Features
+
+### Core Capabilities
+- 🔔 **Push Notifications** - Firebase & OneSignal support with automatic token management
+- 💬 **In-App Notifications** - Beautiful toast-style notifications with customizable themes
+- ⏰ **Local Notifications** - Advanced scheduling with recurring patterns and actions
+- 📱 **Cross-Platform** - Unified API for Web, iOS, and Android platforms
+- 🔧 **Full TypeScript Support** - Complete type safety and IntelliSense
+- 🎯 **Zero Configuration** - No providers or wrappers needed, works out of the box
+- 🎨 **Customizable** - Extensive theming and styling options
+- 🔐 **Permission Management** - Built-in permission handling across platforms
+- 📊 **Notification Channels** - Android channel support for notification categories
+- 🎬 **Rich Media** - Support for images, progress bars, and action buttons
+- 🔄 **Topic Subscriptions** - Easy topic-based notification targeting
+- 🎯 **Event Handling** - Comprehensive event system for all notification lifecycle events
+- 💾 **Offline Support** - Queue notifications when offline
+- 🌐 **i18n Ready** - Full internationalization support
+- ♿ **Accessible** - WCAG 2.1 compliant notifications
+- 🚀 **Performance Optimized** - Lightweight with tree-shaking support
+- 🔒 **Secure** - No sensitive data logging, secure token handling
+- 📦 **Modular** - Import only what you need
+- 🧪 **Well Tested** - Comprehensive test coverage
+- 📖 **Extensively Documented** - Detailed docs with examples
 
 ## Installation
 
@@ -569,11 +593,14 @@ notify.show(options)
 
 MIT
 
-## Links
+## 🔗 Links
 
-- [Package at NPM](https://www.npmjs.com/package/notification-kit)
-- [Examples](https://github.com/aoneahsan/notification-kit/examples)
-- [Issues](https://github.com/aoneahsan/notification-kit/issues)
+- [**NPM Package**](https://www.npmjs.com/package/notification-kit) - View on NPM registry
+- [**GitHub Repository**](https://github.com/aoneahsan/notification-kit) - Source code and contributions
+- [**Documentation**](https://github.com/aoneahsan/notification-kit/wiki) - Full documentation
+- [**Examples**](https://github.com/aoneahsan/notification-kit/tree/main/examples) - Sample implementations
+- [**Issues**](https://github.com/aoneahsan/notification-kit/issues) - Report bugs or request features
+- [**Changelog**](https://github.com/aoneahsan/notification-kit/releases) - Version history
 
 ## 👨‍💻 Author
 
@@ -583,6 +610,10 @@ MIT
 - GitHub: [@aoneahsan](https://github.com/aoneahsan)
 - Email: [aoneahsan@gmail.com](mailto:aoneahsan@gmail.com)
 
-## general rules
+## 🎯 Design Principles
 
-package/project should be fully type safe, should be fully framework independent, documentation should be as comprehensive as possible, and package/project should provide as many options to end user as possible
+- **Type Safe** - Full TypeScript support with comprehensive type definitions
+- **Framework Independent** - Core functionality works without any framework
+- **Comprehensive Documentation** - Extensive docs covering every feature
+- **Maximum Flexibility** - All options configurable with sensible defaults
+- **User-First API** - Intuitive API design prioritizing developer experience

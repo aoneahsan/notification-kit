@@ -39,6 +39,17 @@ export {
   inApp,
 } from './utils/inApp'
 
+// Capacitor type conversion utilities
+export {
+  toCapacitorImportance,
+  fromCapacitorImportance,
+  toCapacitorChannel,
+  fromCapacitorChannel,
+  toCapacitorLocalNotification,
+  fromCapacitorLocalNotification,
+  toPlatformCapabilities,
+} from './utils/capacitor-types'
+
 // Types - Core
 export type {
   NotificationConfig,
@@ -135,6 +146,7 @@ export type {
 
 // Types - Utilities
 export type { ValidationError, ValidationWarning } from './types'
+export type { InAppNotificationInstance } from './utils/inApp'
 
 // Import NotificationKit for default export and quick start
 import { NotificationKit, notifications } from './core/NotificationKit'
