@@ -106,16 +106,19 @@ export class InAppNotificationManager {
 
     this.container = document.createElement('div')
     this.container.id = 'notification-kit-container'
-    this.container.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      pointer-events: none;
-      z-index: 9999;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    `
+    const containerStyles = this.config?.container?.style ?? {}
+    const defaultStyles = {
+      position: 'fixed',
+      top: '0',
+      left: '0',
+      right: '0',
+      bottom: '0',
+      pointerEvents: 'none',
+      zIndex: containerStyles.zIndex ?? '9999',
+      fontFamily: containerStyles.fontFamily ?? "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    }
+    
+    Object.assign(this.container.style, defaultStyles, containerStyles)
 
     document.body.appendChild(this.container)
     this.addStyles()

@@ -22,7 +22,7 @@ export class PermissionManager {
         return await this.requestNativePermission()
       }
     } catch (error) {
-      console.error('Permission request failed:', error)
+      // Permission request failed, return false
       return false
     }
   }
@@ -38,7 +38,7 @@ export class PermissionManager {
         return await this.checkNativePermission()
       }
     } catch (error) {
-      console.error('Permission check failed:', error)
+      // Permission check failed, assume denied
       return 'denied'
     }
   }
@@ -75,9 +75,9 @@ export class PermissionManager {
       //   optionAndroid: 'APPLICATION_DETAILS_SETTINGS',
       //   optionIOS: 'App-Prefs:NOTIFICATIONS_ID'
       // })
-      console.warn('Native settings functionality not yet implemented')
+      // Native settings functionality not yet implemented
     } catch (error) {
-      console.error('Failed to open settings:', error)
+      // Failed to open settings
       throw error
     }
   }
@@ -130,7 +130,7 @@ export class PermissionManager {
       const result = await PushNotifications.requestPermissions()
       return result.receive === 'granted'
     } catch (error) {
-      console.error('Native permission request failed:', error)
+      // Native permission request failed
       return false
     }
   }
@@ -156,7 +156,7 @@ export class PermissionManager {
         return 'unknown'
       }
     } catch (error) {
-      console.error('Native permission check failed:', error)
+      // Native permission check failed
       return 'denied'
     }
   }

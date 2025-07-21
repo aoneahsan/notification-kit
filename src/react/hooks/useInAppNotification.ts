@@ -144,7 +144,7 @@ export function useInAppNotification(): UseInAppNotificationReturn {
           try {
             callback(notification)
           } catch (error) {
-            console.error('Error in show callback:', error)
+            // Show callback error, continue to next callback
           }
         })
       }
@@ -245,7 +245,7 @@ export function useInAppNotification(): UseInAppNotificationReturn {
         try {
           callback(id)
         } catch (error) {
-          console.error('Error in dismiss callback:', error)
+          // Dismiss callback error, continue to next callback
         }
       })
     },
@@ -269,7 +269,7 @@ export function useInAppNotification(): UseInAppNotificationReturn {
         try {
           callback(id)
         } catch (error) {
-          console.error('Error in dismiss callback:', error)
+          // Dismiss callback error, continue to next callback
         }
       })
     })
@@ -423,7 +423,7 @@ export function useInAppNotificationQueue() {
         setQueue(prev => prev.slice(1))
       }
     } catch (error) {
-      console.error('Error processing notification queue:', error)
+      // Queue processing error, continue
     } finally {
       setIsProcessing(false)
     }
@@ -479,7 +479,7 @@ export function useInAppNotificationPersistence() {
         JSON.stringify(serialized)
       )
     } catch (error) {
-      console.error('Failed to persist notifications:', error)
+      // Persistence failed, continue without saving
     }
   }, [activeNotifications])
 
@@ -499,7 +499,7 @@ export function useInAppNotificationPersistence() {
         )
       }
     } catch (error) {
-      console.error('Failed to load persisted notifications:', error)
+      // Failed to load persisted notifications, continue with empty list
     }
   }, [])
 
@@ -511,7 +511,7 @@ export function useInAppNotificationPersistence() {
       localStorage.removeItem('notification-kit-persisted')
       setPersistedNotifications([])
     } catch (error) {
-      console.error('Failed to clear persisted notifications:', error)
+      // Failed to clear persisted notifications, continue
     }
   }, [])
 

@@ -35,7 +35,7 @@ export class StorageManager {
         await this.setNativeStorage(fullKey, data)
       }
     } catch (error) {
-      console.error('Storage set failed:', error)
+      // Storage set failed
       throw error
     }
   }
@@ -61,7 +61,7 @@ export class StorageManager {
 
       return this.parseData<T>(data)
     } catch (error) {
-      console.error('Storage get failed:', error)
+      // Storage get failed
       return null
     }
   }
@@ -79,7 +79,7 @@ export class StorageManager {
         await this.removeNativeStorage(fullKey)
       }
     } catch (error) {
-      console.error('Storage remove failed:', error)
+      // Storage remove failed
       throw error
     }
   }
@@ -95,7 +95,7 @@ export class StorageManager {
         await this.clearNativeStorage()
       }
     } catch (error) {
-      console.error('Storage clear failed:', error)
+      // Storage clear failed
       throw error
     }
   }
@@ -111,7 +111,7 @@ export class StorageManager {
         return await this.getNativeStorageKeys()
       }
     } catch (error) {
-      console.error('Storage keys failed:', error)
+      // Storage keys failed
       return []
     }
   }
@@ -286,7 +286,7 @@ export class StorageManager {
 
       return parsed.value
     } catch (error) {
-      console.error('Data parsing failed:', error)
+      // Data parsing failed
       return null
     }
   }

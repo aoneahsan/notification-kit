@@ -125,7 +125,7 @@ export function useNotifications(): UseNotificationsReturn {
           try {
             token = await notificationKitRef.current.getToken()
           } catch (error) {
-            console.warn('Failed to get token:', error)
+            // Token retrieval failed, continue without token
           }
         }
 
@@ -194,7 +194,7 @@ export function useNotifications(): UseNotificationsReturn {
         try {
           token = await notificationKitRef.current.getToken()
         } catch (error) {
-          console.warn('Failed to get token after permission granted:', error)
+          // Token retrieval failed after permission, continue without token
         }
       }
 
@@ -544,7 +544,7 @@ export function useNotifications(): UseNotificationsReturn {
         try {
           token = await notificationKitRef.current.getToken()
         } catch (error) {
-          console.warn('Failed to get token during refresh:', error)
+          // Token refresh failed, continue without token
         }
       }
 
@@ -570,7 +570,7 @@ export function useNotifications(): UseNotificationsReturn {
     try {
       return await notificationKitRef.current.isSupported()
     } catch (error) {
-      console.warn('Failed to check support:', error)
+      // Support check failed, assume not supported
       return false
     }
   }, [])

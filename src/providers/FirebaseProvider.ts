@@ -516,7 +516,7 @@ export class FirebaseProvider implements NotificationProvider {
       try {
         listener(error)
       } catch (listenerError) {
-        console.error('Error in error listener:', listenerError)
+        // Silently ignore error listener failures
       }
     })
   }

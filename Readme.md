@@ -253,29 +253,29 @@ NotificationKit.init({
 });
 ```
 
-### Custom In-App Notification Component
+### Custom In-App Notification Styles
 
 ```tsx
-// Define custom component
-const CustomNotification = ({ notification, dismiss }) => (
-	<div className='my-notification'>
-		<h4>{notification.title}</h4>
-		<p>{notification.message}</p>
-		<button onClick={dismiss}>×</button>
-	</div>
-);
-
-// Set it globally
-NotificationKit.setInAppComponent(CustomNotification);
-
-// Or use default with custom theme
-NotificationKit.setTheme({
-	success: '#10B981',
-	error: '#EF4444',
-	warning: '#F59E0B',
-	info: '#3B82F6',
-	borderRadius: '8px',
-	animation: 'slide', // 'slide' | 'fade' | 'pop'
+// Configure in-app notification styles during initialization
+NotificationKit.init({
+	provider: 'firebase',
+	config: { /* ... */ },
+	inApp: {
+		theme: {
+			success: '#10B981',
+			error: '#EF4444',
+			warning: '#F59E0B',
+			info: '#3B82F6',
+		},
+		position: 'top-right',
+		duration: 4000,
+	},
+	styles: {
+		container: {
+			zIndex: 9999,
+			fontFamily: 'system-ui',
+		},
+	},
 });
 ```
 
@@ -399,34 +399,22 @@ await notifications.schedule({
 ### Action Handlers
 
 ```tsx
-// Register action handler
-notifications.onAction((action) => {
-	switch (action.id) {
-		case 'complete':
-			markTaskComplete(action.notificationId);
-			break;
-		case 'snooze':
-			snoozeNotification(action.notificationId);
-			break;
-		case 'reply':
-			sendReply(action.inputText);
-			break;
+// Handle notification actions
+notifications.on('notificationActionPerformed', (event) => {
+	if (event.actionId) {
+		switch (event.actionId) {
+			case 'complete':
+				markTaskComplete(event.notification.id);
+				break;
+			case 'snooze':
+				snoozeNotification(event.notification.id);
+				break;
+			case 'reply':
+				sendReply(event.actionData);
+				break;
+		}
 	}
 });
-```
-
-### Quiet Hours
-
-```tsx
-// Set quiet hours
-notifications.setQuietHours({
-	start: { hour: 22, minute: 0 }, // 10 PM
-	end: { hour: 8, minute: 0 }, // 8 AM
-	timezone: 'America/New_York',
-});
-
-// Check if in quiet hours
-const isQuiet = await notifications.isInQuietHours();
 ```
 
 ### Notification Groups
@@ -489,8 +477,6 @@ await notifications.schedule(options);
 
 ```tsx
 NotificationKit.init(config: NotificationConfig)
-NotificationKit.setTheme(theme: Theme)
-NotificationKit.setInAppComponent(component: React.FC)
 ```
 
 ### Core Functions
@@ -526,8 +512,8 @@ notifications.deleteChannel(id: string): Promise<void>
 notifications.listChannels(): Promise<Channel[]>
 
 // Events
-notifications.onAction(callback: (action) => void): () => void
-notifications.onDismiss(callback: (id) => void): () => void
+notifications.on(event: string, callback: (data) => void): () => void
+notifications.off(event: string, callback?: (data) => void): void
 ```
 
 ### React Hooks
