@@ -1,5 +1,5 @@
-import { Capacitor } from '@capacitor/core'
 import type { PermissionStatus, Platform } from '@/types'
+import { DynamicLoader } from '@/utils/dynamic-loader'
 
 /**
  * Permission management utilities
@@ -8,7 +8,7 @@ export class PermissionManager {
   private platform: Platform
 
   constructor() {
-    this.platform = this.detectPlatform()
+    this.platform = 'unknown' // Will be detected on first use
   }
 
   /**
@@ -16,6 +16,7 @@ export class PermissionManager {
    */
   async requestPermission(): Promise<boolean> {
     try {
+      await this.ensurePlatform()
       if (this.platform === 'web') {
         return await this.requestWebPermission()
       } else {
@@ -32,6 +33,7 @@ export class PermissionManager {
    */
   async checkPermission(): Promise<PermissionStatus> {
     try {
+      await this.ensurePlatform()
       if (this.platform === 'web') {
         return await this.checkWebPermission()
       } else {
@@ -124,9 +126,11 @@ export class PermissionManager {
    */
   private async requestNativePermission(): Promise<boolean> {
     try {
-      const { PushNotifications } = await import(
-        '@capacitor/push-notifications'
-      )
+      const pushNotificationsModule = await DynamicLoader.loadPushNotifications()
+      if (!pushNotificationsModule) {
+        throw new Error('Push notifications are not available on this platform')
+      }
+      const { PushNotifications } = pushNotificationsModule
       const result = await PushNotifications.requestPermissions()
       return result.receive === 'granted'
     } catch (error) {
@@ -140,9 +144,11 @@ export class PermissionManager {
    */
   private async checkNativePermission(): Promise<PermissionStatus> {
     try {
-      const { PushNotifications } = await import(
-        '@capacitor/push-notifications'
-      )
+      const pushNotificationsModule = await DynamicLoader.loadPushNotifications()
+      if (!pushNotificationsModule) {
+        throw new Error('Push notifications are not available on this platform')
+      }
+      const { PushNotifications } = pushNotificationsModule
       const result = await PushNotifications.checkPermissions()
 
       // Map Capacitor permission values to our PermissionStatus type
@@ -164,13 +170,16 @@ export class PermissionManager {
   /**
    * Detect current platform
    */
-  private detectPlatform(): Platform {
-    if (Capacitor.isNativePlatform()) {
-      return Capacitor.getPlatform() as Platform
-    } else if (typeof window !== 'undefined') {
-      return 'web'
-    } else {
-      return 'unknown'
+  private async detectPlatform(): Promise<Platform> {
+    return DynamicLoader.getPlatform()
+  }
+  
+  /**
+   * Ensure platform is detected
+   */
+  private async ensurePlatform(): Promise<void> {
+    if (this.platform === 'unknown') {
+      this.platform = await this.detectPlatform()
     }
   }
 }

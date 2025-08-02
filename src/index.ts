@@ -5,7 +5,7 @@
  * across Web, iOS, and Android platforms.
  *
  * @author Ahsan Mahmood <aoneahsan@gmail.com>
- * @version 1.0.0
+ * @version 2.0.0
  * @license MIT
  */
 
@@ -158,14 +158,14 @@ export default NotificationKit
 /**
  * Version information
  */
-export const version = '1.0.0'
+export const version = '2.0.0'
 
 /**
  * Library metadata
  */
 export const metadata = {
   name: 'notification-kit',
-  version: '1.0.0',
+  version: '2.0.0',
   description: 'A unified notification library for React + Capacitor apps',
   author: 'Ahsan Mahmood',
   license: 'MIT',
