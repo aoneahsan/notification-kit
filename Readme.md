@@ -34,14 +34,55 @@ A unified notification library for React + Capacitor apps. One API for push noti
 - 📦 **Modular** - Import only what you need
 - 🧪 **Well Tested** - Comprehensive test coverage
 - 📖 **Extensively Documented** - Detailed docs with examples
+- 🪶 **Zero Dependencies** - Core library has no runtime dependencies
 
 ## Installation
 
+### Basic Installation (Zero Dependencies!)
+
 ```bash
 npm install notification-kit
-npm install @capacitor/push-notifications @capacitor/local-notifications
-npx cap sync
 ```
+
+That's it! notification-kit has **zero runtime dependencies** and will work immediately for basic functionality.
+
+### Optional Dependencies
+
+Install only what you need:
+
+```bash
+# For Capacitor-based apps (iOS/Android)
+npm install @capacitor/core @capacitor/push-notifications @capacitor/local-notifications @capacitor/preferences
+npx cap sync
+
+# For Firebase push notifications
+npm install firebase
+
+# For OneSignal push notifications  
+npm install react-onesignal
+
+# For React hooks
+npm install react react-dom
+```
+
+The library will gracefully handle missing dependencies and show helpful error messages only when you try to use features that require them.
+
+## Zero-Dependency Architecture
+
+notification-kit is designed with a unique zero-dependency architecture:
+
+- ✅ **Works immediately** - Basic features work without any dependencies
+- ✅ **Install only what you need** - Add provider SDKs only when using them
+- ✅ **Graceful degradation** - Missing dependencies won't break your app
+- ✅ **Clear error messages** - Helpful guidance when dependencies are needed
+- ✅ **Provider-less design** - No React providers or wrappers required
+- ✅ **Dynamic imports** - Dependencies are loaded only when used
+
+This means you can:
+- Use in-app notifications without any additional packages
+- Add push notifications later by installing only your chosen provider
+- Use in simple React apps without Capacitor
+- Keep your bundle size minimal
 
 ## Quick Start
 

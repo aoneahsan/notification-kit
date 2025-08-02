@@ -54,7 +54,11 @@
     "mobile",
     "ios",
     "android",
-    "web"
+    "web",
+    "zero-dependencies",
+    "provider-less",
+    "framework-independent",
+    "lightweight"
   ],
   "author": {
     "name": "Ahsan Mahmood",
