@@ -1,4 +1,5 @@
 import type { Platform } from '@/types'
+import { Logger } from '@/utils/logger'
 
 /**
  * Dynamic dependency loader with runtime checks
@@ -41,7 +42,7 @@ export class DynamicLoader {
         this.loadedModules.set(cacheKey, module)
         return module
       } catch (error) {
-        console.warn('Capacitor Core not available. Some features may be limited.')
+        Logger.warn('Capacitor Core not available. Some features may be limited.')
         return null
       }
     })()
