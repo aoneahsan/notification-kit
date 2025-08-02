@@ -1,4 +1,4 @@
-import { Capacitor } from '@capacitor/core'
+import { DynamicLoader } from '@/utils/dynamic-loader'
 import type {
   NotificationConfig,
   NotificationProvider,
@@ -37,7 +37,7 @@ export class NotificationKit {
   private capabilities: PlatformCapabilities | null = null
 
   private constructor() {
-    this.detectPlatform()
+    // Platform detection will be done during init
   }
 
   /**
@@ -60,6 +60,7 @@ export class NotificationKit {
 
     try {
       this.config = config
+      await this.detectPlatform()
       await this.initializeProvider()
       await this.setupEventListeners()
       this.initialized = true
@@ -211,9 +212,11 @@ export class NotificationKit {
   ): Promise<void> {
     this.ensureInitialized()
     try {
-      const { LocalNotifications } = await import(
-        '@capacitor/local-notifications'
-      )
+      const localNotificationsModule = await DynamicLoader.loadLocalNotifications()
+      if (!localNotificationsModule) {
+        throw new Error('Local notifications are not available on this platform')
+      }
+      const { LocalNotifications } = localNotificationsModule
       const capacitorNotification = toCapacitorLocalNotification(options)
       await LocalNotifications.schedule({
         notifications: [capacitorNotification],
@@ -231,9 +234,11 @@ export class NotificationKit {
   async cancelLocalNotification(id: string | number): Promise<void> {
     this.ensureInitialized()
     try {
-      const { LocalNotifications } = await import(
-        '@capacitor/local-notifications'
-      )
+      const localNotificationsModule = await DynamicLoader.loadLocalNotifications()
+      if (!localNotificationsModule) {
+        throw new Error('Local notifications are not available on this platform')
+      }
+      const { LocalNotifications } = localNotificationsModule
       const numericId = typeof id === 'string' ? parseInt(id, 10) : id
       await LocalNotifications.cancel({
         notifications: [{ id: numericId }],
@@ -251,9 +256,11 @@ export class NotificationKit {
   async getPendingLocalNotifications(): Promise<Notification[]> {
     this.ensureInitialized()
     try {
-      const { LocalNotifications } = await import(
-        '@capacitor/local-notifications'
-      )
+      const localNotificationsModule = await DynamicLoader.loadLocalNotifications()
+      if (!localNotificationsModule) {
+        throw new Error('Local notifications are not available on this platform')
+      }
+      const { LocalNotifications } = localNotificationsModule
       const result = await LocalNotifications.getPending()
       return result.notifications.map(n => ({
         id: n.id.toString(),
@@ -292,7 +299,7 @@ export class NotificationKit {
   async isSupported(): Promise<boolean> {
     try {
       const { platform } = await import('@/core/platform')
-      const capabilities = platform.getCapabilities()
+      const capabilities = await platform.getCapabilities()
       return (
         capabilities.pushNotifications ||
         capabilities.localNotifications ||
@@ -313,9 +320,11 @@ export class NotificationKit {
     }
 
     try {
-      const { LocalNotifications } = await import(
-        '@capacitor/local-notifications'
-      )
+      const localNotificationsModule = await DynamicLoader.loadLocalNotifications()
+      if (!localNotificationsModule) {
+        throw new Error('Local notifications are not available on this platform')
+      }
+      const { LocalNotifications } = localNotificationsModule
       const capacitorChannel = toCapacitorChannel(channel)
       await LocalNotifications.createChannel(capacitorChannel)
       this.emit('channelCreated', { channel })
@@ -334,9 +343,11 @@ export class NotificationKit {
     }
 
     try {
-      const { LocalNotifications } = await import(
-        '@capacitor/local-notifications'
-      )
+      const localNotificationsModule = await DynamicLoader.loadLocalNotifications()
+      if (!localNotificationsModule) {
+        throw new Error('Local notifications are not available on this platform')
+      }
+      const { LocalNotifications } = localNotificationsModule
       await LocalNotifications.deleteChannel({ id: channelId })
       this.emit('channelDeleted', { channelId })
     } catch (error) {
@@ -354,9 +365,11 @@ export class NotificationKit {
     }
 
     try {
-      const { LocalNotifications } = await import(
-        '@capacitor/local-notifications'
-      )
+      const localNotificationsModule = await DynamicLoader.loadLocalNotifications()
+      if (!localNotificationsModule) {
+        throw new Error('Local notifications are not available on this platform')
+      }
+      const { LocalNotifications } = localNotificationsModule
       const result = await LocalNotifications.listChannels()
       return result.channels.map(channel => fromCapacitorChannel(channel))
     } catch (error) {
@@ -431,14 +444,8 @@ export class NotificationKit {
   /**
    * Detect current platform
    */
-  private detectPlatform(): void {
-    if (Capacitor.isNativePlatform()) {
-      this.platform = Capacitor.getPlatform() as Platform
-    } else if (typeof window !== 'undefined') {
-      this.platform = 'web'
-    } else {
-      this.platform = 'unknown'
-    }
+  private async detectPlatform(): Promise<void> {
+    this.platform = await DynamicLoader.getPlatform()
   }
 
   /**
@@ -633,7 +640,11 @@ export const notifications = {
     if (kit.getPlatform() === 'web') {
       throw new Error('getDelivered not supported on web platform')
     }
-    const { LocalNotifications } = await import('@capacitor/local-notifications')
+    const localNotificationsModule = await DynamicLoader.loadLocalNotifications()
+    if (!localNotificationsModule) {
+      throw new Error('Local notifications are not available on this platform')
+    }
+    const { LocalNotifications } = localNotificationsModule
     const result = await LocalNotifications.getDeliveredNotifications()
     return result.notifications
   },
@@ -646,7 +657,11 @@ export const notifications = {
     if (kit.getPlatform() === 'web') {
       throw new Error('removeDelivered not supported on web platform')
     }
-    const { LocalNotifications } = await import('@capacitor/local-notifications')
+    const localNotificationsModule = await DynamicLoader.loadLocalNotifications()
+    if (!localNotificationsModule) {
+      throw new Error('Local notifications are not available on this platform')
+    }
+    const { LocalNotifications } = localNotificationsModule
     await LocalNotifications.removeDeliveredNotifications({
       notifications: [{ id: parseInt(id, 10), title: '', body: '' }]
     })
@@ -660,7 +675,11 @@ export const notifications = {
     if (kit.getPlatform() === 'web') {
       throw new Error('removeAllDelivered not supported on web platform')
     }
-    const { LocalNotifications } = await import('@capacitor/local-notifications')
+    const localNotificationsModule = await DynamicLoader.loadLocalNotifications()
+    if (!localNotificationsModule) {
+      throw new Error('Local notifications are not available on this platform')
+    }
+    const { LocalNotifications } = localNotificationsModule
     await LocalNotifications.removeAllDeliveredNotifications()
   },
 
@@ -672,7 +691,11 @@ export const notifications = {
     if (kit.getPlatform() === 'web') {
       throw new Error('cancelAll not supported on web platform')
     }
-    const { LocalNotifications } = await import('@capacitor/local-notifications')
+    const localNotificationsModule = await DynamicLoader.loadLocalNotifications()
+    if (!localNotificationsModule) {
+      throw new Error('Local notifications are not available on this platform')
+    }
+    const { LocalNotifications } = localNotificationsModule
     const pending = await LocalNotifications.getPending()
     if (pending.notifications.length > 0) {
       await LocalNotifications.cancel({

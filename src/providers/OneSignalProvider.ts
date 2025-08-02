@@ -1,5 +1,5 @@
-import OneSignal from 'react-onesignal'
-import { Capacitor } from '@capacitor/core'
+import { DynamicLoader } from '@/utils/dynamic-loader'
+import type OneSignal from 'react-onesignal'
 import type {
   NotificationProvider,
   OneSignalConfig,
@@ -17,6 +17,7 @@ export class OneSignalProvider implements NotificationProvider {
 
   private config: OneSignalConfig | null = null
   private initialized = false
+  private OneSignal: typeof OneSignal | null = null
   private messageListeners: ((payload: PushNotificationPayload) => void)[] = []
   private tokenListeners: ((token: string) => void)[] = []
   private errorListeners: ((error: Error) => void)[] = []
@@ -52,7 +53,14 @@ export class OneSignalProvider implements NotificationProvider {
         initOptions.welcomeNotification = config.welcomeNotification
       }
 
-      await OneSignal.init(initOptions as Parameters<typeof OneSignal.init>[0])
+      // Dynamically import OneSignal
+      const oneSignalModule = await DynamicLoader.loadOneSignal()
+      if (!oneSignalModule) {
+        throw new Error('OneSignal is required but not installed')
+      }
+      this.OneSignal = oneSignalModule.default
+      
+      await this.OneSignal.init(initOptions as Parameters<typeof this.OneSignal.init>[0])
 
       this.initialized = true
       await this.setupEventListeners()
@@ -86,7 +94,8 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async requestPermission(): Promise<boolean> {
     try {
-      if (Capacitor.isNativePlatform()) {
+      const isNative = await DynamicLoader.isNativePlatform()
+      if (isNative) {
         return await this.requestNativePermission()
       } else {
         return await this.requestWebPermission()
@@ -102,7 +111,8 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async checkPermission(): Promise<PermissionStatus> {
     try {
-      if (Capacitor.isNativePlatform()) {
+      const isNative = await DynamicLoader.isNativePlatform()
+      if (isNative) {
         return await this.checkNativePermission()
       } else {
         return await this.checkWebPermission()
@@ -118,8 +128,11 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async getToken(): Promise<string> {
     try {
+      if (!this.OneSignal) {
+        throw new Error('OneSignal not initialized')
+      }
       const playerId = await (
-        OneSignal as unknown as { getUserId: () => Promise<string> }
+        this.OneSignal as unknown as { getUserId: () => Promise<string> }
       ).getUserId()
 
       if (playerId) {
@@ -153,8 +166,11 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async deleteToken(): Promise<void> {
     try {
+      if (!this.OneSignal) {
+        throw new Error('OneSignal not initialized')
+      }
       await (
-        OneSignal as unknown as { logoutUser: () => Promise<void> }
+        this.OneSignal as unknown as { logoutUser: () => Promise<void> }
       ).logoutUser()
     } catch (error) {
       this.handleError(new Error(`Token deletion failed: ${error}`))
@@ -167,8 +183,11 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async subscribe(topic: string): Promise<void> {
     try {
+      if (!this.OneSignal) {
+        throw new Error('OneSignal not initialized')
+      }
       await (
-        OneSignal as unknown as {
+        this.OneSignal as unknown as {
           sendTag: (key: string, value: string) => Promise<void>
         }
       ).sendTag(topic, 'true')
@@ -183,8 +202,11 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async unsubscribe(topic: string): Promise<void> {
     try {
+      if (!this.OneSignal) {
+        throw new Error('OneSignal not initialized')
+      }
       await (
-        OneSignal as unknown as { deleteTag: (key: string) => Promise<void> }
+        this.OneSignal as unknown as { deleteTag: (key: string) => Promise<void> }
       ).deleteTag(topic)
     } catch (error) {
       this.handleError(new Error(`Tag unsubscription failed: ${error}`))
@@ -197,8 +219,11 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async getSubscriptions(): Promise<string[]> {
     try {
+      if (!this.OneSignal) {
+        throw new Error('OneSignal not initialized')
+      }
       const tags = await (
-        OneSignal as unknown as {
+        this.OneSignal as unknown as {
           getTags: () => Promise<Record<string, string>>
         }
       ).getTags()
@@ -292,7 +317,8 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async isSupported(): Promise<boolean> {
     try {
-      if (Capacitor.isNativePlatform()) {
+      const isNative = await DynamicLoader.isNativePlatform()
+      if (isNative) {
         return true
       } else {
         // Check if we're in a supported browser environment
@@ -311,7 +337,7 @@ export class OneSignalProvider implements NotificationProvider {
    * Get provider capabilities
    */
   async getCapabilities(): Promise<ProviderCapabilities> {
-    const isWeb = !Capacitor.isNativePlatform()
+    const isWeb = !(await DynamicLoader.isNativePlatform())
 
     return {
       pushNotifications: true,
@@ -357,7 +383,10 @@ export class OneSignalProvider implements NotificationProvider {
    */
   private async setupEventListeners(): Promise<void> {
     try {
-      const oneSignalInstance = OneSignal as unknown as {
+      if (!this.OneSignal) {
+        throw new Error('OneSignal not initialized')
+      }
+      const oneSignalInstance = this.OneSignal as unknown as {
         on: (event: string, callback: (data: unknown) => void) => void
       }
 
@@ -435,9 +464,11 @@ export class OneSignalProvider implements NotificationProvider {
    */
   private async requestNativePermission(): Promise<boolean> {
     try {
-      const { PushNotifications } = await import(
-        '@capacitor/push-notifications'
-      )
+      const pushNotificationsModule = await DynamicLoader.loadPushNotifications()
+      if (!pushNotificationsModule) {
+        throw new Error('Push notifications require @capacitor/push-notifications')
+      }
+      const { PushNotifications } = pushNotificationsModule
       const result = await PushNotifications.requestPermissions()
       return result.receive === 'granted'
     } catch (_error) {
@@ -450,9 +481,11 @@ export class OneSignalProvider implements NotificationProvider {
    */
   private async checkNativePermission(): Promise<PermissionStatus> {
     try {
-      const { PushNotifications } = await import(
-        '@capacitor/push-notifications'
-      )
+      const pushNotificationsModule = await DynamicLoader.loadPushNotifications()
+      if (!pushNotificationsModule) {
+        throw new Error('Push notifications require @capacitor/push-notifications')
+      }
+      const { PushNotifications } = pushNotificationsModule
       const result = await PushNotifications.checkPermissions()
 
       if (result.receive === 'granted') {
@@ -474,8 +507,11 @@ export class OneSignalProvider implements NotificationProvider {
    */
   private async requestWebPermission(): Promise<boolean> {
     try {
+      if (!this.OneSignal) {
+        throw new Error('OneSignal not initialized')
+      }
       const permission = await (
-        OneSignal as unknown as { showSlidedownPrompt: () => Promise<boolean> }
+        this.OneSignal as unknown as { showSlidedownPrompt: () => Promise<boolean> }
       ).showSlidedownPrompt()
       return permission
     } catch (_error) {
@@ -493,8 +529,11 @@ export class OneSignalProvider implements NotificationProvider {
    */
   private async checkWebPermission(): Promise<PermissionStatus> {
     try {
+      if (!this.OneSignal) {
+        throw new Error('OneSignal not initialized')
+      }
       const isSubscribed = await (
-        OneSignal as unknown as {
+        this.OneSignal as unknown as {
           isPushNotificationsEnabled: () => Promise<boolean>
         }
       ).isPushNotificationsEnabled()

@@ -1,4 +1,3 @@
-import { Capacitor } from '@capacitor/core'
 import type {
   Platform,
   PlatformCapabilities,
@@ -6,6 +5,7 @@ import type {
   PlatformDefaults,
   PlatformCompatibility,
 } from '@/types'
+import { DynamicLoader } from '@/utils/dynamic-loader'
 
 /**
  * Platform detection and capability management
@@ -17,13 +17,13 @@ export class PlatformManager {
   /**
    * Detect current platform
    */
-  detect(): PlatformDetection {
+  async detect(): Promise<PlatformDetection> {
     if (this.detection) {
       return this.detection
     }
 
-    const platform = this.getPlatform()
-    const isCapacitor = Capacitor.isNativePlatform()
+    const platform = await this.getPlatform()
+    const isCapacitor = await DynamicLoader.isNativePlatform()
     const isHybrid = isCapacitor
     const isNative = isCapacitor
     const isWeb = platform === 'web'
@@ -56,8 +56,8 @@ export class PlatformManager {
   /**
    * Get platform capabilities
    */
-  getCapabilities(platform?: Platform): PlatformCapabilities {
-    const targetPlatform = platform || this.getPlatform()
+  async getCapabilities(platform?: Platform): Promise<PlatformCapabilities> {
+    const targetPlatform = platform || await this.getPlatform()
 
     if (this.capabilities && !platform) {
       return this.capabilities
@@ -75,11 +75,11 @@ export class PlatformManager {
   /**
    * Check if feature is supported
    */
-  isSupported(
+  async isSupported(
     feature: keyof PlatformCapabilities,
     platform?: Platform
-  ): boolean {
-    const capabilities = this.getCapabilities(platform)
+  ): Promise<boolean> {
+    const capabilities = await this.getCapabilities(platform)
     return capabilities[feature] || false
   }
 
@@ -238,17 +238,8 @@ export class PlatformManager {
   /**
    * Get current platform
    */
-  private getPlatform(): Platform {
-    if (Capacitor.isNativePlatform()) {
-      return Capacitor.getPlatform() as Platform
-    } else if (typeof window !== 'undefined') {
-      if (window.navigator.userAgent.includes('Electron')) {
-        return 'electron'
-      }
-      return 'web'
-    } else {
-      return 'unknown'
-    }
+  private async getPlatform(): Promise<Platform> {
+    return DynamicLoader.getPlatform()
   }
 
   /**

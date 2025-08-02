@@ -157,3 +157,6 @@ types/
 
 # Storybook build outputs
 storybook-static
+
+# Test files
+test-no-deps.js

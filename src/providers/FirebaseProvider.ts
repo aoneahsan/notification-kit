@@ -1,14 +1,6 @@
-import { initializeApp, type FirebaseApp } from 'firebase/app'
-import {
-  getMessaging,
-  getToken,
-  onMessage,
-  deleteToken,
-  type Messaging,
-  type MessagePayload,
-  isSupported,
-} from 'firebase/messaging'
-import { Capacitor } from '@capacitor/core'
+import { DynamicLoader } from '@/utils/dynamic-loader'
+import type { FirebaseApp } from 'firebase/app'
+import type { Messaging, MessagePayload } from 'firebase/messaging'
 import type {
   NotificationProvider,
   FirebaseConfig,
@@ -54,7 +46,12 @@ export class FirebaseProvider implements NotificationProvider {
         firebaseConfig.measurementId = config.measurementId
       }
 
-      this.app = initializeApp(firebaseConfig)
+      // Dynamically import and initialize Firebase
+      const firebaseApp = await DynamicLoader.loadFirebase()
+      if (!firebaseApp) {
+        throw new Error('Firebase is required but not installed')
+      }
+      this.app = firebaseApp.initializeApp(firebaseConfig)
 
       // Initialize messaging if supported
       if (await this.isSupported()) {
@@ -77,7 +74,10 @@ export class FirebaseProvider implements NotificationProvider {
       }
 
       if (this.currentToken && this.messaging) {
-        await deleteToken(this.messaging)
+        const firebaseMessaging = await DynamicLoader.loadFirebaseMessaging()
+        if (firebaseMessaging) {
+          await firebaseMessaging.deleteToken(this.messaging)
+        }
       }
 
       this.app = null
@@ -98,7 +98,8 @@ export class FirebaseProvider implements NotificationProvider {
    */
   async requestPermission(): Promise<boolean> {
     try {
-      if (Capacitor.isNativePlatform()) {
+      const isNative = await DynamicLoader.isNativePlatform()
+      if (isNative) {
         return await this.requestNativePermission()
       } else {
         return await this.requestWebPermission()
@@ -114,7 +115,8 @@ export class FirebaseProvider implements NotificationProvider {
    */
   async checkPermission(): Promise<PermissionStatus> {
     try {
-      if (Capacitor.isNativePlatform()) {
+      const isNative = await DynamicLoader.isNativePlatform()
+      if (isNative) {
         return await this.checkNativePermission()
       } else {
         return await this.checkWebPermission()
@@ -134,7 +136,11 @@ export class FirebaseProvider implements NotificationProvider {
     }
 
     try {
-      const token = await getToken(
+      const firebaseMessaging = await DynamicLoader.loadFirebaseMessaging()
+      if (!firebaseMessaging) {
+        throw new Error('Firebase messaging is required but not installed')
+      }
+      const token = await firebaseMessaging.getToken(
         this.messaging,
         this.config?.vapidKey
           ? {
@@ -166,7 +172,10 @@ export class FirebaseProvider implements NotificationProvider {
     try {
       // Delete current token
       if (this.currentToken) {
-        await deleteToken(this.messaging)
+        const firebaseMessaging = await DynamicLoader.loadFirebaseMessaging()
+        if (firebaseMessaging) {
+          await firebaseMessaging.deleteToken(this.messaging)
+        }
       }
 
       // Get new token
@@ -188,7 +197,11 @@ export class FirebaseProvider implements NotificationProvider {
     }
 
     try {
-      await deleteToken(this.messaging)
+      const firebaseMessaging = await DynamicLoader.loadFirebaseMessaging()
+      if (!firebaseMessaging) {
+        throw new Error('Firebase messaging is required but not installed')
+      }
+      await firebaseMessaging.deleteToken(this.messaging)
       this.currentToken = null
     } catch (error) {
       this.handleError(new Error(`Token deletion failed: ${error}`))
@@ -296,10 +309,12 @@ export class FirebaseProvider implements NotificationProvider {
    */
   async isSupported(): Promise<boolean> {
     try {
-      if (Capacitor.isNativePlatform()) {
+      const isNative = await DynamicLoader.isNativePlatform()
+      if (isNative) {
         return true
       } else {
-        return await isSupported()
+        const firebaseMessaging = await DynamicLoader.loadFirebaseMessaging()
+        return firebaseMessaging ? await firebaseMessaging.isSupported() : false
       }
     } catch (_error) {
       return false
@@ -310,7 +325,7 @@ export class FirebaseProvider implements NotificationProvider {
    * Get provider capabilities
    */
   async getCapabilities(): Promise<ProviderCapabilities> {
-    const isWeb = !Capacitor.isNativePlatform()
+    const isWeb = !(await DynamicLoader.isNativePlatform())
 
     return {
       pushNotifications: true,
@@ -360,10 +375,15 @@ export class FirebaseProvider implements NotificationProvider {
     }
 
     try {
-      this.messaging = getMessaging(this.app)
+      const firebaseMessaging = await DynamicLoader.loadFirebaseMessaging()
+      if (!firebaseMessaging) {
+        throw new Error('Firebase messaging is required but not installed')
+      }
+      
+      this.messaging = firebaseMessaging.getMessaging(this.app)
 
       // Setup message listener
-      this.unsubscribeMessage = onMessage(
+      this.unsubscribeMessage = firebaseMessaging.onMessage(
         this.messaging,
         (payload: MessagePayload) => {
           const notificationPayload: PushNotificationPayload = {
@@ -400,9 +420,11 @@ export class FirebaseProvider implements NotificationProvider {
    */
   private async requestNativePermission(): Promise<boolean> {
     try {
-      const { PushNotifications } = await import(
-        '@capacitor/push-notifications'
-      )
+      const pushNotificationsModule = await DynamicLoader.loadPushNotifications()
+      if (!pushNotificationsModule) {
+        throw new Error('Push notifications require @capacitor/push-notifications')
+      }
+      const { PushNotifications } = pushNotificationsModule
       const result = await PushNotifications.requestPermissions()
       return result.receive === 'granted'
     } catch (_error) {
@@ -415,9 +437,11 @@ export class FirebaseProvider implements NotificationProvider {
    */
   private async checkNativePermission(): Promise<PermissionStatus> {
     try {
-      const { PushNotifications } = await import(
-        '@capacitor/push-notifications'
-      )
+      const pushNotificationsModule = await DynamicLoader.loadPushNotifications()
+      if (!pushNotificationsModule) {
+        throw new Error('Push notifications require @capacitor/push-notifications')
+      }
+      const { PushNotifications } = pushNotificationsModule
       const result = await PushNotifications.checkPermissions()
 
       if (result.receive === 'granted') {

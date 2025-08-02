@@ -1,4 +1,4 @@
-import { Capacitor } from '@capacitor/core'
+import { DynamicLoader } from '@/utils/dynamic-loader'
 import type { Platform, StorageConfig } from '@/types'
 
 /**
@@ -10,7 +10,7 @@ export class StorageManager {
   private prefix: string
 
   constructor(config: StorageConfig = {}) {
-    this.platform = this.detectPlatform()
+    this.platform = 'unknown' // Will be detected on first use
     this.config = {
       prefix: 'notification_kit_',
       adapter: 'preferences',
@@ -25,6 +25,7 @@ export class StorageManager {
    * Store data
    */
   async set(key: string, value: any): Promise<void> {
+    await this.ensurePlatform()
     const fullKey = this.prefix + key
     const data = this.prepareData(value)
 
@@ -44,6 +45,7 @@ export class StorageManager {
    * Get data
    */
   async get<T = any>(key: string): Promise<T | null> {
+    await this.ensurePlatform()
     const fullKey = this.prefix + key
 
     try {
@@ -70,6 +72,7 @@ export class StorageManager {
    * Remove data
    */
   async remove(key: string): Promise<void> {
+    await this.ensurePlatform()
     const fullKey = this.prefix + key
 
     try {
@@ -88,6 +91,7 @@ export class StorageManager {
    * Clear all data
    */
   async clear(): Promise<void> {
+    await this.ensurePlatform()
     try {
       if (this.platform === 'web' || this.config.adapter === 'localStorage') {
         await this.clearWebStorage()
@@ -104,6 +108,7 @@ export class StorageManager {
    * Get all keys
    */
   async keys(): Promise<string[]> {
+    await this.ensurePlatform()
     try {
       if (this.platform === 'web' || this.config.adapter === 'localStorage') {
         return await this.getWebStorageKeys()
@@ -197,16 +202,24 @@ export class StorageManager {
    * Set native storage
    */
   private async setNativeStorage(key: string, data: string): Promise<void> {
-    const { Preferences } = await import('@capacitor/preferences')
-    await Preferences.set({ key, value: data })
+    const preferencesModule = await DynamicLoader.loadPreferences()
+    if (!preferencesModule) {
+      // Fallback to web storage if Preferences not available
+      return this.setWebStorage(key, data)
+    }
+    await preferencesModule.Preferences.set({ key, value: data })
   }
 
   /**
    * Get native storage
    */
   private async getNativeStorage(key: string): Promise<string | null> {
-    const { Preferences } = await import('@capacitor/preferences')
-    const result = await Preferences.get({ key })
+    const preferencesModule = await DynamicLoader.loadPreferences()
+    if (!preferencesModule) {
+      // Fallback to web storage if Preferences not available
+      return this.getWebStorage(key)
+    }
+    const result = await preferencesModule.Preferences.get({ key })
     return result.value
   }
 
@@ -214,19 +227,27 @@ export class StorageManager {
    * Remove native storage
    */
   private async removeNativeStorage(key: string): Promise<void> {
-    const { Preferences } = await import('@capacitor/preferences')
-    await Preferences.remove({ key })
+    const preferencesModule = await DynamicLoader.loadPreferences()
+    if (!preferencesModule) {
+      // Fallback to web storage if Preferences not available
+      return this.removeWebStorage(key)
+    }
+    await preferencesModule.Preferences.remove({ key })
   }
 
   /**
    * Clear native storage
    */
   private async clearNativeStorage(): Promise<void> {
-    const { Preferences } = await import('@capacitor/preferences')
+    const preferencesModule = await DynamicLoader.loadPreferences()
+    if (!preferencesModule) {
+      // Fallback to web storage if Preferences not available
+      return this.clearWebStorage()
+    }
     const keys = await this.getNativeStorageKeys()
 
     for (const key of keys) {
-      await Preferences.remove({ key: this.prefix + key })
+      await preferencesModule.Preferences.remove({ key: this.prefix + key })
     }
   }
 
@@ -234,8 +255,12 @@ export class StorageManager {
    * Get native storage keys
    */
   private async getNativeStorageKeys(): Promise<string[]> {
-    const { Preferences } = await import('@capacitor/preferences')
-    const result = await Preferences.keys()
+    const preferencesModule = await DynamicLoader.loadPreferences()
+    if (!preferencesModule) {
+      // Fallback to web storage if Preferences not available
+      return this.getWebStorageKeys()
+    }
+    const result = await preferencesModule.Preferences.keys()
 
     return result.keys
       .filter(key => key.startsWith(this.prefix))
@@ -308,15 +333,11 @@ export class StorageManager {
   }
 
   /**
-   * Detect current platform
+   * Ensure platform is detected
    */
-  private detectPlatform(): Platform {
-    if (Capacitor.isNativePlatform()) {
-      return Capacitor.getPlatform() as Platform
-    } else if (typeof window !== 'undefined') {
-      return 'web'
-    } else {
-      return 'unknown'
+  private async ensurePlatform(): Promise<void> {
+    if (this.platform === 'unknown') {
+      this.platform = await DynamicLoader.getPlatform()
     }
   }
 }
