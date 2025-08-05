@@ -35,11 +35,20 @@ Add the following to your `ios/App/App/Info.plist`:
 
 ### 4. OneSignal Setup (if using OneSignal)
 
-1. Add OneSignal App ID to Info.plist:
-```xml
-<key>OneSignal_app_id</key>
-<string>YOUR_ONESIGNAL_APP_ID</string>
+OneSignal configuration is handled securely through the provider initialization:
+
+```typescript
+// OneSignal App ID is provided during initialization
+NotificationKit.init({
+  provider: 'onesignal',
+  config: {
+    appId: process.env.ONESIGNAL_APP_ID, // Use environment variable
+    // Other secure configuration options
+  }
+});
 ```
+
+**Note:** The OneSignal SDK will automatically handle the native configuration. DO NOT hardcode your App ID in Info.plist or any other configuration files that might be committed to version control.
 
 ### 5. Request Authorization
 
@@ -108,9 +117,10 @@ dependencies {
 }
 ```
 
-2. Add to `AndroidManifest.xml`:
+2. Configure notification handling (optional):
 
 ```xml
+<!-- Only add if you need to customize notification opened behavior -->
 <meta-data
     android:name="com.onesignal.NotificationOpened.DEFAULT"
     android:value="DISABLE" />
@@ -182,44 +192,50 @@ Create a `public/firebase-messaging-sw.js`:
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
-firebase.initializeApp({
-  apiKey: 'your-api-key',
-  authDomain: 'your-auth-domain',
-  projectId: 'your-project-id',
-  storageBucket: 'your-storage-bucket',
-  messagingSenderId: 'your-sender-id',
-  appId: 'your-app-id'
-});
-
-const messaging = firebase.messaging();
-
-// Handle background messages
-messaging.onBackgroundMessage((payload) => {
-  const { title, body, image } = payload.notification;
-  
-  self.registration.showNotification(title, {
-    body,
-    icon: '/icon-192x192.png',
-    badge: '/badge-72x72.png',
-    image
-  });
+// notification-kit will inject the configuration securely at runtime
+// DO NOT hardcode your Firebase configuration here
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'FIREBASE_CONFIG') {
+    firebase.initializeApp(event.data.config);
+    const messaging = firebase.messaging();
+    
+    // Handle background messages
+    messaging.onBackgroundMessage((payload) => {
+      const { title, body, image } = payload.notification;
+      
+      self.registration.showNotification(title, {
+        body,
+        icon: '/icon-192x192.png',
+        badge: '/badge-72x72.png',
+        image
+      });
+    });
+  }
 });
 ```
 
 ### 3. VAPID Key (Web Push)
 
 1. Generate VAPID keys in Firebase Console
-2. Add to your configuration:
+2. Store securely and add to your configuration:
 
 ```typescript
+// Use environment variables or secure configuration management
 NotificationKit.init({
   provider: 'firebase',
   config: {
-    ...firebaseConfig,
-    vapidKey: 'YOUR_VAPID_KEY'
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID,
+    vapidKey: process.env.FIREBASE_VAPID_KEY
   }
 });
 ```
+
+**Security Note:** Never commit API keys or credentials to version control. Use environment variables or secure secret management systems.
 
 ### 4. HTTPS Requirement
 
@@ -314,6 +330,108 @@ await notifications.showWebNotification({
 1. Use Chrome DevTools > Application > Service Workers
 2. Test with Firebase Console
 3. Check browser console for errors
+
+## Security Best Practices
+
+### Credential Management
+
+1. **Never hardcode credentials** in your source code or configuration files
+2. **Use environment variables** for all sensitive configuration:
+   ```typescript
+   // Good - using environment variables
+   NotificationKit.init({
+     provider: 'onesignal',
+     config: {
+       appId: process.env.ONESIGNAL_APP_ID,
+       restApiKey: process.env.ONESIGNAL_REST_API_KEY
+     }
+   });
+   
+   // Bad - hardcoded values
+   NotificationKit.init({
+     provider: 'onesignal',
+     config: {
+       appId: 'abc123-def456-...',  // DON'T DO THIS
+       restApiKey: 'xyz789-...'      // DON'T DO THIS
+     }
+   });
+   ```
+
+3. **Use secure secret management**:
+   - Development: `.env` files (never commit to git)
+   - Production: Use platform-specific secret management (AWS Secrets Manager, Google Secret Manager, etc.)
+   - CI/CD: Use encrypted environment variables
+
+4. **Gitignore sensitive files**:
+   ```gitignore
+   # Environment variables
+   .env
+   .env.local
+   .env.*.local
+   
+   # Firebase
+   google-services.json
+   GoogleService-Info.plist
+   
+   # OneSignal
+   OneSignalSDKUpdaterWorker.js
+   OneSignalSDKWorker.js
+   ```
+
+5. **Runtime configuration injection**:
+   - notification-kit automatically handles secure configuration injection
+   - Service workers receive configuration at runtime, not build time
+   - Native SDKs are configured programmatically, not through static files
+
+### Platform-Specific Security
+
+**iOS:**
+- Use Keychain for storing sensitive data
+- Enable App Transport Security (ATS)
+- Use proper entitlements and capabilities
+
+**Android:**
+- Use Android Keystore for sensitive data
+- Enable certificate pinning for API calls
+- Properly configure ProGuard rules
+
+**Web:**
+- Always use HTTPS
+- Implement Content Security Policy (CSP)
+- Use secure headers (HSTS, X-Frame-Options, etc.)
+
+### Configuration Examples
+
+**Using dotenv (development):**
+```typescript
+import dotenv from 'dotenv';
+dotenv.config();
+
+NotificationKit.init({
+  provider: process.env.NOTIFICATION_PROVIDER as 'firebase' | 'onesignal',
+  config: {
+    appId: process.env.ONESIGNAL_APP_ID,
+    // Other config from environment
+  }
+});
+```
+
+**Using a configuration service:**
+```typescript
+// config.service.ts
+export async function getNotificationConfig() {
+  // Fetch from secure configuration service
+  const config = await secureConfigService.get('notification-config');
+  return {
+    provider: config.provider,
+    config: config.providerConfig
+  };
+}
+
+// app initialization
+const notificationConfig = await getNotificationConfig();
+NotificationKit.init(notificationConfig);
+```
 
 ## Next Steps
 
