@@ -349,6 +349,14 @@ If you discover a security vulnerability:
    - Potential impact
    - Suggested fix (if any)
 
+## Helper Guides
+
+- [Firebase Project Setup](../helpers/firebase-setup.md) - Secure Firebase configuration
+- [OneSignal Dashboard Setup](../helpers/onesignal-setup.md) - Secure OneSignal setup
+- [VAPID Keys Guide](../helpers/vapid-keys.md) - Understanding Web Push security
+- [iOS Push Certificates](../helpers/ios-push-certificate.md) - APNs security setup
+- [Android FCM Setup](../helpers/android-fcm-setup.md) - Secure Android configuration
+
 ## Additional Resources
 
 - [Firebase Security Checklist](https://firebase.google.com/docs/projects/security-checklist)

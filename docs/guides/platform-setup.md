@@ -29,13 +29,17 @@ Add the following to your `ios/App/App/Info.plist`:
 
 ### 3. Firebase Setup (if using Firebase)
 
-1. Download `GoogleService-Info.plist` from Firebase Console
+1. Download `GoogleService-Info.plist` from [Firebase Console](https://console.firebase.google.com)
+   - See [Firebase Setup Guide](../helpers/firebase-setup.md) for detailed instructions
 2. Add it to your Xcode project (drag into the App folder)
 3. Ensure it's added to your app target
+4. For APNs configuration, see [iOS Push Certificate Guide](../helpers/ios-push-certificate.md)
 
 ### 4. OneSignal Setup (if using OneSignal)
 
-OneSignal configuration is handled securely through runtime initialization:
+OneSignal configuration is handled securely through runtime initialization. See [OneSignal Dashboard Setup](../helpers/onesignal-setup.md) for account creation and configuration.
+
+Runtime initialization:
 
 ```typescript
 // OneSignal App ID is provided during initialization
@@ -90,7 +94,8 @@ const granted = await notifications.requestPermission({
 
 ### 1. Firebase Setup (if using Firebase)
 
-1. Download `google-services.json` from Firebase Console
+1. Download `google-services.json` from [Firebase Console](https://console.firebase.google.com)
+   - See [Firebase Setup Guide](../helpers/firebase-setup.md) and [Android FCM Setup](../helpers/android-fcm-setup.md) for detailed instructions
 2. Place it in `android/app/`
 3. Update `android/build.gradle`:
 
@@ -222,6 +227,7 @@ self.addEventListener('message', (event) => {
 ### 3. VAPID Key (Web Push)
 
 1. Generate VAPID keys in Firebase Console
+   - See [VAPID Keys Guide](../helpers/vapid-keys.md) for detailed instructions
 2. Store securely and add to your configuration:
 
 ```typescript

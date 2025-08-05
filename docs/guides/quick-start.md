@@ -23,6 +23,8 @@ Choose your notification provider and initialize once in your app:
 
 #### Firebase Setup
 
+First, create a Firebase project and get your configuration. See [Firebase Setup Guide](../helpers/firebase-setup.md) for detailed instructions.
+
 ```typescript
 // App.tsx or main.tsx
 import { NotificationKit } from 'notification-kit';
@@ -37,12 +39,16 @@ await NotificationKit.init({
     storageBucket: 'your-storage-bucket',
     messagingSenderId: 'your-sender-id',
     appId: 'your-app-id',
-    vapidKey: 'your-vapid-key' // Required for web push
+    vapidKey: 'your-vapid-key' // Required for web push - see [VAPID Keys Guide](../helpers/vapid-keys.md)
   }
 });
 ```
 
+**Important**: Never hardcode these values. Use environment variables! See [Security Guide](./security.md).
+
 #### OneSignal Setup
+
+First, create a OneSignal app and get your App ID. See [OneSignal Dashboard Setup](../helpers/onesignal-setup.md) for detailed instructions.
 
 ```typescript
 // App.tsx or main.tsx
@@ -56,6 +62,8 @@ await NotificationKit.init({
   }
 });
 ```
+
+**Important**: Use environment variables for the App ID! See [Security Guide](./security.md).
 
 ### 2. Request Permissions
 

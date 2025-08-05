@@ -12,6 +12,13 @@ Welcome to the comprehensive documentation for notification-kit - a unified noti
 - [Platform Setup](./guides/platform-setup.md) - iOS, Android, and Web setup
 - [OneSignal Native Setup](./guides/onesignal-native-setup.md) - Secure OneSignal configuration
 
+### Setup Helpers
+- [Firebase Project Setup](./helpers/firebase-setup.md) - Create and configure Firebase project
+- [OneSignal Dashboard Setup](./helpers/onesignal-setup.md) - Set up OneSignal account
+- [VAPID Keys Guide](./helpers/vapid-keys.md) - Understanding and generating VAPID keys
+- [iOS Push Certificates](./helpers/ios-push-certificate.md) - APNs certificate setup
+- [Android FCM Setup](./helpers/android-fcm-setup.md) - Configure FCM for Android
+
 ### Core Concepts
 - [Architecture Overview](./guides/architecture.md) - Understanding the library structure
 - [Providers](./guides/providers.md) - Firebase vs OneSignal
