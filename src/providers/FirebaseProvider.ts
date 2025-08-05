@@ -1,4 +1,6 @@
 import { DynamicLoader } from '@/utils/dynamic-loader'
+import { FirebaseNativeBridge } from './FirebaseNativeBridge'
+import { ConfigValidator } from '@/utils/config-validator'
 import type { FirebaseApp } from 'firebase/app'
 import type { Messaging, MessagePayload } from 'firebase/messaging'
 import type {
@@ -30,7 +32,17 @@ export class FirebaseProvider implements NotificationProvider {
    */
   async init(config: FirebaseConfig): Promise<void> {
     try {
+      // Validate configuration
+      ConfigValidator.validateFirebaseConfig(config)
+      ConfigValidator.validateEnvironmentVariables('firebase')
+      
       this.config = config
+
+      // Initialize native bridge for secure configuration on mobile platforms
+      const isNative = await DynamicLoader.isNativePlatform()
+      if (isNative) {
+        await FirebaseNativeBridge.initializeNative(config)
+      }
 
       // Initialize Firebase app
       const firebaseConfig: Record<string, string> = {

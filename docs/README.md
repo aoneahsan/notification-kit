@@ -7,8 +7,10 @@ Welcome to the comprehensive documentation for notification-kit - a unified noti
 ### Getting Started
 - [Installation](./guides/installation.md) - Install and set up notification-kit
 - [Quick Start](./guides/quick-start.md) - Get up and running in minutes
+- [Security Guide](./guides/security.md) - **⚠️ Important: Security best practices**
 - [Configuration](./guides/configuration.md) - Configure providers and options
 - [Platform Setup](./guides/platform-setup.md) - iOS, Android, and Web setup
+- [OneSignal Native Setup](./guides/onesignal-native-setup.md) - Secure OneSignal configuration
 
 ### Core Concepts
 - [Architecture Overview](./guides/architecture.md) - Understanding the library structure

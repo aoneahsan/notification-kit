@@ -1,5 +1,6 @@
 import { DynamicLoader } from '@/utils/dynamic-loader'
 import { OneSignalNativeBridge } from './OneSignalNativeBridge'
+import { ConfigValidator } from '@/utils/config-validator'
 import type OneSignal from 'react-onesignal'
 import type {
   NotificationProvider,
@@ -28,6 +29,10 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async init(config: OneSignalConfig): Promise<void> {
     try {
+      // Validate configuration
+      ConfigValidator.validateOneSignalConfig(config)
+      ConfigValidator.validateEnvironmentVariables('onesignal')
+      
       this.config = config
 
       const isNative = await DynamicLoader.isNativePlatform()
