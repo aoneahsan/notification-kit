@@ -35,7 +35,7 @@ Add the following to your `ios/App/App/Info.plist`:
 
 ### 4. OneSignal Setup (if using OneSignal)
 
-OneSignal configuration is handled securely through the provider initialization:
+OneSignal configuration is handled securely through runtime initialization:
 
 ```typescript
 // OneSignal App ID is provided during initialization
@@ -48,7 +48,12 @@ NotificationKit.init({
 });
 ```
 
-**Note:** The OneSignal SDK will automatically handle the native configuration. DO NOT hardcode your App ID in Info.plist or any other configuration files that might be committed to version control.
+**Important:** notification-kit uses a secure native bridge that configures OneSignal programmatically at runtime. This means:
+- ✅ NO hardcoded App IDs in Info.plist
+- ✅ NO credentials in configuration files
+- ✅ Secure runtime configuration injection
+
+For detailed information about how this works, see the [OneSignal Native Setup Guide](./onesignal-native-setup.md).
 
 ### 5. Request Authorization
 

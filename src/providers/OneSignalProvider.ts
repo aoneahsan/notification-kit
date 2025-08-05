@@ -1,4 +1,5 @@
 import { DynamicLoader } from '@/utils/dynamic-loader'
+import { OneSignalNativeBridge } from './OneSignalNativeBridge'
 import type OneSignal from 'react-onesignal'
 import type {
   NotificationProvider,
@@ -29,41 +30,54 @@ export class OneSignalProvider implements NotificationProvider {
     try {
       this.config = config
 
-      const initOptions: Record<string, unknown> = {
-        appId: config.appId,
-        safari_web_id: config.safariWebId,
-        autoPrompt: config.autoPrompt ?? true,
-        autoResubscribe: config.autoResubscribe ?? true,
-        path: config.path,
-        serviceWorkerPath: config.serviceWorkerPath,
-        serviceWorkerUpdaterPath: config.serviceWorkerUpdaterPath,
-        notificationClickHandlerMatch:
-          config.notificationClickHandlerMatch ?? 'origin',
-        notificationClickHandlerAction:
-          config.notificationClickHandlerAction ?? 'focusOrNavigate',
-        allowLocalhostAsSecureOrigin:
-          config.allowLocalhostAsSecureOrigin ?? false,
-      }
-
-      if (config.promptOptions) {
-        initOptions.promptOptions = config.promptOptions
-      }
-
-      if (config.welcomeNotification) {
-        initOptions.welcomeNotification = config.welcomeNotification
-      }
-
-      // Dynamically import OneSignal
-      const oneSignalModule = await DynamicLoader.loadOneSignal()
-      if (!oneSignalModule) {
-        throw new Error('OneSignal is required but not installed')
-      }
-      this.OneSignal = oneSignalModule.default
+      const isNative = await DynamicLoader.isNativePlatform()
       
-      await this.OneSignal.init(initOptions as Parameters<typeof this.OneSignal.init>[0])
+      if (isNative) {
+        // For native platforms, initialize through the native bridge
+        await OneSignalNativeBridge.initializeNative(config)
+        
+        // Native platforms use the OneSignal Capacitor SDK
+        // which has a different API than react-onesignal
+        this.initialized = true
+        await this.setupNativeEventListeners()
+      } else {
+        // For web platform, use react-onesignal
+        const initOptions: Record<string, unknown> = {
+          appId: config.appId,
+          safari_web_id: config.safariWebId,
+          autoPrompt: config.autoPrompt ?? true,
+          autoResubscribe: config.autoResubscribe ?? true,
+          path: config.path,
+          serviceWorkerPath: config.serviceWorkerPath,
+          serviceWorkerUpdaterPath: config.serviceWorkerUpdaterPath,
+          notificationClickHandlerMatch:
+            config.notificationClickHandlerMatch ?? 'origin',
+          notificationClickHandlerAction:
+            config.notificationClickHandlerAction ?? 'focusOrNavigate',
+          allowLocalhostAsSecureOrigin:
+            config.allowLocalhostAsSecureOrigin ?? false,
+        }
 
-      this.initialized = true
-      await this.setupEventListeners()
+        if (config.promptOptions) {
+          initOptions.promptOptions = config.promptOptions
+        }
+
+        if (config.welcomeNotification) {
+          initOptions.welcomeNotification = config.welcomeNotification
+        }
+
+        // Dynamically import OneSignal
+        const oneSignalModule = await DynamicLoader.loadOneSignal()
+        if (!oneSignalModule) {
+          throw new Error('OneSignal is required but not installed')
+        }
+        this.OneSignal = oneSignalModule.default
+        
+        await this.OneSignal.init(initOptions as Parameters<typeof this.OneSignal.init>[0])
+
+        this.initialized = true
+        await this.setupEventListeners()
+      }
     } catch (error) {
       this.handleError(new Error(`OneSignal initialization failed: ${error}`))
       throw error
@@ -375,6 +389,60 @@ export class OneSignalProvider implements NotificationProvider {
       automation: true,
       journeys: true,
       realTimeUpdates: true,
+    }
+  }
+
+  /**
+   * Setup native event listeners for Capacitor
+   */
+  private async setupNativeEventListeners(): Promise<void> {
+    try {
+      // For native platforms, we use Capacitor's push notification events
+      const pushNotificationsModule = await DynamicLoader.loadPushNotifications()
+      if (!pushNotificationsModule) {
+        throw new Error('Push notifications module not available')
+      }
+      
+      const { PushNotifications } = pushNotificationsModule
+
+      // Listen for push notifications
+      await PushNotifications.addListener('pushNotificationReceived', notification => {
+        const payload: PushNotificationPayload = {
+          data: notification.data || {},
+          notification: {
+            title: notification.title || '',
+            body: notification.body || '',
+            ...(notification.id && { id: notification.id }),
+            ...(notification.badge && { badge: notification.badge.toString() }),
+          },
+        }
+        this.notifyMessageListeners(payload)
+      })
+
+      // Listen for notification actions
+      await PushNotifications.addListener('pushNotificationActionPerformed', notificationAction => {
+        const payload: PushNotificationPayload = {
+          data: notificationAction.notification.data || {},
+          notification: {
+            title: notificationAction.notification.title || '',
+            body: notificationAction.notification.body || '',
+            ...(notificationAction.notification.id && { id: notificationAction.notification.id }),
+          },
+        }
+        this.notifyMessageListeners(payload)
+      })
+
+      // Listen for registration changes
+      await PushNotifications.addListener('registration', token => {
+        this.notifyTokenListeners(token.value)
+      })
+
+      // Listen for registration errors
+      await PushNotifications.addListener('registrationError', error => {
+        this.handleError(new Error(`Registration error: ${error.error}`))
+      })
+    } catch (error) {
+      this.handleError(new Error(`Native event listener setup failed: ${error}`))
     }
   }
 
