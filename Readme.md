@@ -4,12 +4,18 @@ A unified notification library for React + Capacitor apps. One API for push noti
 
 ## 📚 Documentation
 
-- [**Full Documentation**](https://github.com/aoneahsan/notification-kit/wiki) - Comprehensive guides and API reference
-- [**API Reference**](https://github.com/aoneahsan/notification-kit/wiki/api-reference) - Complete API documentation
-- [**Quick Start Guide**](https://github.com/aoneahsan/notification-kit/wiki/quick-start) - Get up and running in minutes
-- [**Examples**](https://github.com/aoneahsan/notification-kit/tree/main/examples) - Sample implementations
-- [**Migration Guide**](https://github.com/aoneahsan/notification-kit/wiki/migration) - Upgrade from previous versions
-- [**Troubleshooting**](https://github.com/aoneahsan/notification-kit/wiki/troubleshooting) - Common issues and solutions
+📖 **[View Full Documentation](https://github.com/aoneahsan/notification-kit/tree/main/docs)**
+
+### Quick Links
+- [**Installation**](https://github.com/aoneahsan/notification-kit/blob/main/docs/guides/installation.md) - Get started with notification-kit
+- [**Quick Start**](https://github.com/aoneahsan/notification-kit/blob/main/docs/guides/quick-start.md) - Basic usage examples
+- [**Configuration**](https://github.com/aoneahsan/notification-kit/blob/main/docs/guides/configuration.md) - Provider setup and options
+- [**API Reference**](https://github.com/aoneahsan/notification-kit/blob/main/docs/api/core.md) - Complete API documentation
+- [**Platform Setup**](https://github.com/aoneahsan/notification-kit/blob/main/docs/guides/platform-setup.md) - iOS, Android, and Web guides
+- [**Examples**](https://github.com/aoneahsan/notification-kit/blob/main/docs/examples/basic.md) - Code examples
+- [**Troubleshooting**](https://github.com/aoneahsan/notification-kit/blob/main/docs/guides/troubleshooting.md) - Common issues
+
+> 🚧 **Documentation Website Coming Soon**: We're working on a dedicated documentation site with search, better navigation, and interactive examples.
 
 ## ✨ Features
 
