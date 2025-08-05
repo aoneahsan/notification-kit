@@ -1,0 +1,63 @@
+# Source files
+src/
+examples/
+
+# Configuration files
+.eslintrc*
+.prettierrc*
+.husky/
+husky.config.js
+vite.config.ts
+tsconfig.json
+vitest.config.ts
+.env*
+
+# Test files
+test/
+*.test.ts
+*.spec.ts
+coverage/
+.nyc_output/
+
+# Documentation source
+docs/
+
+# Development files
+.vscode/
+.idea/
+*.log
+*.swp
+.DS_Store
+
+# Git files
+.git/
+.gitignore
+.github/
+
+# Build artifacts we don't need
+*.map
+
+# Lock files (let users use their own)
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# IDE files
+*.sublime-*
+*.code-workspace
+
+# OS files
+Thumbs.db
+Desktop.ini
+
+# Other
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+*.ignore.*
+project-development-plan/
+CLAUDE.md

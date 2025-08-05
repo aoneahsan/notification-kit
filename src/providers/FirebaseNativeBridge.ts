@@ -93,7 +93,7 @@ export class FirebaseNativeBridge {
    * 2. Firebase configuration is provided at runtime
    * 3. Sensitive data never appears in version control
    */
-  private static async configureIOS(config: FirebaseConfig): Promise<void> {
+  private static async configureIOS(_config: FirebaseConfig): Promise<void> {
     // iOS Firebase configuration approach:
     // Instead of using GoogleService-Info.plist, we configure Firebase programmatically
     // This would be done through a Capacitor plugin that bridges to native iOS code
@@ -124,7 +124,7 @@ export class FirebaseNativeBridge {
    * 2. Firebase configuration is provided at runtime
    * 3. Sensitive data never appears in version control
    */
-  private static async configureAndroid(config: FirebaseConfig): Promise<void> {
+  private static async configureAndroid(_config: FirebaseConfig): Promise<void> {
     // Android Firebase configuration approach:
     // Instead of using google-services.json, we configure Firebase programmatically
     // This would be done through a Capacitor plugin that bridges to native Android code
