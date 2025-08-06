@@ -90,6 +90,15 @@ This means you can:
 - Use in simple React apps without Capacitor
 - Keep your bundle size minimal
 
+## Example App
+
+Check out the [React + Capacitor example app](./examples/react-capacitor-example) to see notification-kit in action. The example demonstrates:
+- Static initialization with `NotificationKit.init()`
+- React hooks usage with `useNotifications()`
+- All notification types (push, local, in-app)
+- Permission management
+- Token handling
+
 ## Quick Start
 
 ### 1. Initialize (Once in your app)

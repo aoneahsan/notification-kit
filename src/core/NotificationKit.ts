@@ -51,6 +51,13 @@ export class NotificationKit {
   }
 
   /**
+   * Static init method for convenience
+   */
+  static async init(config: NotificationConfig): Promise<void> {
+    return NotificationKit.getInstance().init(config)
+  }
+
+  /**
    * Initialize notification kit with configuration
    */
   async init(config: NotificationConfig): Promise<void> {

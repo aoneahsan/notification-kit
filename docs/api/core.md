@@ -8,19 +8,9 @@ The main class for initializing and managing the notification system.
 
 ### Static Methods
 
-#### `getInstance()`
-
-Get the singleton instance of NotificationKit.
-
-```typescript
-const kit = NotificationKit.getInstance();
-```
-
-### Instance Methods
-
 #### `init(config: NotificationConfig): Promise<void>`
 
-Initialize the notification kit with configuration.
+Initialize the notification kit with configuration. This is the recommended way to initialize NotificationKit.
 
 ```typescript
 await NotificationKit.init({
@@ -36,6 +26,20 @@ await NotificationKit.init({
   }
 });
 ```
+
+#### `getInstance()`
+
+Get the singleton instance of NotificationKit. This is an alternative way to access NotificationKit methods.
+
+```typescript
+const kit = NotificationKit.getInstance();
+// You can then call instance methods
+await kit.init(config);
+```
+
+### Instance Methods
+
+These methods can be called either through the static convenience methods or through the instance.
 
 #### `destroy(): Promise<void>`
 
