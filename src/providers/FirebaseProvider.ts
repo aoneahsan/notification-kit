@@ -9,6 +9,7 @@ import type {
   PushNotificationPayload,
   PermissionStatus,
   ProviderCapabilities,
+  isFirebaseAppConfig,
 } from '@/types'
 
 /**
@@ -32,38 +33,47 @@ export class FirebaseProvider implements NotificationProvider {
    */
   async init(config: FirebaseConfig): Promise<void> {
     try {
-      // Validate configuration
-      ConfigValidator.validateFirebaseConfig(config)
-      ConfigValidator.validateEnvironmentVariables('firebase')
+      // Import the type guard function
+      const { isFirebaseAppConfig } = await import('@/types')
       
       this.config = config
 
-      // Initialize native bridge for secure configuration on mobile platforms
-      const isNative = await DynamicLoader.isNativePlatform()
-      if (isNative) {
-        await FirebaseNativeBridge.initializeNative(config)
-      }
+      // Check if an existing Firebase app is provided
+      if (isFirebaseAppConfig(config)) {
+        // Use existing Firebase app
+        this.app = config.app
+      } else {
+        // Validate configuration for new app creation
+        ConfigValidator.validateFirebaseConfig(config)
+        ConfigValidator.validateEnvironmentVariables('firebase')
 
-      // Initialize Firebase app
-      const firebaseConfig: Record<string, string> = {
-        apiKey: config.apiKey,
-        authDomain: config.authDomain,
-        projectId: config.projectId,
-        storageBucket: config.storageBucket,
-        messagingSenderId: config.messagingSenderId,
-        appId: config.appId,
-      }
+        // Initialize native bridge for secure configuration on mobile platforms
+        const isNative = await DynamicLoader.isNativePlatform()
+        if (isNative) {
+          await FirebaseNativeBridge.initializeNative(config)
+        }
 
-      if (config.measurementId) {
-        firebaseConfig.measurementId = config.measurementId
-      }
+        // Initialize Firebase app
+        const firebaseConfig: Record<string, string> = {
+          apiKey: config.apiKey,
+          authDomain: config.authDomain,
+          projectId: config.projectId,
+          storageBucket: config.storageBucket,
+          messagingSenderId: config.messagingSenderId,
+          appId: config.appId,
+        }
 
-      // Dynamically import and initialize Firebase
-      const firebaseApp = await DynamicLoader.loadFirebase()
-      if (!firebaseApp) {
-        throw new Error('Firebase is required but not installed')
+        if (config.measurementId) {
+          firebaseConfig.measurementId = config.measurementId
+        }
+
+        // Dynamically import and initialize Firebase
+        const firebaseApp = await DynamicLoader.loadFirebase()
+        if (!firebaseApp) {
+          throw new Error('Firebase is required but not installed')
+        }
+        this.app = firebaseApp.initializeApp(firebaseConfig)
       }
-      this.app = firebaseApp.initializeApp(firebaseConfig)
 
       // Initialize messaging if supported
       if (await this.isSupported()) {

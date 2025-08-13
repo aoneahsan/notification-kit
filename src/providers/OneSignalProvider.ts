@@ -8,6 +8,7 @@ import type {
   PushNotificationPayload,
   PermissionStatus,
   ProviderCapabilities,
+  isOneSignalInstanceConfig,
 } from '@/types'
 
 /**
@@ -29,59 +30,76 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async init(config: OneSignalConfig): Promise<void> {
     try {
-      // Validate configuration
-      ConfigValidator.validateOneSignalConfig(config)
-      ConfigValidator.validateEnvironmentVariables('onesignal')
+      // Import the type guard function
+      const { isOneSignalInstanceConfig } = await import('@/types')
       
       this.config = config
 
-      const isNative = await DynamicLoader.isNativePlatform()
-      
-      if (isNative) {
-        // For native platforms, initialize through the native bridge
-        await OneSignalNativeBridge.initializeNative(config)
-        
-        // Native platforms use the OneSignal Capacitor SDK
-        // which has a different API than react-onesignal
+      // Check if an existing OneSignal instance is provided
+      if (isOneSignalInstanceConfig(config)) {
+        // Use existing OneSignal instance
+        this.OneSignal = config.instance
         this.initialized = true
-        await this.setupNativeEventListeners()
+        
+        const isNative = await DynamicLoader.isNativePlatform()
+        if (isNative) {
+          await this.setupNativeEventListeners()
+        } else {
+          await this.setupEventListeners()
+        }
       } else {
-        // For web platform, use react-onesignal
-        const initOptions: Record<string, unknown> = {
-          appId: config.appId,
-          safari_web_id: config.safariWebId,
-          autoPrompt: config.autoPrompt ?? true,
-          autoResubscribe: config.autoResubscribe ?? true,
-          path: config.path,
-          serviceWorkerPath: config.serviceWorkerPath,
-          serviceWorkerUpdaterPath: config.serviceWorkerUpdaterPath,
-          notificationClickHandlerMatch:
-            config.notificationClickHandlerMatch ?? 'origin',
-          notificationClickHandlerAction:
-            config.notificationClickHandlerAction ?? 'focusOrNavigate',
-          allowLocalhostAsSecureOrigin:
-            config.allowLocalhostAsSecureOrigin ?? false,
-        }
+        // Validate configuration for new initialization
+        ConfigValidator.validateOneSignalConfig(config)
+        ConfigValidator.validateEnvironmentVariables('onesignal')
 
-        if (config.promptOptions) {
-          initOptions.promptOptions = config.promptOptions
-        }
-
-        if (config.welcomeNotification) {
-          initOptions.welcomeNotification = config.welcomeNotification
-        }
-
-        // Dynamically import OneSignal
-        const oneSignalModule = await DynamicLoader.loadOneSignal()
-        if (!oneSignalModule) {
-          throw new Error('OneSignal is required but not installed')
-        }
-        this.OneSignal = oneSignalModule.default
+        const isNative = await DynamicLoader.isNativePlatform()
         
-        await this.OneSignal.init(initOptions as Parameters<typeof this.OneSignal.init>[0])
+        if (isNative) {
+          // For native platforms, initialize through the native bridge
+          await OneSignalNativeBridge.initializeNative(config)
+          
+          // Native platforms use the OneSignal Capacitor SDK
+          // which has a different API than react-onesignal
+          this.initialized = true
+          await this.setupNativeEventListeners()
+        } else {
+          // For web platform, use react-onesignal
+          const initOptions: Record<string, unknown> = {
+            appId: config.appId,
+            safari_web_id: config.safariWebId,
+            autoPrompt: config.autoPrompt ?? true,
+            autoResubscribe: config.autoResubscribe ?? true,
+            path: config.path,
+            serviceWorkerPath: config.serviceWorkerPath,
+            serviceWorkerUpdaterPath: config.serviceWorkerUpdaterPath,
+            notificationClickHandlerMatch:
+              config.notificationClickHandlerMatch ?? 'origin',
+            notificationClickHandlerAction:
+              config.notificationClickHandlerAction ?? 'focusOrNavigate',
+            allowLocalhostAsSecureOrigin:
+              config.allowLocalhostAsSecureOrigin ?? false,
+          }
 
-        this.initialized = true
-        await this.setupEventListeners()
+          if (config.promptOptions) {
+            initOptions.promptOptions = config.promptOptions
+          }
+
+          if (config.welcomeNotification) {
+            initOptions.welcomeNotification = config.welcomeNotification
+          }
+
+          // Dynamically import OneSignal
+          const oneSignalModule = await DynamicLoader.loadOneSignal()
+          if (!oneSignalModule) {
+            throw new Error('OneSignal is required but not installed')
+          }
+          this.OneSignal = oneSignalModule.default
+          
+          await this.OneSignal.init(initOptions as Parameters<typeof this.OneSignal.init>[0])
+
+          this.initialized = true
+          await this.setupEventListeners()
+        }
       }
     } catch (error) {
       this.handleError(new Error(`OneSignal initialization failed: ${error}`))
