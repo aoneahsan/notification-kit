@@ -26,7 +26,7 @@ export class SchedulingUtils {
     const now = new Date()
 
     if (schedule.at) {
-      return this.calculateAtTime(schedule.at, now)
+      return this.calculateAtTime(schedule.at as Date, now)
     }
 
     if (schedule.on) {
@@ -34,7 +34,7 @@ export class SchedulingUtils {
     }
 
     if (schedule.every) {
-      return this.calculateEveryTime(schedule.every, now)
+      return this.calculateEveryTime(schedule.every as unknown as RepeatOptions, now)
     }
 
     return null
@@ -71,7 +71,7 @@ export class SchedulingUtils {
     if (scheduledTime <= now) {
       if (on.weekday !== undefined) {
         // Schedule for next occurrence of the weekday
-        const weekdayNumber = this.weekdayToNumber(on.weekday)
+        const weekdayNumber = this.weekdayToNumber(on.weekday as WeekDay)
         const dayDiff = (weekdayNumber - scheduledTime.getDay() + 7) % 7
         scheduledTime.setDate(scheduledTime.getDate() + (dayDiff || 7))
       } else {
@@ -88,27 +88,21 @@ export class SchedulingUtils {
    */
   static calculateEveryTime(every: RepeatOptions, now: Date): Date {
     const scheduledTime = new Date(now)
-    const frequency = every.frequency || 1
+    const frequency = every.interval || 1
 
-    // Handle based on the interval type
-    switch (every.interval) {
-      case 'minute':
-        scheduledTime.setMinutes(scheduledTime.getMinutes() + frequency)
+    // Handle based on the frequency type
+    switch (every.frequency) {
+      case 'daily':
+        scheduledTime.setDate(scheduledTime.getDate() + Number(frequency))
         break
-      case 'hour':
-        scheduledTime.setHours(scheduledTime.getHours() + frequency)
+      case 'weekly':
+        scheduledTime.setDate(scheduledTime.getDate() + Number(frequency) * 7)
         break
-      case 'day':
-        scheduledTime.setDate(scheduledTime.getDate() + frequency)
+      case 'monthly':
+        scheduledTime.setMonth(scheduledTime.getMonth() + Number(frequency))
         break
-      case 'week':
-        scheduledTime.setDate(scheduledTime.getDate() + frequency * 7)
-        break
-      case 'month':
-        scheduledTime.setMonth(scheduledTime.getMonth() + frequency)
-        break
-      case 'year':
-        scheduledTime.setFullYear(scheduledTime.getFullYear() + frequency)
+      case 'yearly':
+        scheduledTime.setFullYear(scheduledTime.getFullYear() + Number(frequency))
         break
     }
 
@@ -134,7 +128,7 @@ export class SchedulingUtils {
     let hasValidSchedule = false
 
     if (schedule.at) {
-      const result = this.validateAtSchedule(schedule.at)
+      const result = this.validateAtSchedule(schedule.at as Date)
       if (result.valid) {
         hasValidSchedule = true
       } else {
@@ -152,7 +146,7 @@ export class SchedulingUtils {
     }
 
     if (schedule.every) {
-      const result = this.validateEverySchedule(schedule.every)
+      const result = this.validateEverySchedule(schedule.every as unknown as RepeatOptions)
       if (result.valid) {
         hasValidSchedule = true
       } else {
@@ -278,7 +272,7 @@ export class SchedulingUtils {
     }
 
     if (on.weekday !== undefined) {
-      const validWeekdays: WeekDay[] = [
+      const validWeekdays = [
         'sunday',
         'monday',
         'tuesday',
@@ -286,8 +280,9 @@ export class SchedulingUtils {
         'thursday',
         'friday',
         'saturday',
+        1, 2, 3, 4, 5, 6, 7
       ]
-      if (!validWeekdays.includes(on.weekday)) {
+      if (!validWeekdays.includes(on.weekday as any)) {
         errors.push({
           code: 'INVALID_WEEKDAY',
           message: 'Invalid weekday value',
@@ -309,20 +304,18 @@ export class SchedulingUtils {
   static validateEverySchedule(every: RepeatOptions): ScheduleValidationResult {
     const errors: EventValidationError[] = []
 
-    const validIntervals: RepeatOptions['interval'][] = [
-      'minute',
-      'hour',
-      'day',
-      'week',
-      'month',
-      'year',
+    const validFrequencies: RepeatOptions['frequency'][] = [
+      'daily',
+      'weekly',
+      'monthly',
+      'yearly',
     ]
-    if (!validIntervals.includes(every.interval)) {
+    if (!validFrequencies.includes(every.frequency)) {
       errors.push({
-        code: 'INVALID_INTERVAL',
-        message: 'Invalid interval type',
-        field: 'every.interval',
-        value: every.interval,
+        code: 'INVALID_FREQUENCY',
+        message: 'Invalid frequency type',
+        field: 'every.frequency',
+        value: every.frequency,
       })
     }
 
@@ -354,12 +347,12 @@ export class SchedulingUtils {
       }
     }
 
-    if (every.frequency !== undefined && every.frequency < 1) {
+    if (every.interval !== undefined && every.interval < 1) {
       errors.push({
-        code: 'INVALID_FREQUENCY',
-        message: 'Frequency must be at least 1',
-        field: 'every.frequency',
-        value: every.frequency,
+        code: 'INVALID_INTERVAL',
+        message: 'Interval must be at least 1',
+        field: 'every.interval',
+        value: every.interval,
       })
     }
 
@@ -387,7 +380,10 @@ export class SchedulingUtils {
       _dayOfWeek = '*',
     ] = parts
 
-    const schedule: ScheduleOptions = {}
+    const schedule: ScheduleOptions = {
+      title: '',
+      body: ''
+    }
 
     // Handle simple cases
     if (minute !== '*' || hour !== '*') {
@@ -410,7 +406,7 @@ export class SchedulingUtils {
         if (!isNaN(parsed)) on.month = parsed
       }
 
-      schedule.on = on
+      schedule.on = on as any
     }
 
     return schedule
@@ -431,15 +427,36 @@ export class SchedulingUtils {
     }
 
     if (schedule.every) {
-      switch (schedule.every.interval) {
-        case 'minute':
-          return `*/${schedule.every.frequency || 1} * * * *`
-        case 'hour':
-          return `0 */${schedule.every.frequency || 1} * * *`
-        case 'day':
-          return `0 0 */${schedule.every.frequency || 1} * *`
-        default:
-          return null
+      // Check if it's a RepeatInterval string or RepeatOptions object
+      if (typeof schedule.every === 'string') {
+        // It's a RepeatInterval
+        switch (schedule.every) {
+          case 'day':
+            return '0 0 * * *'
+          case 'week':
+            return '0 0 * * 0'
+          case 'month':
+            return '0 0 1 * *'
+          case 'year':
+            return '0 0 1 1 *'
+          default:
+            return null
+        }
+      } else {
+        // It's a RepeatOptions with frequency
+        const interval = (schedule.every as any).interval || 1
+        switch ((schedule.every as any).frequency) {
+          case 'daily':
+            return `0 0 */${interval} * *`
+          case 'weekly':
+            return `0 0 * * ${interval === 1 ? '0' : '*'}`
+          case 'monthly':
+            return `0 0 1 */${interval} *`
+          case 'yearly':
+            return `0 0 1 1 *`
+          default:
+            return null
+        }
       }
     }
 
@@ -467,9 +484,13 @@ export class SchedulingUtils {
     }
 
     if (schedule.every) {
-      const frequency = schedule.every.frequency || 1
-      const interval = schedule.every.interval
-      return `Every ${frequency} ${interval}${frequency > 1 ? 's' : ''}`
+      if (typeof schedule.every === 'string') {
+        return `Every ${schedule.every}`
+      } else {
+        const interval = (schedule.every as any).interval || 1
+        const frequency = (schedule.every as any).frequency
+        return `Every ${interval} ${frequency}`
+      }
     }
 
     return 'No schedule defined'
@@ -479,7 +500,7 @@ export class SchedulingUtils {
    * Convert weekday to number
    */
   private static weekdayToNumber(weekday: WeekDay): number {
-    const map: Record<WeekDay, number> = {
+    const map: Record<string, number> = {
       sunday: 0,
       monday: 1,
       tuesday: 2,
@@ -488,7 +509,7 @@ export class SchedulingUtils {
       friday: 5,
       saturday: 6,
     }
-    return map[weekday]
+    return typeof weekday === 'number' ? weekday : (map[weekday] || 0)
   }
 
   /**

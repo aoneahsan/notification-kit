@@ -10,6 +10,8 @@ import type {
   ProviderCapabilities,
 } from '@/types'
 import { isOneSignalInstanceConfig } from '@/types'
+// @ts-ignore - used conditionally  
+const _ = isOneSignalInstanceConfig
 
 /**
  * OneSignal provider for push notifications
@@ -275,7 +277,7 @@ export class OneSignalProvider implements NotificationProvider {
    * Send notification (requires REST API)
    */
   async sendNotification(payload: PushNotificationPayload): Promise<void> {
-    if (!this.config?.restApiKey) {
+    if (!this.config || isOneSignalInstanceConfig(this.config) || !this.config.restApiKey) {
       throw new Error('REST API key required for sending notifications')
     }
 
@@ -377,14 +379,20 @@ export class OneSignalProvider implements NotificationProvider {
     const isWeb = !(await DynamicLoader.isNativePlatform())
 
     return {
-      pushNotifications: true,
       topics: true, // Using tags
+      scheduling: true,
+      analytics: true,
+      segmentation: true,
+      templates: true,
+      webhooks: true,
+      batch: true,
+      priority: true,
+      ttl: true,
+      collapse: true,
+      pushNotifications: true,
       richMedia: true,
       actions: true,
       backgroundSync: true,
-      analytics: true,
-      segmentation: true,
-      scheduling: true,
       geofencing: false,
       inAppMessages: true,
       webPush: isWeb,
@@ -407,7 +415,6 @@ export class OneSignalProvider implements NotificationProvider {
       multipleDevices: true,
       userTags: true,
       triggers: true,
-      templates: true,
       abTesting: true,
       automation: true,
       journeys: true,
@@ -429,8 +436,10 @@ export class OneSignalProvider implements NotificationProvider {
       const { PushNotifications } = pushNotificationsModule
 
       // Listen for push notifications
-      await PushNotifications.addListener('pushNotificationReceived', notification => {
+      await PushNotifications.addListener('pushNotificationReceived', (notification: any) => {
         const payload: PushNotificationPayload = {
+          title: notification.title || '',
+          body: notification.body || '',
           data: notification.data || {},
           notification: {
             title: notification.title || '',
@@ -443,8 +452,10 @@ export class OneSignalProvider implements NotificationProvider {
       })
 
       // Listen for notification actions
-      await PushNotifications.addListener('pushNotificationActionPerformed', notificationAction => {
+      await PushNotifications.addListener('pushNotificationActionPerformed', (notificationAction: any) => {
         const payload: PushNotificationPayload = {
+          title: notificationAction.notification?.title || '',
+          body: notificationAction.notification?.body || '',
           data: notificationAction.notification.data || {},
           notification: {
             title: notificationAction.notification.title || '',
@@ -456,12 +467,12 @@ export class OneSignalProvider implements NotificationProvider {
       })
 
       // Listen for registration changes
-      await PushNotifications.addListener('registration', token => {
+      await PushNotifications.addListener('registration', (token: any) => {
         this.notifyTokenListeners(token.value)
       })
 
       // Listen for registration errors
-      await PushNotifications.addListener('registrationError', error => {
+      await PushNotifications.addListener('registrationError', (error: any) => {
         this.handleError(new Error(`Registration error: ${error.error}`))
       })
     } catch (error) {
@@ -497,6 +508,8 @@ export class OneSignalProvider implements NotificationProvider {
           notificationObj.image = notificationData.image as string
 
         const payload: PushNotificationPayload = {
+          title: (notificationObj.title as string) || '',
+          body: (notificationObj.body as string) || '',
           data:
             (notificationData.additionalData as Record<string, unknown>) || {},
           notification: notificationObj,
@@ -521,6 +534,8 @@ export class OneSignalProvider implements NotificationProvider {
           notificationObj.image = notificationData.image as string
 
         const payload: PushNotificationPayload = {
+          title: (notificationObj.title as string) || '',
+          body: (notificationObj.body as string) || '',
           data:
             (notificationData.additionalData as Record<string, unknown>) || {},
           notification: notificationObj,

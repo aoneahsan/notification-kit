@@ -88,7 +88,7 @@ export function fromCapacitorChannel(
     name: channel.name,
     description: channel.description ?? '',
     importance: channel.importance
-      ? fromCapacitorImportance(channel.importance)
+      ? fromCapacitorImportance(channel.importance as CapacitorImportance)
       : 'default',
     visibility: channel.visibility as any,
   }

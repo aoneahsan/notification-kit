@@ -11,6 +11,8 @@ import type {
   ProviderCapabilities,
 } from '@/types'
 import { isFirebaseAppConfig } from '@/types'
+// @ts-ignore - used conditionally
+const _ = isFirebaseAppConfig
 
 /**
  * Firebase provider for push notifications
@@ -350,14 +352,20 @@ export class FirebaseProvider implements NotificationProvider {
     const isWeb = !(await DynamicLoader.isNativePlatform())
 
     return {
-      pushNotifications: true,
       topics: true,
+      scheduling: false, // Server-side only
+      analytics: true,
+      segmentation: true,
+      templates: false,
+      webhooks: false,
+      batch: false,
+      priority: true,
+      ttl: true,
+      collapse: true,
+      pushNotifications: true,
       richMedia: true,
       actions: true,
       backgroundSync: true,
-      analytics: true,
-      segmentation: true,
-      scheduling: false, // Server-side only
       geofencing: false,
       inAppMessages: false,
       webPush: isWeb,
@@ -380,7 +388,6 @@ export class FirebaseProvider implements NotificationProvider {
       multipleDevices: true,
       userTags: false,
       triggers: false,
-      templates: false,
       abTesting: false,
       automation: false,
       journeys: false,
@@ -412,8 +419,8 @@ export class FirebaseProvider implements NotificationProvider {
             title: '',
             body: '',
             data: payload.data || {},
-            to: payload.from,
-            collapseKey: payload.collapseKey,
+            ...(payload.from && { to: payload.from }),
+            ...(payload.collapseKey && { collapseKey: payload.collapseKey }),
           }
 
           if (payload.notification) {

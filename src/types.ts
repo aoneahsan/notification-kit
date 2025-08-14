@@ -2,7 +2,8 @@
  * Type definitions for notification-kit
  */
 
-import type { FirebaseApp } from 'firebase/app'
+// Using type-only import with fallback
+type FirebaseApp = any
 
 // Core Types
 export type Platform = 'web' | 'ios' | 'android' | 'electron' | 'unknown'
@@ -158,6 +159,35 @@ export interface ProviderCapabilities {
   ttl: boolean
   collapse: boolean
   pushNotifications?: boolean
+  richMedia?: boolean
+  actions?: boolean
+  backgroundSync?: boolean
+  geofencing?: boolean
+  inAppMessages?: boolean
+  webPush?: boolean
+  badges?: boolean
+  sounds?: boolean
+  vibration?: boolean
+  lights?: boolean
+  bigText?: boolean
+  bigPicture?: boolean
+  inbox?: boolean
+  progress?: boolean
+  channels?: boolean
+  groups?: boolean
+  categories?: boolean
+  quietHours?: boolean
+  deliveryReceipts?: boolean
+  clickTracking?: boolean
+  impressionTracking?: boolean
+  customData?: boolean
+  multipleDevices?: boolean
+  userTags?: boolean
+  triggers?: boolean
+  abTesting?: boolean
+  automation?: boolean
+  journeys?: boolean
+  realTimeUpdates?: boolean
 }
 
 export interface ProviderStatistics {
@@ -423,6 +453,7 @@ export interface LocalNotificationPayload {
   autoCancel?: boolean
   extra?: Record<string, any>
   summaryText?: string
+  priority?: string | number
 }
 
 export interface InAppNotificationPayload {
@@ -433,6 +464,7 @@ export interface InAppNotificationPayload {
   duration?: number
   dismissible?: boolean
   actions?: Array<{
+    id?: string
     label: string
     onClick: () => void
   }>
@@ -548,6 +580,7 @@ export interface InAppOptions {
     onClick: () => void
   }
   actions?: Array<{
+    id?: string
     label: string
     onClick: () => void
   }>
@@ -715,6 +748,7 @@ export interface FormattedNotification {
   badge?: string
   sound?: string
   timestamp?: Date
+  formatted?: boolean
 }
 
 export interface FormattedPushPayload extends PushNotificationPayload {}
@@ -732,10 +766,13 @@ export interface DateComponents {
   hour?: number
   minute?: number
   second?: number
+  weekday?: Weekday | string
 }
 export interface RepeatOptions {
   frequency: 'daily' | 'weekly' | 'monthly' | 'yearly'
   interval?: number
+  count?: number
+  until?: Date | string
 }
 export type WeekDay = Weekday
 

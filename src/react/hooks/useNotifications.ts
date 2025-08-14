@@ -347,7 +347,10 @@ export function useNotifications(): UseNotificationsReturn {
           ...notificationPayload
         } = options
 
-        const scheduleOptions: ScheduleOptions = {}
+        const scheduleOptions: ScheduleOptions = {
+          title: '',
+          body: ''
+        }
         if (at !== undefined) scheduleOptions.at = at
         if (inProp !== undefined) scheduleOptions.in = inProp
         if (every !== undefined) scheduleOptions.every = every
@@ -373,7 +376,7 @@ export function useNotifications(): UseNotificationsReturn {
         const payload: LocalNotificationPayload = {
           ...notificationPayload,
           priority: priorityMap[priority || 'normal'] || 'default',
-          schedule: scheduleOptions,
+          schedule: scheduleOptions as any,
         }
 
         await notificationKitRef.current.scheduleLocalNotification(
@@ -609,10 +612,10 @@ export function useNotifications(): UseNotificationsReturn {
       'notificationReceived',
       event => {
         const notification: Notification = {
-          id: event.notification.id,
-          title: event.notification.title,
-          body: event.notification.body,
-          data: event.notification.data || {},
+          id: event.notification?.id || '',
+          title: event.notification?.title || '',
+          body: event.notification?.body || '',
+          data: event.notification?.data || {},
         }
 
         updateState({
