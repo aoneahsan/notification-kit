@@ -35,10 +35,9 @@ export default defineConfig({
         react: resolve(__dirname, 'src/react/index.ts'),
       },
       name: 'NotificationKit',
-      formats: ['es', 'cjs'],
+      formats: ['es'],
       fileName: (format, entryName) => {
-        const extension = format === 'es' ? 'esm.js' : 'js'
-        return `${entryName}.${extension}`
+        return `${entryName}.esm.js`
       },
     },
     rollupOptions: {
