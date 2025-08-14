@@ -1,5 +1,6 @@
 import { Logger } from './logger'
 import type { FirebaseConfig, OneSignalConfig } from '@/types'
+import { isFirebaseAppConfig, isOneSignalInstanceConfig } from '@/types'
 
 /**
  * Configuration validator with security checks
@@ -9,7 +10,12 @@ export class ConfigValidator {
    * Validate Firebase configuration
    */
   static validateFirebaseConfig(config: FirebaseConfig): void {
-    const requiredFields: (keyof FirebaseConfig)[] = [
+    // Skip validation if using existing app
+    if (isFirebaseAppConfig(config)) {
+      return
+    }
+
+    const requiredFields = [
       'apiKey',
       'authDomain',
       'projectId',
@@ -18,7 +24,7 @@ export class ConfigValidator {
       'appId',
     ]
 
-    const missingFields = requiredFields.filter(field => !config[field])
+    const missingFields = requiredFields.filter(field => !(field in config))
 
     if (missingFields.length > 0) {
       throw new Error(
@@ -35,6 +41,11 @@ export class ConfigValidator {
    * Validate OneSignal configuration
    */
   static validateOneSignalConfig(config: OneSignalConfig): void {
+    // Skip validation if using existing instance
+    if (isOneSignalInstanceConfig(config)) {
+      return
+    }
+
     if (!config.appId) {
       throw new Error(
         'Missing required OneSignal appId. ' +
@@ -43,7 +54,7 @@ export class ConfigValidator {
     }
 
     // Validate REST API key if provided (needed for server operations)
-    if (config.restApiKey && config.restApiKey.length < 48) {
+    if ('restApiKey' in config && config.restApiKey && config.restApiKey.length < 48) {
       Logger.warn(
         'OneSignal REST API key appears to be invalid. ' +
         'Server-side operations may fail.'

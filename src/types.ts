@@ -24,6 +24,16 @@ export interface PlatformDetection {
   version?: string
   browser?: string
   device?: string
+  isCapacitor?: boolean
+  isHybrid?: boolean
+  isNative?: boolean
+  isWeb?: boolean
+  isMobile?: boolean
+  isDesktop?: boolean
+  isTablet?: boolean
+  supportedFeatures?: string[]
+  limitations?: string[]
+  warnings?: string[]
 }
 
 export interface PlatformConfig {
@@ -37,12 +47,24 @@ export interface PlatformDefaults {
   sound?: string
   badge?: string
   icon?: string
+  web?: Record<string, any>
+  ios?: Record<string, any>
+  android?: Record<string, any>
+  electron?: Record<string, any>
 }
 
 export interface PlatformCompatibility {
   minVersion?: string
   maxVersion?: string
   features?: string[]
+  pushNotifications?: boolean
+  localNotifications?: boolean
+  inAppNotifications?: boolean
+  channels?: boolean
+  actions?: boolean
+  badges?: boolean
+  sounds?: boolean
+  criticalAlerts?: boolean
 }
 
 // Provider Types
@@ -90,6 +112,14 @@ export type OneSignalConfig =
       appId: string
       restApiKey?: string
       safariWebId?: string
+      autoPrompt?: boolean
+      autoResubscribe?: boolean
+      path?: string
+      serviceWorkerPath?: string
+      serviceWorkerUpdaterPath?: string
+      notificationClickHandlerMatch?: 'origin' | 'exact'
+      notificationClickHandlerAction?: 'focus' | 'navigate' | 'focusOrNavigate'
+      allowLocalhostAsSecureOrigin?: boolean
       notifyButton?: {
         enable: boolean
         size?: 'small' | 'medium' | 'large'
@@ -127,6 +157,7 @@ export interface ProviderCapabilities {
   priority: boolean
   ttl: boolean
   collapse: boolean
+  pushNotifications?: boolean
 }
 
 export interface ProviderStatistics {
@@ -232,6 +263,9 @@ export interface StorageConfig {
   type?: 'localStorage' | 'sessionStorage' | 'indexedDB' | 'memory'
   prefix?: string
   encryption?: boolean
+  adapter?: 'preferences' | 'localStorage' | 'sessionStorage' | 'memory'
+  ttl?: number
+  secure?: boolean
 }
 
 export interface AnalyticsConfig {
@@ -298,6 +332,8 @@ export interface Notification {
   timestamp?: Date
   platform?: Platform
   type?: 'push' | 'local' | 'inApp'
+  priority?: 'high' | 'normal' | 'low'
+  visibility?: 'public' | 'private' | 'secret'
 }
 
 export interface NotificationAction {
@@ -355,6 +391,17 @@ export interface PushNotificationPayload {
   color?: string
   tag?: string
   analyticsLabel?: string
+  to?: string
+  notification?: {
+    title?: string
+    body?: string
+    icon?: string
+    sound?: string
+    badge?: string | number
+    tag?: string
+    color?: string
+    clickAction?: string
+  }
 }
 
 export interface LocalNotificationPayload {
@@ -374,6 +421,8 @@ export interface LocalNotificationPayload {
   groupSummary?: boolean
   ongoing?: boolean
   autoCancel?: boolean
+  extra?: Record<string, any>
+  summaryText?: string
 }
 
 export interface InAppNotificationPayload {
@@ -407,6 +456,28 @@ export interface ScheduleOptions {
   groupSummary?: boolean
   ongoing?: boolean
   autoCancel?: boolean
+  badge?: number
+  icon?: string
+  color?: string
+  actionTypeId?: string
+  alertOnce?: boolean
+  at?: Date | string
+  on?: ScheduleOn
+  every?: ScheduleEvery | RepeatInterval
+  in?: number
+  count?: number
+  until?: Date
+  days?: number[]
+  timezone?: string
+  allowWhileIdle?: boolean
+  exact?: boolean
+  wakeDevice?: boolean
+  priority?: 'high' | 'normal' | 'low'
+  category?: string
+  identifier?: string
+  triggerInBackground?: boolean
+  skipIfBatteryLow?: boolean
+  respectQuietHours?: boolean
 }
 
 export interface NotificationSchedule {
@@ -434,7 +505,8 @@ export interface ScheduleOn {
 }
 
 export interface ScheduleEvery {
-  interval: RepeatInterval
+  interval?: RepeatInterval
+  frequency?: 'daily' | 'weekly' | 'monthly' | 'yearly'
   count?: number
 }
 
@@ -475,6 +547,12 @@ export interface InAppOptions {
     label: string
     onClick: () => void
   }
+  actions?: Array<{
+    label: string
+    onClick: () => void
+  }>
+  onAction?: (action: string) => void
+  data?: Record<string, any>
   icon?: string
   className?: string
   style?: React.CSSProperties
@@ -491,7 +569,7 @@ export type NotificationPosition =
   | 'center'
 
 // Permission Types
-export type PermissionStatus = 'granted' | 'denied' | 'prompt' | 'provisional'
+export type PermissionStatus = 'granted' | 'denied' | 'prompt' | 'provisional' | 'default' | 'unknown'
 export type NotificationPermissionStatus = PermissionStatus
 export type PermissionType = 'notifications' | 'location' | 'camera' | 'microphone'
 
@@ -506,12 +584,14 @@ export interface NotificationEvent {
 export interface NotificationReceivedEvent extends NotificationEvent {
   type: 'notificationReceived'
   payload: PushNotificationPayload | LocalNotificationPayload
+  notification?: Notification
   platform: Platform
 }
 
 export interface NotificationActionPerformedEvent extends NotificationEvent {
   type: 'notificationActionPerformed'
   action: string
+  actionId?: string
   notification: Notification
   inputValue?: string
   platform: Platform
@@ -529,7 +609,7 @@ export interface NotificationScheduledEvent extends NotificationEvent {
 
 export interface NotificationCancelledEvent extends NotificationEvent {
   type: 'notificationCancelled'
-  id: string | number
+  notificationId: string | number
 }
 
 export interface NotificationChannelCreatedEvent extends NotificationEvent {
@@ -610,6 +690,13 @@ export interface ValidationError {
   field: string
   message: string
   value?: any
+  code?: string
+}
+
+export interface ValidationResult {
+  valid: boolean
+  errors?: ValidationError[]
+  warnings?: ValidationWarning[]
 }
 
 export interface ValidationWarning {
@@ -617,6 +704,40 @@ export interface ValidationWarning {
   message: string
   suggestion?: string
 }
+
+// Additional formatting types
+export interface FormattedNotification {
+  id: string
+  title: string
+  body: string
+  data?: Record<string, any>
+  icon?: string
+  badge?: string
+  sound?: string
+  timestamp?: Date
+}
+
+export interface FormattedPushPayload extends PushNotificationPayload {}
+export interface FormattedLocalPayload extends LocalNotificationPayload {}
+export interface FormattedInAppPayload extends InAppNotificationPayload {}
+export interface FormattedScheduleOptions extends ScheduleOptions {}
+export interface FormattedInAppOptions extends InAppOptions {}
+
+// Missing types for scheduling
+export interface EventValidationError extends ValidationError {}
+export interface DateComponents {
+  year?: number
+  month?: number
+  day?: number
+  hour?: number
+  minute?: number
+  second?: number
+}
+export interface RepeatOptions {
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly'
+  interval?: number
+}
+export type WeekDay = Weekday
 
 // Utility type to check if FirebaseConfig has existing app
 export function isFirebaseAppConfig(config: FirebaseConfig): config is { app: FirebaseApp; vapidKey?: string } {

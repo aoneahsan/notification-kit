@@ -8,8 +8,8 @@ import type {
   PushNotificationPayload,
   PermissionStatus,
   ProviderCapabilities,
-  isOneSignalInstanceConfig,
 } from '@/types'
+import { isOneSignalInstanceConfig } from '@/types'
 
 /**
  * OneSignal provider for push notifications

@@ -1,6 +1,7 @@
 import { DynamicLoader } from '@/utils/dynamic-loader'
 import { Logger } from '@/utils/logger'
 import type { FirebaseConfig } from '@/types'
+import { isFirebaseAppConfig } from '@/types'
 
 /**
  * Native bridge for Firebase configuration
@@ -45,6 +46,12 @@ export class FirebaseNativeBridge {
    * Validate Firebase configuration
    */
   private static validateConfig(config: FirebaseConfig): void {
+    // If config has app property, it's already initialized
+    if (isFirebaseAppConfig(config)) {
+      Logger.debug('Firebase configuration uses existing app instance')
+      return
+    }
+
     const requiredFields = [
       'apiKey',
       'authDomain',
@@ -54,7 +61,7 @@ export class FirebaseNativeBridge {
       'appId'
     ]
 
-    const missingFields = requiredFields.filter(field => !config[field as keyof FirebaseConfig])
+    const missingFields = requiredFields.filter(field => !(field in config))
     
     if (missingFields.length > 0) {
       throw new Error(`Missing required Firebase configuration fields: ${missingFields.join(', ')}`)
@@ -62,12 +69,12 @@ export class FirebaseNativeBridge {
 
     // Log configuration status without exposing sensitive data
     Logger.debug('Firebase configuration validated', {
-      hasApiKey: !!config.apiKey,
-      hasAuthDomain: !!config.authDomain,
-      hasProjectId: !!config.projectId,
-      hasMessagingSenderId: !!config.messagingSenderId,
-      hasAppId: !!config.appId,
-      hasVapidKey: !!config.vapidKey,
+      hasApiKey: 'apiKey' in config,
+      hasAuthDomain: 'authDomain' in config,
+      hasProjectId: 'projectId' in config,
+      hasMessagingSenderId: 'messagingSenderId' in config,
+      hasAppId: 'appId' in config,
+      hasVapidKey: 'vapidKey' in config,
     })
   }
 

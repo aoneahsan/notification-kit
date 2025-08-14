@@ -9,8 +9,8 @@ import type {
   PushNotificationPayload,
   PermissionStatus,
   ProviderCapabilities,
-  isFirebaseAppConfig,
 } from '@/types'
+import { isFirebaseAppConfig } from '@/types'
 
 /**
  * Firebase provider for push notifications
@@ -55,15 +55,15 @@ export class FirebaseProvider implements NotificationProvider {
 
         // Initialize Firebase app
         const firebaseConfig: Record<string, string> = {
-          apiKey: config.apiKey,
-          authDomain: config.authDomain,
-          projectId: config.projectId,
-          storageBucket: config.storageBucket,
-          messagingSenderId: config.messagingSenderId,
-          appId: config.appId,
+          apiKey: (config as any).apiKey,
+          authDomain: (config as any).authDomain,
+          projectId: (config as any).projectId,
+          storageBucket: (config as any).storageBucket,
+          messagingSenderId: (config as any).messagingSenderId,
+          appId: (config as any).appId,
         }
 
-        if (config.measurementId) {
+        if ('measurementId' in config && config.measurementId) {
           firebaseConfig.measurementId = config.measurementId
         }
 
@@ -409,9 +409,11 @@ export class FirebaseProvider implements NotificationProvider {
         this.messaging,
         (payload: MessagePayload) => {
           const notificationPayload: PushNotificationPayload = {
+            title: '',
+            body: '',
             data: payload.data || {},
             to: payload.from,
-            collapse_key: payload.collapseKey,
+            collapseKey: payload.collapseKey,
           }
 
           if (payload.notification) {

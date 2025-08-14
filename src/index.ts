@@ -219,9 +219,13 @@ export const quickStart = {
    * Initialize with existing Firebase app
    */
   initFirebaseWithApp: async (app: any, vapidKey?: string) => {
+    const config: any = { app }
+    if (vapidKey !== undefined) {
+      config.vapidKey = vapidKey
+    }
     return await NotificationKit.getInstance().init({
       provider: 'firebase',
-      config: { app, vapidKey },
+      config,
     })
   },
 

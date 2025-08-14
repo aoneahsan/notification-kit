@@ -21,12 +21,11 @@ export function toCapacitorImportance(
   importance: ChannelImportance
 ): CapacitorImportance {
   const map: Record<ChannelImportance, CapacitorImportance> = {
-    none: 1,
-    min: 2,
-    low: 2,
-    default: 3,
-    high: 4,
-    max: 5,
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
+    5: 5,
   }
   return map[importance] || 3
 }
@@ -38,13 +37,13 @@ export function fromCapacitorImportance(
   importance: CapacitorImportance
 ): ChannelImportance {
   const map: Record<CapacitorImportance, ChannelImportance> = {
-    1: 'none',
-    2: 'low',
-    3: 'default',
-    4: 'high',
-    5: 'max',
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
+    5: 5,
   }
-  return map[importance] || 'default'
+  return map[importance] || 3
 }
 
 /**

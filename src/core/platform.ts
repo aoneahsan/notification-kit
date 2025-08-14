@@ -88,64 +88,22 @@ export class PlatformManager {
    */
   getDefaults(): PlatformDefaults {
     return {
+      sound: 'default',
+      badge: '1',
+      icon: 'notification-icon',
       web: {
-        pushNotifications: true,
-        localNotifications: false,
-        inAppNotifications: true,
-        notificationChannels: false,
-        notificationActions: true,
-        notificationBadging: false,
-        notificationSound: true,
-        notificationVibration: false,
-        serviceWorker: true,
-        webPushProtocol: true,
-        backgroundSync: true,
+        sound: 'default.mp3',
       },
       ios: {
-        pushNotifications: true,
-        localNotifications: true,
-        inAppNotifications: true,
-        notificationChannels: false,
-        notificationActions: true,
-        notificationBadging: true,
-        notificationSound: true,
-        notificationVibration: true,
-        criticalAlerts: true,
-        provisionalAuth: true,
-        appBadge: true,
+        sound: 'default.caf',
+        badge: 'auto',
       },
       android: {
-        pushNotifications: true,
-        localNotifications: true,
-        inAppNotifications: true,
-        notificationChannels: true,
-        notificationActions: true,
-        notificationBadging: true,
-        notificationSound: true,
-        notificationVibration: true,
-        notificationLights: true,
-        notificationGrouping: true,
-        notificationImportance: true,
-        notificationVisibility: true,
-        foregroundService: true,
+        sound: 'default',
+        icon: 'ic_notification',
       },
       electron: {
-        pushNotifications: true,
-        localNotifications: true,
-        inAppNotifications: true,
-        notificationActions: true,
-        notificationBadging: true,
-        notificationSound: true,
-      },
-      unknown: {
-        pushNotifications: false,
-        localNotifications: false,
-        inAppNotifications: false,
-        notificationChannels: false,
-        notificationActions: false,
-        notificationBadging: false,
-        notificationSound: false,
-        notificationVibration: false,
+        sound: 'default',
       },
     }
   }
@@ -155,83 +113,14 @@ export class PlatformManager {
    */
   getCompatibility(): PlatformCompatibility {
     return {
-      pushNotifications: {
-        web: true,
-        ios: true,
-        android: true,
-        electron: true,
-        notes: 'Requires service worker on web',
-      },
-      localNotifications: {
-        web: false,
-        ios: true,
-        android: true,
-        electron: true,
-        notes: 'Not supported in browsers',
-      },
-      inAppNotifications: {
-        web: true,
-        ios: true,
-        android: true,
-        electron: true,
-        notes: 'Custom implementation across platforms',
-      },
-      notificationChannels: {
-        web: false,
-        ios: false,
-        android: true,
-        electron: false,
-        notes: 'Android 8.0+ only',
-      },
-      notificationActions: {
-        web: true,
-        ios: true,
-        android: true,
-        electron: true,
-        notes: 'Limited on some platforms',
-      },
-      notificationBadging: {
-        web: false,
-        ios: true,
-        android: true,
-        electron: true,
-        notes: 'iOS and Android native support',
-      },
-      criticalAlerts: {
-        web: false,
-        ios: true,
-        android: false,
-        electron: false,
-        notes: 'iOS only with special entitlement',
-      },
-      provisionalAuth: {
-        web: false,
-        ios: true,
-        android: false,
-        electron: false,
-        notes: 'iOS 12+ quiet notifications',
-      },
-      backgroundSync: {
-        web: true,
-        ios: true,
-        android: true,
-        electron: true,
-        notes: 'Service worker required on web',
-      },
-      quietHours: {
-        web: false,
-        ios: true,
-        android: true,
-        electron: false,
-        notes: 'System-level feature',
-      },
-      doNotDisturb: {
-        web: false,
-        ios: true,
-        android: true,
-        electron: false,
-        notes: 'Respects system settings',
-      },
+      pushNotifications: true,
+      localNotifications: true,
+      inAppNotifications: true,
+      channels: true,
+      actions: true,
+      badges: true,
+      sounds: true,
+      criticalAlerts: false,
     }
   }
 
@@ -257,7 +146,7 @@ export class PlatformManager {
    */
   private buildCapabilities(platform: Platform): PlatformCapabilities {
     const defaults = this.getDefaults()
-    const platformDefaults = defaults[platform] || {}
+    const platformDefaults = (defaults as any)[platform] || {}
 
     return {
       pushNotifications: false,
