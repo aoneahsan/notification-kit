@@ -269,7 +269,7 @@ export class NotificationKit {
       }
       const { LocalNotifications } = localNotificationsModule
       const result = await LocalNotifications.getPending()
-      return result.notifications.map(n => ({
+      return result.notifications.map((n: any) => ({
         id: n.id.toString(),
         title: n.title,
         body: n.body,
@@ -378,7 +378,7 @@ export class NotificationKit {
       }
       const { LocalNotifications } = localNotificationsModule
       const result = await LocalNotifications.listChannels()
-      return result.channels.map(channel => fromCapacitorChannel(channel))
+      return result.channels.map((channel: any) => fromCapacitorChannel(channel))
     } catch (error) {
       this.emit('error', { error, context: 'channel' })
       throw error
@@ -522,7 +522,7 @@ export class NotificationKit {
 
         LocalNotifications.addListener(
           'localNotificationReceived',
-          notification => {
+          (notification: any) => {
             this.emit('notificationReceived', {
               payload: fromCapacitorLocalNotification(notification),
               type: 'local',
@@ -533,7 +533,7 @@ export class NotificationKit {
 
         LocalNotifications.addListener(
           'localNotificationActionPerformed',
-          action => {
+          (action: any) => {
             this.emit('notificationActionPerformed', {
               action: action.actionId,
               notification: action.notification,
@@ -706,7 +706,7 @@ export const notifications = {
     const pending = await LocalNotifications.getPending()
     if (pending.notifications.length > 0) {
       await LocalNotifications.cancel({
-        notifications: pending.notifications.map(n => ({ id: n.id }))
+        notifications: pending.notifications.map((n: any) => ({ id: n.id }))
       })
     }
   },
@@ -727,7 +727,7 @@ export const notifications = {
    */
   onPushOpened: (callback: (notification: any) => void) => {
     return NotificationKit.getInstance().on('notificationActionPerformed', (event) => {
-      if (event.type === 'push.opened' || (event.type === 'push.action' && event.actionId === 'tap')) {
+      if ((event as any).type === 'push.opened' || ((event as any).type === 'push.action' && event.actionId === 'tap')) {
         callback(event.notification)
       }
     })

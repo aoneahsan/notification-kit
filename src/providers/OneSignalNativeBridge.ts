@@ -1,6 +1,7 @@
 import { DynamicLoader } from '@/utils/dynamic-loader'
 import { Logger } from '@/utils/logger'
 import type { OneSignalConfig } from '@/types'
+import { isOneSignalInstanceConfig } from '@/types'
 
 /**
  * Native bridge for OneSignal configuration
@@ -76,7 +77,7 @@ export class OneSignalNativeBridge {
     // 3. This is typically done in the AppDelegate or via a Capacitor plugin
     
     Logger.debug('iOS OneSignal configuration:', {
-      appId: config.appId ? '***' : 'not provided',
+      appId: !isOneSignalInstanceConfig(config) && config.appId ? '***' : 'not provided',
       // Log config status without exposing sensitive data
     })
 
@@ -95,7 +96,7 @@ export class OneSignalNativeBridge {
     // 3. This is typically done in the Application class or via a Capacitor plugin
     
     Logger.debug('Android OneSignal configuration:', {
-      appId: config.appId ? '***' : 'not provided',
+      appId: !isOneSignalInstanceConfig(config) && config.appId ? '***' : 'not provided',
       // Log config status without exposing sensitive data
     })
 

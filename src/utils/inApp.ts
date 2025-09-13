@@ -106,7 +106,7 @@ export class InAppNotificationManager {
 
     this.container = document.createElement('div')
     this.container.id = 'notification-kit-container'
-    const containerStyles = this.config?.container?.style ?? {}
+    const containerStyles = (typeof this.config?.container === 'object' && this.config?.container?.style) ?? {}
     const defaultStyles = {
       position: 'fixed',
       top: '0',
@@ -114,8 +114,8 @@ export class InAppNotificationManager {
       right: '0',
       bottom: '0',
       pointerEvents: 'none',
-      zIndex: containerStyles.zIndex ?? '9999',
-      fontFamily: containerStyles.fontFamily ?? "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+      zIndex: (containerStyles as any)?.zIndex ?? '9999',
+      fontFamily: (containerStyles as any)?.fontFamily ?? "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
     }
     
     Object.assign(this.container.style, defaultStyles, containerStyles)
@@ -282,7 +282,7 @@ export class InAppNotificationManager {
           if (action.onClick) {
             action.onClick()
           }
-          if (options.onAction) {
+          if (options.onAction && action.id) {
             options.onAction(action.id)
           }
         })

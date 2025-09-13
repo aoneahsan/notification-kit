@@ -545,7 +545,8 @@
       "Bash(nvm use:*)",
       "Bash(export:*)",
       "Bash(npm start)",
-      "Bash(npm:*)"
+      "Bash(npm:*)",
+      "Bash(tar:*)"
     ],
     "deny": []
   }

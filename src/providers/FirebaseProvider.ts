@@ -10,6 +10,9 @@ import type {
   PermissionStatus,
   ProviderCapabilities,
 } from '@/types'
+import { isFirebaseAppConfig } from '@/types'
+// @ts-ignore - used conditionally
+const _ = isFirebaseAppConfig
 
 /**
  * Firebase provider for push notifications
@@ -32,38 +35,47 @@ export class FirebaseProvider implements NotificationProvider {
    */
   async init(config: FirebaseConfig): Promise<void> {
     try {
-      // Validate configuration
-      ConfigValidator.validateFirebaseConfig(config)
-      ConfigValidator.validateEnvironmentVariables('firebase')
+      // Import the type guard function
+      const { isFirebaseAppConfig } = await import('@/types')
       
       this.config = config
 
-      // Initialize native bridge for secure configuration on mobile platforms
-      const isNative = await DynamicLoader.isNativePlatform()
-      if (isNative) {
-        await FirebaseNativeBridge.initializeNative(config)
-      }
+      // Check if an existing Firebase app is provided
+      if (isFirebaseAppConfig(config)) {
+        // Use existing Firebase app
+        this.app = config.app
+      } else {
+        // Validate configuration for new app creation
+        ConfigValidator.validateFirebaseConfig(config)
+        ConfigValidator.validateEnvironmentVariables('firebase')
 
-      // Initialize Firebase app
-      const firebaseConfig: Record<string, string> = {
-        apiKey: config.apiKey,
-        authDomain: config.authDomain,
-        projectId: config.projectId,
-        storageBucket: config.storageBucket,
-        messagingSenderId: config.messagingSenderId,
-        appId: config.appId,
-      }
+        // Initialize native bridge for secure configuration on mobile platforms
+        const isNative = await DynamicLoader.isNativePlatform()
+        if (isNative) {
+          await FirebaseNativeBridge.initializeNative(config)
+        }
 
-      if (config.measurementId) {
-        firebaseConfig.measurementId = config.measurementId
-      }
+        // Initialize Firebase app
+        const firebaseConfig: Record<string, string> = {
+          apiKey: (config as any).apiKey,
+          authDomain: (config as any).authDomain,
+          projectId: (config as any).projectId,
+          storageBucket: (config as any).storageBucket,
+          messagingSenderId: (config as any).messagingSenderId,
+          appId: (config as any).appId,
+        }
 
-      // Dynamically import and initialize Firebase
-      const firebaseApp = await DynamicLoader.loadFirebase()
-      if (!firebaseApp) {
-        throw new Error('Firebase is required but not installed')
+        if ('measurementId' in config && config.measurementId) {
+          firebaseConfig.measurementId = config.measurementId
+        }
+
+        // Dynamically import and initialize Firebase
+        const firebaseApp = await DynamicLoader.loadFirebase()
+        if (!firebaseApp) {
+          throw new Error('Firebase is required but not installed')
+        }
+        this.app = firebaseApp.initializeApp(firebaseConfig)
       }
-      this.app = firebaseApp.initializeApp(firebaseConfig)
 
       // Initialize messaging if supported
       if (await this.isSupported()) {
@@ -340,14 +352,20 @@ export class FirebaseProvider implements NotificationProvider {
     const isWeb = !(await DynamicLoader.isNativePlatform())
 
     return {
-      pushNotifications: true,
       topics: true,
+      scheduling: false, // Server-side only
+      analytics: true,
+      segmentation: true,
+      templates: false,
+      webhooks: false,
+      batch: false,
+      priority: true,
+      ttl: true,
+      collapse: true,
+      pushNotifications: true,
       richMedia: true,
       actions: true,
       backgroundSync: true,
-      analytics: true,
-      segmentation: true,
-      scheduling: false, // Server-side only
       geofencing: false,
       inAppMessages: false,
       webPush: isWeb,
@@ -370,7 +388,6 @@ export class FirebaseProvider implements NotificationProvider {
       multipleDevices: true,
       userTags: false,
       triggers: false,
-      templates: false,
       abTesting: false,
       automation: false,
       journeys: false,
@@ -399,9 +416,11 @@ export class FirebaseProvider implements NotificationProvider {
         this.messaging,
         (payload: MessagePayload) => {
           const notificationPayload: PushNotificationPayload = {
+            title: '',
+            body: '',
             data: payload.data || {},
-            to: payload.from,
-            collapse_key: payload.collapseKey,
+            ...(payload.from && { to: payload.from }),
+            ...(payload.collapseKey && { collapseKey: payload.collapseKey }),
           }
 
           if (payload.notification) {

@@ -216,6 +216,20 @@ export const quickStart = {
   },
 
   /**
+   * Initialize with existing Firebase app
+   */
+  initFirebaseWithApp: async (app: any, vapidKey?: string) => {
+    const config: any = { app }
+    if (vapidKey !== undefined) {
+      config.vapidKey = vapidKey
+    }
+    return await NotificationKit.getInstance().init({
+      provider: 'firebase',
+      config,
+    })
+  },
+
+  /**
    * Initialize with OneSignal
    */
   initOneSignal: async (config: {
@@ -226,6 +240,16 @@ export const quickStart = {
     return await NotificationKit.getInstance().init({
       provider: 'onesignal',
       config,
+    })
+  },
+
+  /**
+   * Initialize with existing OneSignal instance
+   */
+  initOneSignalWithInstance: async (instance: any) => {
+    return await NotificationKit.getInstance().init({
+      provider: 'onesignal',
+      config: { instance },
     })
   },
 

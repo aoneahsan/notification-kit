@@ -1,20 +1,18 @@
 {
   "name": "notification-kit",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "A unified notification library for React + Capacitor apps. One API for push notifications, in-app notifications, and local notifications across Web, iOS, and Android.",
-  "main": "dist/index.js",
+  "type": "module",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.esm.js",
-      "require": "./dist/index.js"
+      "import": "./dist/index.esm.js"
     },
     "./react": {
       "types": "./dist/react.d.ts",
-      "import": "./dist/react.esm.js",
-      "require": "./dist/react.js"
+      "import": "./dist/react.esm.js"
     }
   },
   "files": [
@@ -24,7 +22,7 @@
     "LICENSE"
   ],
   "bin": {
-    "notification-kit": "./bin/setup.js"
+    "notification-kit-setup": "bin/setup.js"
   },
   "scripts": {
     "dev": "vite",
@@ -38,7 +36,7 @@
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "format": "prettier --write src/**/*.{ts,tsx}",
     "format:check": "prettier --check src/**/*.{ts,tsx}",
-    "prepare": "husky install",
+    "prepare": "",
     "prepublishOnly": "yarn build && yarn lint"
   },
   "keywords": [
@@ -75,17 +73,7 @@
   },
   "homepage": "https://github.com/aoneahsan/notification-kit#readme",
   "engines": {
-    "node": ">=22.0.0"
-  },
-  "peerDependencies": {
-    "@capacitor/core": ">=7.4.2",
-    "@capacitor/local-notifications": ">=7.0.1",
-    "@capacitor/preferences": ">=7.0.1",
-    "@capacitor/push-notifications": ">=7.0.1",
-    "firebase": ">=12.0.0",
-    "react": ">=19.1.0",
-    "react-dom": ">=19.1.0",
-    "react-onesignal": ">=3.2.3"
+    "node": ">=24.2.0"
   },
   "peerDependenciesMeta": {
     "@capacitor/core": {
@@ -112,6 +100,16 @@
     "react-onesignal": {
       "optional": true
     }
+  },
+  "peerDependencies": {
+    "@capacitor/core": ">=7.4.3",
+    "@capacitor/local-notifications": ">=7.0.3",
+    "@capacitor/preferences": ">=7.0.2",
+    "@capacitor/push-notifications": ">=7.0.3",
+    "firebase": ">=12.2.1",
+    "react": ">=19.1.1",
+    "react-dom": ">=19.1.1",
+    "react-onesignal": ">=3.3.0"
   },
   "devDependencies": {
     "@capacitor/core": "^7.4.3",

@@ -9,6 +9,9 @@ import type {
   PermissionStatus,
   ProviderCapabilities,
 } from '@/types'
+import { isOneSignalInstanceConfig } from '@/types'
+// @ts-ignore - used conditionally  
+const _ = isOneSignalInstanceConfig
 
 /**
  * OneSignal provider for push notifications
@@ -29,59 +32,76 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async init(config: OneSignalConfig): Promise<void> {
     try {
-      // Validate configuration
-      ConfigValidator.validateOneSignalConfig(config)
-      ConfigValidator.validateEnvironmentVariables('onesignal')
+      // Import the type guard function
+      const { isOneSignalInstanceConfig } = await import('@/types')
       
       this.config = config
 
-      const isNative = await DynamicLoader.isNativePlatform()
-      
-      if (isNative) {
-        // For native platforms, initialize through the native bridge
-        await OneSignalNativeBridge.initializeNative(config)
-        
-        // Native platforms use the OneSignal Capacitor SDK
-        // which has a different API than react-onesignal
+      // Check if an existing OneSignal instance is provided
+      if (isOneSignalInstanceConfig(config)) {
+        // Use existing OneSignal instance
+        this.OneSignal = config.instance
         this.initialized = true
-        await this.setupNativeEventListeners()
+        
+        const isNative = await DynamicLoader.isNativePlatform()
+        if (isNative) {
+          await this.setupNativeEventListeners()
+        } else {
+          await this.setupEventListeners()
+        }
       } else {
-        // For web platform, use react-onesignal
-        const initOptions: Record<string, unknown> = {
-          appId: config.appId,
-          safari_web_id: config.safariWebId,
-          autoPrompt: config.autoPrompt ?? true,
-          autoResubscribe: config.autoResubscribe ?? true,
-          path: config.path,
-          serviceWorkerPath: config.serviceWorkerPath,
-          serviceWorkerUpdaterPath: config.serviceWorkerUpdaterPath,
-          notificationClickHandlerMatch:
-            config.notificationClickHandlerMatch ?? 'origin',
-          notificationClickHandlerAction:
-            config.notificationClickHandlerAction ?? 'focusOrNavigate',
-          allowLocalhostAsSecureOrigin:
-            config.allowLocalhostAsSecureOrigin ?? false,
-        }
+        // Validate configuration for new initialization
+        ConfigValidator.validateOneSignalConfig(config)
+        ConfigValidator.validateEnvironmentVariables('onesignal')
 
-        if (config.promptOptions) {
-          initOptions.promptOptions = config.promptOptions
-        }
-
-        if (config.welcomeNotification) {
-          initOptions.welcomeNotification = config.welcomeNotification
-        }
-
-        // Dynamically import OneSignal
-        const oneSignalModule = await DynamicLoader.loadOneSignal()
-        if (!oneSignalModule) {
-          throw new Error('OneSignal is required but not installed')
-        }
-        this.OneSignal = oneSignalModule.default
+        const isNative = await DynamicLoader.isNativePlatform()
         
-        await this.OneSignal.init(initOptions as Parameters<typeof this.OneSignal.init>[0])
+        if (isNative) {
+          // For native platforms, initialize through the native bridge
+          await OneSignalNativeBridge.initializeNative(config)
+          
+          // Native platforms use the OneSignal Capacitor SDK
+          // which has a different API than react-onesignal
+          this.initialized = true
+          await this.setupNativeEventListeners()
+        } else {
+          // For web platform, use react-onesignal
+          const initOptions: Record<string, unknown> = {
+            appId: config.appId,
+            safari_web_id: config.safariWebId,
+            autoPrompt: config.autoPrompt ?? true,
+            autoResubscribe: config.autoResubscribe ?? true,
+            path: config.path,
+            serviceWorkerPath: config.serviceWorkerPath,
+            serviceWorkerUpdaterPath: config.serviceWorkerUpdaterPath,
+            notificationClickHandlerMatch:
+              config.notificationClickHandlerMatch ?? 'origin',
+            notificationClickHandlerAction:
+              config.notificationClickHandlerAction ?? 'focusOrNavigate',
+            allowLocalhostAsSecureOrigin:
+              config.allowLocalhostAsSecureOrigin ?? false,
+          }
 
-        this.initialized = true
-        await this.setupEventListeners()
+          if (config.promptOptions) {
+            initOptions.promptOptions = config.promptOptions
+          }
+
+          if (config.welcomeNotification) {
+            initOptions.welcomeNotification = config.welcomeNotification
+          }
+
+          // Dynamically import OneSignal
+          const oneSignalModule = await DynamicLoader.loadOneSignal()
+          if (!oneSignalModule) {
+            throw new Error('OneSignal is required but not installed')
+          }
+          this.OneSignal = oneSignalModule.default
+          
+          await this.OneSignal.init(initOptions as Parameters<typeof this.OneSignal.init>[0])
+
+          this.initialized = true
+          await this.setupEventListeners()
+        }
       }
     } catch (error) {
       this.handleError(new Error(`OneSignal initialization failed: ${error}`))
@@ -257,7 +277,7 @@ export class OneSignalProvider implements NotificationProvider {
    * Send notification (requires REST API)
    */
   async sendNotification(payload: PushNotificationPayload): Promise<void> {
-    if (!this.config?.restApiKey) {
+    if (!this.config || isOneSignalInstanceConfig(this.config) || !this.config.restApiKey) {
       throw new Error('REST API key required for sending notifications')
     }
 
@@ -359,14 +379,20 @@ export class OneSignalProvider implements NotificationProvider {
     const isWeb = !(await DynamicLoader.isNativePlatform())
 
     return {
-      pushNotifications: true,
       topics: true, // Using tags
+      scheduling: true,
+      analytics: true,
+      segmentation: true,
+      templates: true,
+      webhooks: true,
+      batch: true,
+      priority: true,
+      ttl: true,
+      collapse: true,
+      pushNotifications: true,
       richMedia: true,
       actions: true,
       backgroundSync: true,
-      analytics: true,
-      segmentation: true,
-      scheduling: true,
       geofencing: false,
       inAppMessages: true,
       webPush: isWeb,
@@ -389,7 +415,6 @@ export class OneSignalProvider implements NotificationProvider {
       multipleDevices: true,
       userTags: true,
       triggers: true,
-      templates: true,
       abTesting: true,
       automation: true,
       journeys: true,
@@ -411,8 +436,10 @@ export class OneSignalProvider implements NotificationProvider {
       const { PushNotifications } = pushNotificationsModule
 
       // Listen for push notifications
-      await PushNotifications.addListener('pushNotificationReceived', notification => {
+      await PushNotifications.addListener('pushNotificationReceived', (notification: any) => {
         const payload: PushNotificationPayload = {
+          title: notification.title || '',
+          body: notification.body || '',
           data: notification.data || {},
           notification: {
             title: notification.title || '',
@@ -425,8 +452,10 @@ export class OneSignalProvider implements NotificationProvider {
       })
 
       // Listen for notification actions
-      await PushNotifications.addListener('pushNotificationActionPerformed', notificationAction => {
+      await PushNotifications.addListener('pushNotificationActionPerformed', (notificationAction: any) => {
         const payload: PushNotificationPayload = {
+          title: notificationAction.notification?.title || '',
+          body: notificationAction.notification?.body || '',
           data: notificationAction.notification.data || {},
           notification: {
             title: notificationAction.notification.title || '',
@@ -438,12 +467,12 @@ export class OneSignalProvider implements NotificationProvider {
       })
 
       // Listen for registration changes
-      await PushNotifications.addListener('registration', token => {
+      await PushNotifications.addListener('registration', (token: any) => {
         this.notifyTokenListeners(token.value)
       })
 
       // Listen for registration errors
-      await PushNotifications.addListener('registrationError', error => {
+      await PushNotifications.addListener('registrationError', (error: any) => {
         this.handleError(new Error(`Registration error: ${error.error}`))
       })
     } catch (error) {
@@ -479,6 +508,8 @@ export class OneSignalProvider implements NotificationProvider {
           notificationObj.image = notificationData.image as string
 
         const payload: PushNotificationPayload = {
+          title: (notificationObj.title as string) || '',
+          body: (notificationObj.body as string) || '',
           data:
             (notificationData.additionalData as Record<string, unknown>) || {},
           notification: notificationObj,
@@ -503,6 +534,8 @@ export class OneSignalProvider implements NotificationProvider {
           notificationObj.image = notificationData.image as string
 
         const payload: PushNotificationPayload = {
+          title: (notificationObj.title as string) || '',
+          body: (notificationObj.body as string) || '',
           data:
             (notificationData.additionalData as Record<string, unknown>) || {},
           notification: notificationObj,

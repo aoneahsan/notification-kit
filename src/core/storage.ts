@@ -263,8 +263,8 @@ export class StorageManager {
     const result = await preferencesModule.Preferences.keys()
 
     return result.keys
-      .filter(key => key.startsWith(this.prefix))
-      .map(key => key.substring(this.prefix.length))
+      .filter((key: any) => key.startsWith(this.prefix))
+      .map((key: any) => key.substring(this.prefix.length))
   }
 
   /**

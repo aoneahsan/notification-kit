@@ -82,9 +82,9 @@ export class ValidationUtils {
       errors: result.errors.map(error => ({
         field: error.field || 'schedule',
         message: error.message,
-        code: error.code,
+        code: error.code || undefined,
         value: error.value,
-      })),
+      })) as ValidationError[],
     }
   }
 
