@@ -47,7 +47,7 @@ Based on the API documentation, the project should be structured around:
 - Vitest - Testing framework (per user preferences)
 - ESLint/Prettier - Code quality
 - Rollup/Vite - Build tooling
-- Yarn - Package manager
+- pnpm - Package manager (NEVER use npm or yarn)
 
 ### Target Platforms
 - Web (with service worker for push notifications)
@@ -60,25 +60,25 @@ Based on the API documentation, the project should be structured around:
 
 ```bash
 # Install dependencies
-yarn install
+pnpm install
 
 # Development mode
-yarn dev
+pnpm dev
 
 # Build library
-yarn build
+pnpm build
 
 # Run tests
-yarn test
+pnpm test
 
 # Type checking
-yarn type-check
+pnpm type-check
 
 # Lint code
-yarn lint
+pnpm lint
 
 # Publish to npm
-yarn publish
+pnpm publish
 ```
 
 ## API Structure
