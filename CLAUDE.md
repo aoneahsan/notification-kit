@@ -47,7 +47,7 @@ Based on the API documentation, the project should be structured around:
 - Vitest - Testing framework (per user preferences)
 - ESLint/Prettier - Code quality
 - Rollup/Vite - Build tooling
-- pnpm - Package manager (NEVER use npm or yarn)
+- yarn - Package manager (NEVER use npm or pnpm)
 
 ### Target Platforms
 - Web (with service worker for push notifications)
@@ -60,25 +60,25 @@ Based on the API documentation, the project should be structured around:
 
 ```bash
 # Install dependencies
-pnpm install
+yarn install
 
 # Development mode
-pnpm dev
+yarn dev
 
 # Build library
-pnpm build
+yarn build
 
 # Run tests
-pnpm test
+yarn test
 
 # Type checking
-pnpm type-check
+yarn type-check
 
 # Lint code
-pnpm lint
+yarn lint
 
 # Publish to npm
-pnpm publish
+yarn publish
 ```
 
 ## API Structure
@@ -146,3 +146,26 @@ Per user preferences, use Vitest for testing:
 - Follow defensive security practices
 - Maintain comprehensive documentation
 - Implement full offline support where applicable
+
+---
+
+## Comprehensive Audit Record
+
+| Date | Audit Type | Status | Issues Found | Issues Resolved |
+|------|------------|--------|--------------|-----------------|
+| 2026-01-23 | Full Audit | Passed with issues | 1 | 0 |
+
+### Last Audit Details
+- **Package Manager**: yarn confirmed
+- **Dependencies**: Updated to latest
+- **Build**: Passes (0 errors)
+- **Lint**: Passes (0 warnings)
+- **Features**: Core functionality complete
+- **TODOs**: 4 found (encryption, decryption, native settings, tablet detection)
+- **SEO**: N/A (npm package)
+- **OG Assets**: N/A (npm package)
+
+### Outstanding Issues
+1. 4 TODO comments in source code (storage.ts, permissions.ts, platform.ts)
+
+### Next Audit Due: 2026-01-30 (7 days from last)

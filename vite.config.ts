@@ -71,4 +71,5 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
   },
+  logLevel: process.env.NODE_ENV === 'production' ? 'error' : 'info',
 })

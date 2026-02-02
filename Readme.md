@@ -4,6 +4,8 @@ A unified notification library for React + Capacitor apps. One API for push noti
 
 ## 📚 Documentation
 
+- **[AI Integration Guide](./AI-INTEGRATION-GUIDE.md)** - Quick reference for AI development agents (Claude, Cursor, Copilot)
+
 📖 **[View Full Documentation](https://github.com/aoneahsan/notification-kit/tree/main/docs)**
 
 ### Quick Links
