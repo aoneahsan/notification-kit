@@ -6,13 +6,13 @@ Get up and running with notification-kit in just a few minutes!
 
 ```bash
 # Install the package
-npm install notification-kit
+yarn add notification-kit
 
 # Install required Capacitor plugins
-npm install @capacitor/push-notifications @capacitor/local-notifications
+yarn add @capacitor/push-notifications @capacitor/local-notifications
 
 # Sync with native projects
-npx cap sync
+yarn cap sync
 ```
 
 ## 🔧 Basic Setup

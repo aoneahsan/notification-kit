@@ -5,17 +5,17 @@ A unified notification library for React + Capacitor apps. One API for push noti
 ## Current State
 
 - Package version: `2.0.6`
-- Verified on: `2026-03-24`
+- Verified on: `2026-03-25`
+- Install: `yarn install` succeeds
 - Build: `yarn build` succeeds
-- Test status: `yarn test --run` currently fails
+- Test status: `yarn test --run` passes
 - Current test snapshot:
-  - 90 tests passed
-  - 38 tests failed
-  - failures concentrated in OneSignal provider tests and some React hook tests
+  - 124 tests passed
+  - 0 tests failed
 - Known warning during verification:
   - Node `DEP0169` deprecation warnings surfaced through Yarn execution
 - Root portfolio info file:
-  - `NOTIFICATION-KIT_portfolio-info_2026-03-24.md`
+  - `NOTIFICATION-KIT_portfolio-info_2026-03-25.md`
 
 ## 📚 Documentation
 
@@ -45,6 +45,7 @@ A unified notification library for React + Capacitor apps. One API for push noti
 ## Verification Commands
 
 ```bash
+yarn install
 yarn test --run
 yarn build
 ```
@@ -79,7 +80,7 @@ yarn build
 ### Basic Installation (Zero Dependencies!)
 
 ```bash
-npm install notification-kit
+yarn add notification-kit
 ```
 
 That's it! notification-kit has **zero runtime dependencies** and will work immediately for basic functionality.
@@ -90,17 +91,17 @@ Install only what you need:
 
 ```bash
 # For Capacitor-based apps (iOS/Android)
-npm install @capacitor/core @capacitor/push-notifications @capacitor/local-notifications @capacitor/preferences
-npx cap sync
+yarn add @capacitor/core @capacitor/push-notifications @capacitor/local-notifications @capacitor/preferences
+yarn cap sync
 
 # For Firebase push notifications
-npm install firebase
+yarn add firebase
 
 # For OneSignal push notifications  
-npm install react-onesignal
+yarn add react-onesignal
 
 # For React hooks
-npm install react react-dom
+yarn add react react-dom
 ```
 
 The library will gracefully handle missing dependencies and show helpful error messages only when you try to use features that require them.

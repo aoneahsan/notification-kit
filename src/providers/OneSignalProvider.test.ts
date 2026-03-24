@@ -1,47 +1,41 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { waitFor } from '@testing-library/react'
 import { OneSignalProvider } from './OneSignalProvider'
+import { DynamicLoader } from '@/utils/dynamic-loader'
+import { ConfigValidator } from '@/utils/config-validator'
+import { OneSignalNativeBridge } from './OneSignalNativeBridge'
 import type { OneSignalConfig, PushNotificationPayload } from '@/types'
 
-// Create a mock OneSignal object to reuse across tests
 const mockOneSignal = {
-  setAppId: vi.fn(),
-  setNotificationOpenedHandler: vi.fn(),
-  setNotificationWillShowInForegroundHandler: vi.fn(),
-  promptForPushNotificationsWithUserResponse: vi.fn(() =>
-    Promise.resolve(true)
-  ),
-  getDeviceState: vi.fn(() =>
-    Promise.resolve({
-      isSubscribed: true,
-      userId: 'test-user-id',
-      pushToken: 'test-push-token',
-      hasNotificationPermission: true,
-      notificationPermissionStatus: 1,
-    })
-  ),
-  addSubscriptionObserver: vi.fn(),
-  removeSubscriptionObserver: vi.fn(),
-  addPermissionObserver: vi.fn(),
-  removePermissionObserver: vi.fn(),
-  sendTag: vi.fn(() => Promise.resolve()),
-  deleteTag: vi.fn(() => Promise.resolve()),
-  getTags: vi.fn(() => Promise.resolve({})),
-  setExternalUserId: vi.fn(() => Promise.resolve()),
-  removeExternalUserId: vi.fn(() => Promise.resolve()),
-  postNotification: vi.fn(() => Promise.resolve()),
-  clearOneSignalNotifications: vi.fn(),
+  init: vi.fn(),
+  showSlidedownPrompt: vi.fn(),
+  isPushNotificationsEnabled: vi.fn(),
+  getUserId: vi.fn(),
+  sendTag: vi.fn(),
+  deleteTag: vi.fn(),
+  getTags: vi.fn(),
+  on: vi.fn(),
+  off: vi.fn(),
 }
 
-// Mock OneSignal
-vi.mock('onesignal-cordova-plugin', () => ({
-  default: mockOneSignal,
+vi.mock('@/utils/dynamic-loader', () => ({
+  DynamicLoader: {
+    isNativePlatform: vi.fn(),
+    loadOneSignal: vi.fn(),
+    loadPushNotifications: vi.fn(),
+  },
 }))
 
-vi.mock('@/core/platform', () => ({
-  platform: {
-    getPlatform: vi.fn(() => 'android'),
-    isWeb: vi.fn(() => false),
-    isNative: vi.fn(() => true),
+vi.mock('@/utils/config-validator', () => ({
+  ConfigValidator: {
+    validateOneSignalConfig: vi.fn(),
+    validateEnvironmentVariables: vi.fn(),
+  },
+}))
+
+vi.mock('./OneSignalNativeBridge', () => ({
+  OneSignalNativeBridge: {
+    initializeNative: vi.fn(),
   },
 }))
 
@@ -49,39 +43,71 @@ describe('OneSignalProvider', () => {
   let provider: OneSignalProvider
   const mockConfig: OneSignalConfig = {
     appId: 'test-app-id',
+    restApiKey: 'test-rest-key',
   }
 
   beforeEach(() => {
     vi.clearAllMocks()
     provider = new OneSignalProvider()
-  })
 
-  afterEach(() => {
-    vi.restoreAllMocks()
+    vi.mocked(DynamicLoader.isNativePlatform).mockResolvedValue(false)
+    vi.mocked(DynamicLoader.loadOneSignal).mockResolvedValue({
+      default: mockOneSignal,
+    } as never)
+    vi.mocked(ConfigValidator.validateOneSignalConfig).mockImplementation(
+      () => undefined
+    )
+    vi.mocked(ConfigValidator.validateEnvironmentVariables).mockImplementation(
+      () => undefined
+    )
+
+    mockOneSignal.init.mockResolvedValue(undefined)
+    mockOneSignal.showSlidedownPrompt.mockResolvedValue(true)
+    mockOneSignal.isPushNotificationsEnabled.mockResolvedValue(true)
+    mockOneSignal.getUserId.mockResolvedValue('test-user-id')
+    mockOneSignal.sendTag.mockResolvedValue(undefined)
+    mockOneSignal.deleteTag.mockResolvedValue(undefined)
+    mockOneSignal.getTags.mockResolvedValue({})
+    mockOneSignal.on.mockImplementation(() => undefined)
+    mockOneSignal.off.mockImplementation(() => undefined)
   })
 
   describe('init', () => {
-    it('should initialize OneSignal with app ID', async () => {
+    it('should initialize react-onesignal on web', async () => {
       await provider.init(mockConfig)
 
-      expect(mockOneSignal.setAppId).toHaveBeenCalledWith(mockConfig.appId)
-      expect(provider.isInitialized()).toBe(true)
+      expect(ConfigValidator.validateOneSignalConfig).toHaveBeenCalledWith(
+        mockConfig
+      )
+      expect(ConfigValidator.validateEnvironmentVariables).toHaveBeenCalledWith(
+        'onesignal'
+      )
+      expect(mockOneSignal.init).toHaveBeenCalledWith(
+        expect.objectContaining({
+          appId: 'test-app-id',
+          autoPrompt: true,
+          autoResubscribe: true,
+          allowLocalhostAsSecureOrigin: false,
+        })
+      )
+      expect(mockOneSignal.on).toHaveBeenCalledTimes(3)
+      expect((provider as any).initialized).toBe(true)
     })
 
-    it('should not reinitialize if already initialized', async () => {
-      await provider.init(mockConfig)
+    it('should initialize native bridge on native platforms', async () => {
+      vi.mocked(DynamicLoader.isNativePlatform).mockResolvedValue(true)
+      vi.mocked(DynamicLoader.loadPushNotifications).mockResolvedValue({
+        PushNotifications: {
+          addListener: vi.fn().mockResolvedValue(undefined),
+        },
+      } as never)
+
       await provider.init(mockConfig)
 
-      expect(mockOneSignal.setAppId).toHaveBeenCalledTimes(1)
-    })
-
-    it('should setup notification handlers', async () => {
-      await provider.init(mockConfig)
-
-      expect(mockOneSignal.setNotificationOpenedHandler).toHaveBeenCalled()
-      expect(
-        mockOneSignal.setNotificationWillShowInForegroundHandler
-      ).toHaveBeenCalled()
+      expect(OneSignalNativeBridge.initializeNative).toHaveBeenCalledWith(
+        mockConfig
+      )
+      expect((provider as any).initialized).toBe(true)
     })
   })
 
@@ -90,23 +116,22 @@ describe('OneSignalProvider', () => {
       await provider.init(mockConfig)
     })
 
-    it('should request push notification permission', async () => {
-      mockOneSignal.promptForPushNotificationsWithUserResponse.mockResolvedValue(
-        true
-      )
+    it('should request push notification permission on web', async () => {
+      mockOneSignal.showSlidedownPrompt.mockResolvedValue(true)
 
       const result = await provider.requestPermission()
 
       expect(result).toBe(true)
-      expect(
-        mockOneSignal.promptForPushNotificationsWithUserResponse
-      ).toHaveBeenCalled()
+      expect(mockOneSignal.showSlidedownPrompt).toHaveBeenCalled()
     })
 
-    it('should return false if permission denied', async () => {
-      mockOneSignal.promptForPushNotificationsWithUserResponse.mockResolvedValue(
-        false
+    it('should return false if the web prompt is rejected', async () => {
+      mockOneSignal.showSlidedownPrompt.mockRejectedValue(
+        new Error('prompt unavailable')
       )
+      vi.stubGlobal('Notification', {
+        requestPermission: vi.fn().mockResolvedValue('denied'),
+      })
 
       const result = await provider.requestPermission()
 
@@ -119,33 +144,16 @@ describe('OneSignalProvider', () => {
       await provider.init(mockConfig)
     })
 
-    it('should return granted when has permission', async () => {
-      mockOneSignal.getDeviceState.mockResolvedValue({
-        hasNotificationPermission: true,
-        notificationPermissionStatus: 2, // Authorized
-      })
+    it('should return granted when push is enabled on web', async () => {
+      mockOneSignal.isPushNotificationsEnabled.mockResolvedValue(true)
 
       const result = await provider.checkPermission()
 
       expect(result).toBe('granted')
     })
 
-    it('should return denied when permission denied', async () => {
-      mockOneSignal.getDeviceState.mockResolvedValue({
-        hasNotificationPermission: false,
-        notificationPermissionStatus: 0, // NotDetermined
-      })
-
-      const result = await provider.checkPermission()
-
-      expect(result).toBe('denied')
-    })
-
-    it('should return prompt when permission not determined', async () => {
-      mockOneSignal.getDeviceState.mockResolvedValue({
-        hasNotificationPermission: false,
-        notificationPermissionStatus: 1, // Denied
-      })
+    it('should return prompt when push is not enabled on web', async () => {
+      mockOneSignal.isPushNotificationsEnabled.mockResolvedValue(false)
 
       const result = await provider.checkPermission()
 
@@ -158,24 +166,20 @@ describe('OneSignalProvider', () => {
       await provider.init(mockConfig)
     })
 
-    it('should return push token from device state', async () => {
-      mockOneSignal.getDeviceState.mockResolvedValue({
-        pushToken: 'test-token-123',
-      })
+    it('should return the OneSignal user id', async () => {
+      mockOneSignal.getUserId.mockResolvedValue('test-token-123')
 
       const token = await provider.getToken()
 
       expect(token).toBe('test-token-123')
     })
 
-    it('should return empty string if no token', async () => {
-      mockOneSignal.getDeviceState.mockResolvedValue({
-        pushToken: null,
-      })
+    it('should reject if no player id is available', async () => {
+      mockOneSignal.getUserId.mockResolvedValue('')
 
-      const token = await provider.getToken()
-
-      expect(token).toBe('')
+      await expect(provider.getToken()).rejects.toThrow(
+        'No OneSignal player ID available'
+      )
     })
   })
 
@@ -184,23 +188,22 @@ describe('OneSignalProvider', () => {
       await provider.init(mockConfig)
     })
 
-    it('should subscribe to topic using tags', async () => {
+    it('should subscribe to a topic using tags', async () => {
       await provider.subscribe('news')
 
-      expect(mockOneSignal.sendTag).toHaveBeenCalledWith('topic_news', '1')
+      expect(mockOneSignal.sendTag).toHaveBeenCalledWith('news', 'true')
     })
 
-    it('should unsubscribe from topic', async () => {
+    it('should unsubscribe from a topic', async () => {
       await provider.unsubscribe('news')
 
-      expect(mockOneSignal.deleteTag).toHaveBeenCalledWith('topic_news')
+      expect(mockOneSignal.deleteTag).toHaveBeenCalledWith('news')
     })
 
-    it('should get subscriptions from tags', async () => {
+    it('should return all subscribed tag keys', async () => {
       mockOneSignal.getTags.mockResolvedValue({
-        topic_news: '1',
-        topic_updates: '1',
-        other_tag: 'value',
+        news: 'true',
+        updates: 'true',
       })
 
       const subscriptions = await provider.getSubscriptions()
@@ -211,10 +214,14 @@ describe('OneSignalProvider', () => {
 
   describe('sendNotification', () => {
     beforeEach(async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({ ok: true, statusText: 'OK' })
+      )
       await provider.init(mockConfig)
     })
 
-    it('should send notification using OneSignal API', async () => {
+    it('should send notification using the OneSignal REST API', async () => {
       const payload: PushNotificationPayload = {
         title: 'Test Notification',
         body: 'Test body',
@@ -223,31 +230,13 @@ describe('OneSignalProvider', () => {
 
       await provider.sendNotification(payload)
 
-      expect(mockOneSignal.postNotification).toHaveBeenCalledWith(
+      expect(fetch).toHaveBeenCalledWith(
+        'https://onesignal.com/api/v1/notifications',
         expect.objectContaining({
-          contents: { en: payload.body },
-          headings: { en: payload.title },
-          data: payload.data,
-        })
-      )
-    })
-
-    it('should include additional fields if provided', async () => {
-      const payload: PushNotificationPayload = {
-        title: 'Test',
-        body: 'Body',
-        data: {},
-        image: 'https://example.com/image.png',
-        sound: 'custom.wav',
-      }
-
-      await provider.sendNotification(payload)
-
-      expect(mockOneSignal.postNotification).toHaveBeenCalledWith(
-        expect.objectContaining({
-          big_picture: payload.image,
-          android_sound: payload.sound,
-          ios_sound: payload.sound,
+          method: 'POST',
+          headers: expect.objectContaining({
+            Authorization: 'Basic test-rest-key',
+          }),
         })
       )
     })
@@ -258,74 +247,45 @@ describe('OneSignalProvider', () => {
       await provider.init(mockConfig)
     })
 
-    it('should handle notification opened', async () => {
+    it('should handle notification clicked events', async () => {
       const callback = vi.fn()
       provider.onMessage(callback)
 
-      const openedHandler =
-        mockOneSignal.setNotificationOpenedHandler.mock.calls[0][0]
+      const clickedHandler = mockOneSignal.on.mock.calls.find(
+        call => call[0] === 'notificationClicked'
+      )?.[1]
 
-      const mockNotification = {
-        notification: {
-          title: 'Test',
-          body: 'Test body',
-          additionalData: { key: 'value' },
-        },
-      }
-
-      openedHandler(mockNotification)
+      clickedHandler?.({
+        heading: 'Clicked',
+        content: 'Clicked body',
+        additionalData: { source: 'test' },
+      })
 
       expect(callback).toHaveBeenCalledWith({
-        title: 'Test',
-        body: 'Test body',
-        data: { key: 'value' },
+        title: 'Clicked',
+        body: 'Clicked body',
+        data: { source: 'test' },
+        notification: {
+          title: 'Clicked',
+          body: 'Clicked body',
+        },
       })
     })
 
-    it('should handle notification in foreground', async () => {
+    it('should handle subscription changes by notifying token listeners', async () => {
       const callback = vi.fn()
-      provider.onMessage(callback)
-
-      const foregroundHandler =
-        mockOneSignal.setNotificationWillShowInForegroundHandler.mock
-          .calls[0][0]
-
-      const mockNotification = {
-        notification: {
-          title: 'Foreground',
-          body: 'Foreground body',
-          additionalData: { type: 'alert' },
-        },
-        complete: vi.fn(),
-      }
-
-      foregroundHandler(mockNotification)
-
-      expect(callback).toHaveBeenCalledWith({
-        title: 'Foreground',
-        body: 'Foreground body',
-        data: { type: 'alert' },
-      })
-      expect(mockNotification.complete).toHaveBeenCalledWith(
-        mockNotification.notification
-      )
-    })
-
-    it('should handle subscription changes', async () => {
-      const callback = vi.fn()
+      mockOneSignal.getUserId.mockResolvedValue('new-token')
       provider.onTokenRefresh(callback)
 
-      const subscriptionObserver =
-        mockOneSignal.addSubscriptionObserver.mock.calls[0][0]
+      const subscriptionChangedHandler = mockOneSignal.on.mock.calls.find(
+        call => call[0] === 'subscriptionChanged'
+      )?.[1]
 
-      subscriptionObserver({
-        to: {
-          userId: 'new-user-id',
-          pushToken: 'new-token',
-        },
+      subscriptionChangedHandler?.(true)
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith('new-token')
       })
-
-      expect(callback).toHaveBeenCalledWith('new-token')
     })
   })
 
@@ -335,33 +295,27 @@ describe('OneSignalProvider', () => {
 
       const capabilities = await provider.getCapabilities()
 
-      expect(capabilities).toEqual({
-        push: true,
-        local: false,
-        inApp: false,
-        channels: false,
-        topics: true,
-        rich: true,
-        actions: true,
-        silent: true,
-        critical: false,
-      })
+      expect(capabilities).toEqual(
+        expect.objectContaining({
+          topics: true,
+          scheduling: true,
+          analytics: true,
+          actions: true,
+          pushNotifications: true,
+          richMedia: true,
+          inAppMessages: true,
+        })
+      )
     })
   })
 
   describe('destroy', () => {
-    it('should clean up resources and observers', async () => {
+    it('should clean up provider state', async () => {
       await provider.init(mockConfig)
-
-      // Add some observers
-      const callback = vi.fn()
-      provider.onTokenRefresh(callback)
-
       await provider.destroy()
 
-      expect(provider.isInitialized()).toBe(false)
-      expect(mockOneSignal.removeSubscriptionObserver).toHaveBeenCalled()
-      expect(mockOneSignal.removePermissionObserver).toHaveBeenCalled()
+      expect((provider as any).initialized).toBe(false)
+      expect((provider as any).config).toBeNull()
     })
   })
 

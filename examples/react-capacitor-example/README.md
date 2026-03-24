@@ -31,16 +31,16 @@ This example demonstrates how to use the `notification-kit` package in a React +
 
 4. Add platforms (iOS/Android):
    ```bash
-   npx cap add ios
-   npx cap add android
+   yarn cap add ios
+   yarn cap add android
    ```
 
 5. Sync and run on device:
    ```bash
-   npx cap sync
-   npx cap run ios
+   yarn cap sync
+   yarn cap run ios
    # or
-   npx cap run android
+   yarn cap run android
    ```
 
 ## Key Implementation Points

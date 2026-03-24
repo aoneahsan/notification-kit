@@ -6,8 +6,6 @@ Quick reference for AI development agents (Claude Code, Cursor, Copilot, etc.) t
 
 ```bash
 yarn add notification-kit
-# or
-npm install notification-kit
 ```
 
 ### With Firebase (Recommended)

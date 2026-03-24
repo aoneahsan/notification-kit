@@ -8,14 +8,14 @@ This file provides guidance for working in the `notification-kit` repository.
 
 ## Current Verified State
 
-- Reviewed on: `2026-03-24`
+- Reviewed on: `2026-03-25`
 - Package version: `2.0.6`
+- Install: `yarn install` passed
 - Build: `yarn build` passed
-- Tests: `yarn test --run` failed
+- Tests: `yarn test --run` passed
 - Current test snapshot:
-  - 90 tests passed
-  - 38 tests failed
-  - failures were concentrated in OneSignal provider tests and some React hook tests
+  - 124 tests passed
+  - 0 tests failed
 - Known warning in verification pass:
   - Node `DEP0169` deprecation warnings surfaced during Yarn execution
 
@@ -46,7 +46,8 @@ yarn format:check
 ## Working Rules
 
 - Keep docs aligned with the actual package state. Do not describe the project as “implementation pending”.
-- Use `yarn` as the default documented workflow for this package.
+- Use `yarn` as the only documented package manager workflow for this package.
+- Do not use `npm`, `pnpm`, or `package-lock.json` in this repository. Use `yarn install` for dependency installation.
 - When refreshing project info, update `Readme.md`, `docs/README.md`, and the root portfolio file in the same pass.
 - Be explicit when verification is partial or failing; do not overclaim readiness.
 
@@ -62,6 +63,7 @@ yarn format:check
 
 | Date | Updated By | Notes |
 | --- | --- | --- |
+| 2026-03-25 | Codex | Fixed failing tests, re-verified install/build/test, and enforced yarn-only documentation wording |
 | 2026-03-24 | Codex | Refreshed docs, recorded current verification status, added portfolio maintenance rule |
 | 2026-02-02 | Claude | Full update to latest versions, all checks passing |
 
@@ -69,18 +71,19 @@ yarn format:check
 
 | Date | Audit Type | Status | Issues Found | Issues Resolved |
 | --- | --- | --- | --- | --- |
+| 2026-03-25 | Issue Remediation | Passed with minor warning | 39 | 38 |
 | 2026-03-24 | Portfolio + Docs Refresh | Passed with issues | 38 | 0 |
 | 2026-02-02 | Package Update | Passed | 0 | 0 |
 | 2026-01-23 | Full Audit | Passed with issues | 1 | 0 |
 
 ### Last Audit Details
 
-- Package Manager: yarn confirmed
+- Package Manager: yarn confirmed, `yarn install` used for verification
 - Dependencies: no dependency audit performed in this pass
 - Build: passes
 - Lint: not run in this pass
 - TypeScript: not run separately in this pass
-- Tests: failing in current pass
+- Tests: passing in current pass
 - Features: implementation exists across core, providers, hooks, and utilities
 
-### Next Audit Due: 2026-03-31
+### Next Audit Due: 2026-04-01

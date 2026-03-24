@@ -6,19 +6,9 @@ notification-kit is designed with a zero-dependency architecture, meaning the co
 
 ## Basic Installation
 
-### npm
-```bash
-npm install notification-kit
-```
-
 ### yarn (recommended)
 ```bash
 yarn add notification-kit
-```
-
-### pnpm
-```bash
-pnpm add notification-kit
 ```
 
 ## Optional Dependencies
@@ -32,7 +22,7 @@ Depending on your use case, you may need to install additional packages:
 yarn add @capacitor/core @capacitor/push-notifications @capacitor/local-notifications @capacitor/preferences
 
 # Sync native projects
-npx cap sync
+yarn cap sync
 ```
 
 ### For Push Notifications
@@ -92,10 +82,6 @@ If you encounter module resolution issues:
 
 1. Clear your package manager cache:
    ```bash
-   # npm
-   npm cache clean --force
-   
-   # yarn
    yarn cache clean
    ```
 
@@ -107,17 +93,17 @@ If you encounter module resolution issues:
 
 ### Capacitor Sync Issues
 
-If `npx cap sync` fails:
+If `yarn cap sync` fails:
 
 1. Ensure Capacitor is properly initialized:
    ```bash
-   npx cap init
+   yarn cap init
    ```
 
 2. Add platforms if not already added:
    ```bash
-   npx cap add ios
-   npx cap add android
+   yarn cap add ios
+   yarn cap add android
    ```
 
 ### Version Conflicts

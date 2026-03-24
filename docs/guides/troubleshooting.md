@@ -265,10 +265,10 @@ Error: Capacitor could not find the web assets directory
 **Solution:**
 ```bash
 # Build web assets first
-npm run build
+yarn build
 
 # Then sync
-npx cap sync
+yarn cap sync
 ```
 
 #### Android build errors

@@ -566,12 +566,11 @@ export function useNotifications(): UseNotificationsReturn {
    * Check if notifications are supported
    */
   const isSupported = useCallback(async () => {
-    if (!notificationKitRef.current) {
-      return false
-    }
+    const notificationKit =
+      notificationKitRef.current ?? NotificationKit.getInstance()
 
     try {
-      return await notificationKitRef.current.isSupported()
+      return await notificationKit.isSupported()
     } catch (error) {
       // Support check failed, assume not supported
       return false

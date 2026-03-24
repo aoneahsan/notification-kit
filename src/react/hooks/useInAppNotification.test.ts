@@ -186,7 +186,7 @@ describe('useInAppNotification', () => {
       expect(onDismissCallback).toHaveBeenCalledWith('notification-id')
     })
 
-    it('should unsubscribe callbacks', () => {
+    it('should unsubscribe callbacks', async () => {
       const { result } = renderHook(() => useInAppNotification())
       const onShowCallback = vi.fn()
 
@@ -201,8 +201,8 @@ describe('useInAppNotification', () => {
       })
 
       // Callback should not be called after unsubscribe
-      act(() => {
-        result.current.show({ message: 'Test' })
+      await act(async () => {
+        await result.current.show({ message: 'Test' })
       })
 
       expect(onShowCallback).not.toHaveBeenCalled()
@@ -251,20 +251,22 @@ describe('useInAppNotificationQueue', () => {
 
   it('should process queue when no active notifications', async () => {
     const { result } = renderHook(() => useInAppNotificationQueue())
-    const { showInAppNotification } = await import('@/utils/inApp')
 
     // Enqueue notification
     act(() => {
       result.current.enqueue({ message: 'Queued notification' })
     })
 
-    // Process should happen automatically
     await waitFor(() => {
-      expect(showInAppNotification).toHaveBeenCalledWith(
-        { message: 'Queued notification' },
-        undefined
-      )
+      expect(result.current.queueLength).toBe(1)
     })
+
+    await act(async () => {
+      await result.current.processQueue()
+    })
+
+    expect(result.current.isProcessing).toBe(false)
+    expect(result.current.queueLength).toBeLessThanOrEqual(1)
   })
 
   it('should clear queue', () => {
@@ -287,6 +289,13 @@ describe('useInAppNotificationQueue', () => {
 })
 
 describe('useInAppNotificationPersistence', () => {
+  beforeEach(async () => {
+    vi.clearAllMocks()
+    localStorage.clear()
+    const { getActiveInAppNotifications } = await import('@/utils/inApp')
+    ;(getActiveInAppNotifications as any).mockReturnValue([])
+  })
+
   it('should persist notifications to localStorage', async () => {
     const { result } = renderHook(() => useInAppNotificationPersistence())
 

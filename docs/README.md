@@ -4,16 +4,17 @@ Welcome to the comprehensive documentation for notification-kit - a unified noti
 
 ## Verified Status
 
-- Last reviewed: `2026-03-24`
+- Last reviewed: `2026-03-25`
 - Current package version: `2.0.6`
+- Install status: `yarn install` passed
 - Build status: `yarn build` passed
-- Test status: `yarn test --run` currently fails
+- Test status: `yarn test --run` passed
 - Current test snapshot:
-  - 90 tests passed
-  - 38 tests failed
+  - 124 tests passed
+  - 0 tests failed
 - Known warning in verification pass:
   - Node `DEP0169` deprecation warnings surfaced via Yarn execution
-- Root portfolio info file: `../NOTIFICATION-KIT_portfolio-info_2026-03-24.md`
+- Root portfolio info file: `../NOTIFICATION-KIT_portfolio-info_2026-03-25.md`
 
 ## 📚 Table of Contents
 

@@ -121,9 +121,9 @@ For this approach to work in a Capacitor app, you need the OneSignal Capacitor p
 
 ```bash
 # Install the OneSignal Capacitor plugin
-npm install onesignal-cordova-plugin
-npm install @capacitor/push-notifications
-npx cap sync
+yarn add onesignal-cordova-plugin
+yarn add @capacitor/push-notifications
+yarn cap sync
 ```
 
 ### Custom Capacitor Plugin (If Needed)

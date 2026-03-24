@@ -398,41 +398,53 @@ export function useInAppNotificationQueue() {
   const [queue, setQueue] = useState<InAppOptions[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const { show, hasActive } = useInAppNotification()
+  const queueRef = useRef<InAppOptions[]>([])
 
   /**
    * Add to queue
    */
   const enqueue = useCallback((options: InAppOptions) => {
-    setQueue(prev => [...prev, options])
+    setQueue(prev => {
+      const nextQueue = [...prev, options]
+      queueRef.current = nextQueue
+      return nextQueue
+    })
   }, [])
 
   /**
    * Process queue
    */
   const processQueue = useCallback(async () => {
-    if (isProcessing || queue.length === 0 || hasActive) {
+    if (isProcessing || hasActive) {
+      return
+    }
+
+    const next = queueRef.current[0]
+    if (!next) {
       return
     }
 
     setIsProcessing(true)
 
     try {
-      const next = queue[0]
-      if (next) {
-        await show(next)
-        setQueue(prev => prev.slice(1))
-      }
+      await show(next)
+      setQueue(prev => {
+        const nextQueue = prev.slice(1)
+        queueRef.current = nextQueue
+        return nextQueue
+      })
     } catch (error) {
       // Queue processing error, continue
     } finally {
       setIsProcessing(false)
     }
-  }, [isProcessing, queue, hasActive, show])
+  }, [isProcessing, hasActive, show])
 
   /**
    * Clear queue
    */
   const clearQueue = useCallback(() => {
+    queueRef.current = []
     setQueue([])
   }, [])
 
@@ -463,13 +475,15 @@ export function useInAppNotificationPersistence() {
     InAppNotificationInstance[]
   >([])
   const { activeNotifications } = useInAppNotification()
+  const hasLoadedPersistenceRef = useRef(false)
 
   /**
    * Save to persistence
    */
   const saveNotifications = useCallback(() => {
     try {
-      const serialized = activeNotifications.map(n => ({
+      const currentNotifications = getActiveInAppNotifications()
+      const serialized = currentNotifications.map(n => ({
         id: n.id,
         options: n.options,
         timestamp: n.timestamp.toISOString(),
@@ -481,7 +495,7 @@ export function useInAppNotificationPersistence() {
     } catch (error) {
       // Persistence failed, continue without saving
     }
-  }, [activeNotifications])
+  }, [])
 
   /**
    * Load from persistence
@@ -498,8 +512,10 @@ export function useInAppNotificationPersistence() {
           }))
         )
       }
+      hasLoadedPersistenceRef.current = true
     } catch (error) {
       // Failed to load persisted notifications, continue with empty list
+      hasLoadedPersistenceRef.current = true
     }
   }, [])
 
@@ -519,6 +535,9 @@ export function useInAppNotificationPersistence() {
    * Auto-save active notifications
    */
   useEffect(() => {
+    if (!hasLoadedPersistenceRef.current) {
+      return
+    }
     saveNotifications()
   }, [activeNotifications, saveNotifications])
 

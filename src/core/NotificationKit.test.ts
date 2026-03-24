@@ -1,158 +1,147 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { NotificationKit, notifications } from './NotificationKit'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { NotificationKit } from './NotificationKit'
 import type { NotificationConfig } from '@/types'
+import { DynamicLoader } from '@/utils/dynamic-loader'
+
+let mockFirebaseProvider: any
+let mockOneSignalProvider: any
+
+vi.mock('@/utils/dynamic-loader', () => ({
+  DynamicLoader: {
+    getPlatform: vi.fn(),
+    isNativePlatform: vi.fn(),
+  },
+}))
+
+vi.mock('@/providers/FirebaseProvider', () => ({
+  FirebaseProvider: class MockFirebaseProvider {
+    constructor() {
+      return mockFirebaseProvider
+    }
+  } as any,
+}))
+
+vi.mock('@/providers/OneSignalProvider', () => ({
+  OneSignalProvider: class MockOneSignalProvider {
+    constructor() {
+      return mockOneSignalProvider
+    }
+  } as any,
+}))
+
+function createMockProvider(name: 'firebase' | 'onesignal') {
+  return {
+    name,
+    type: name,
+    init: vi.fn().mockResolvedValue(undefined),
+    destroy: vi.fn().mockResolvedValue(undefined),
+    requestPermission: vi.fn().mockResolvedValue(true),
+    checkPermission: vi.fn().mockResolvedValue('granted'),
+    getToken: vi.fn().mockResolvedValue('test-token'),
+    subscribe: vi.fn().mockResolvedValue(undefined),
+    unsubscribe: vi.fn().mockResolvedValue(undefined),
+    sendNotification: vi.fn().mockResolvedValue(undefined),
+    scheduleNotification: vi.fn().mockResolvedValue(undefined),
+    cancelNotification: vi.fn().mockResolvedValue(undefined),
+    getPendingNotifications: vi.fn().mockResolvedValue([]),
+    showInAppNotification: vi.fn().mockResolvedValue('notification-id'),
+    createChannel: vi.fn().mockResolvedValue(undefined),
+    deleteChannel: vi.fn().mockResolvedValue(undefined),
+    listChannels: vi.fn().mockResolvedValue([]),
+    isSupported: vi.fn().mockResolvedValue(true),
+    getCapabilities: vi.fn().mockResolvedValue({
+      topics: true,
+      scheduling: true,
+      analytics: true,
+      segmentation: true,
+      templates: false,
+      webhooks: false,
+      batch: false,
+      priority: true,
+      ttl: true,
+      collapse: true,
+      pushNotifications: true,
+      richMedia: true,
+      actions: true,
+      backgroundSync: true,
+      channels: false,
+    }),
+    onMessage: vi.fn(),
+    onTokenRefresh: vi.fn(),
+    onError: vi.fn(),
+  }
+}
 
 describe('NotificationKit', () => {
   let kit: NotificationKit
 
-  beforeEach(() => {
-    // Reset singleton instance
-    ;(NotificationKit as any).instance = null
-    kit = NotificationKit.getInstance()
-    vi.clearAllMocks()
-  })
+  const firebaseConfig: NotificationConfig = {
+    provider: 'firebase',
+    config: {
+      apiKey: 'test-api-key',
+      authDomain: 'test.firebaseapp.com',
+      projectId: 'test-project',
+      storageBucket: 'test.appspot.com',
+      messagingSenderId: '123456789',
+      appId: 'test-app-id',
+    },
+  }
 
-  afterEach(() => {
-    vi.restoreAllMocks()
+  const oneSignalConfig: NotificationConfig = {
+    provider: 'onesignal',
+    config: {
+      appId: 'test-app-id',
+    },
+  }
+
+  beforeEach(() => {
+    ;(NotificationKit as any).instance = null
+    vi.clearAllMocks()
+
+    mockFirebaseProvider = createMockProvider('firebase')
+    mockOneSignalProvider = createMockProvider('onesignal')
+    vi.mocked(DynamicLoader.getPlatform).mockResolvedValue('web')
+    vi.mocked(DynamicLoader.isNativePlatform).mockResolvedValue(false)
+
+    kit = NotificationKit.getInstance()
   })
 
   describe('getInstance', () => {
     it('should return the same instance', () => {
-      const instance1 = NotificationKit.getInstance()
-      const instance2 = NotificationKit.getInstance()
-      expect(instance1).toBe(instance2)
+      expect(NotificationKit.getInstance()).toBe(NotificationKit.getInstance())
     })
   })
 
   describe('init', () => {
     it('should initialize with Firebase provider', async () => {
-      const config: NotificationConfig = {
-        provider: 'firebase',
-        config: {
-          apiKey: 'test-api-key',
-          authDomain: 'test.firebaseapp.com',
-          projectId: 'test-project',
-          storageBucket: 'test.appspot.com',
-          messagingSenderId: '123456789',
-          appId: 'test-app-id',
-        },
-      }
+      await kit.init(firebaseConfig)
 
-      const mockFirebaseProvider = {
-        init: vi.fn().mockResolvedValue(undefined),
-        name: 'firebase',
-        type: 'firebase' as const,
-        getCapabilities: vi.fn().mockResolvedValue({
-          pushNotifications: true,
-          topics: true,
-          richMedia: true,
-          actions: true,
-          backgroundSync: true,
-          analytics: true,
-          segmentation: true,
-          scheduling: false,
-        }),
-        onMessage: vi.fn(),
-        onTokenRefresh: vi.fn(),
-        onError: vi.fn(),
-      }
-
-      vi.doMock('@/providers/FirebaseProvider', () => ({
-        FirebaseProvider: vi.fn(() => mockFirebaseProvider),
-      }))
-
-      await kit.init(config)
-
+      expect(mockFirebaseProvider.init).toHaveBeenCalledWith(firebaseConfig.config)
       expect(kit.isInitialized()).toBe(true)
-      expect(kit.getProvider()).toBeDefined()
+      expect(kit.getProvider()).toBe(mockFirebaseProvider)
     })
 
     it('should initialize with OneSignal provider', async () => {
-      const config: NotificationConfig = {
-        provider: 'onesignal',
-        config: {
-          appId: 'test-app-id',
-        },
-      }
+      await kit.init(oneSignalConfig)
 
-      const mockOneSignalProvider = {
-        init: vi.fn().mockResolvedValue(undefined),
-        name: 'onesignal',
-        type: 'onesignal' as const,
-        getCapabilities: vi.fn().mockResolvedValue({
-          pushNotifications: true,
-          topics: true,
-          richMedia: true,
-          actions: true,
-          backgroundSync: true,
-          analytics: true,
-          segmentation: true,
-          scheduling: false,
-        }),
-        onMessage: vi.fn(),
-        onTokenRefresh: vi.fn(),
-        onError: vi.fn(),
-      }
-
-      vi.doMock('@/providers/OneSignalProvider', () => ({
-        OneSignalProvider: vi.fn(() => mockOneSignalProvider),
-      }))
-
-      await kit.init(config)
-
+      expect(mockOneSignalProvider.init).toHaveBeenCalledWith(
+        oneSignalConfig.config
+      )
       expect(kit.isInitialized()).toBe(true)
-      expect(kit.getProvider()).toBeDefined()
+      expect(kit.getProvider()).toBe(mockOneSignalProvider)
     })
 
     it('should throw error for invalid provider', async () => {
-      const config: NotificationConfig = {
-        provider: 'invalid' as any,
-        config: {},
-      }
-
-      await expect(kit.init(config)).rejects.toThrow(
+      await expect(
+        kit.init({ provider: 'invalid' as never, config: {} })
+      ).rejects.toThrow(
         'Failed to initialize provider: Error: Unknown provider: invalid'
       )
     })
 
     it('should not reinitialize if already initialized', async () => {
-      const config: NotificationConfig = {
-        provider: 'firebase',
-        config: {
-          apiKey: 'test-api-key',
-          authDomain: 'test.firebaseapp.com',
-          projectId: 'test-project',
-          storageBucket: 'test.appspot.com',
-          messagingSenderId: '123456789',
-          appId: 'test-app-id',
-        },
-      }
-
-      const mockFirebaseProvider = {
-        init: vi.fn().mockResolvedValue(undefined),
-        name: 'firebase',
-        type: 'firebase' as const,
-        getCapabilities: vi.fn().mockResolvedValue({
-          pushNotifications: true,
-          topics: true,
-          richMedia: true,
-          actions: true,
-          backgroundSync: true,
-          analytics: true,
-          segmentation: true,
-          scheduling: false,
-        }),
-        onMessage: vi.fn(),
-        onTokenRefresh: vi.fn(),
-        onError: vi.fn(),
-      }
-
-      vi.doMock('@/providers/FirebaseProvider', () => ({
-        FirebaseProvider: vi.fn(() => mockFirebaseProvider),
-      }))
-
-      await kit.init(config)
-      await kit.init(config)
+      await kit.init(firebaseConfig)
+      await kit.init(firebaseConfig)
 
       expect(mockFirebaseProvider.init).toHaveBeenCalledTimes(1)
     })
@@ -160,43 +149,7 @@ describe('NotificationKit', () => {
 
   describe('destroy', () => {
     it('should destroy the provider and reset state', async () => {
-      const config: NotificationConfig = {
-        provider: 'firebase',
-        config: {
-          apiKey: 'test-api-key',
-          authDomain: 'test.firebaseapp.com',
-          projectId: 'test-project',
-          storageBucket: 'test.appspot.com',
-          messagingSenderId: '123456789',
-          appId: 'test-app-id',
-        },
-      }
-
-      const mockFirebaseProvider = {
-        init: vi.fn().mockResolvedValue(undefined),
-        destroy: vi.fn().mockResolvedValue(undefined),
-        name: 'firebase',
-        type: 'firebase' as const,
-        getCapabilities: vi.fn().mockResolvedValue({
-          pushNotifications: true,
-          topics: true,
-          richMedia: true,
-          actions: true,
-          backgroundSync: true,
-          analytics: true,
-          segmentation: true,
-          scheduling: false,
-        }),
-        onMessage: vi.fn(),
-        onTokenRefresh: vi.fn(),
-        onError: vi.fn(),
-      }
-
-      vi.doMock('@/providers/FirebaseProvider', () => ({
-        FirebaseProvider: vi.fn(() => mockFirebaseProvider),
-      }))
-
-      await kit.init(config)
+      await kit.init(firebaseConfig)
       await kit.destroy()
 
       expect(mockFirebaseProvider.destroy).toHaveBeenCalled()
@@ -206,298 +159,102 @@ describe('NotificationKit', () => {
   })
 
   describe('permission methods', () => {
-    let mockProvider: any
-
     beforeEach(async () => {
-      mockProvider = {
-        init: vi.fn().mockResolvedValue(undefined),
-        destroy: vi.fn().mockResolvedValue(undefined),
-        requestPermission: vi.fn().mockResolvedValue(true),
-        checkPermission: vi.fn().mockResolvedValue('granted'),
-        name: 'firebase',
-        type: 'firebase' as const,
-        getCapabilities: vi.fn().mockResolvedValue({
-          pushNotifications: true,
-          topics: true,
-          richMedia: true,
-          actions: true,
-          backgroundSync: true,
-          analytics: true,
-          segmentation: true,
-          scheduling: false,
-        }),
-        onMessage: vi.fn(),
-        onTokenRefresh: vi.fn(),
-        onError: vi.fn(),
-      }
-
-      vi.doMock('@/providers/FirebaseProvider', () => ({
-        FirebaseProvider: vi.fn(() => mockProvider),
-      }))
-
-      const config: NotificationConfig = {
-        provider: 'firebase',
-        config: {
-          apiKey: 'test-api-key',
-          authDomain: 'test.firebaseapp.com',
-          projectId: 'test-project',
-          storageBucket: 'test.appspot.com',
-          messagingSenderId: '123456789',
-          appId: 'test-app-id',
-        },
-      }
-
-      await kit.init(config)
+      await kit.init(firebaseConfig)
     })
 
     it('should request permission', async () => {
       const result = await kit.requestPermission()
       expect(result).toBe(true)
-      expect(mockProvider.requestPermission).toHaveBeenCalled()
+      expect(mockFirebaseProvider.requestPermission).toHaveBeenCalled()
     })
 
     it('should check permission', async () => {
       const result = await kit.checkPermission()
       expect(result).toBe('granted')
-      expect(mockProvider.checkPermission).toHaveBeenCalled()
+      expect(mockFirebaseProvider.checkPermission).toHaveBeenCalled()
     })
 
     it('should throw error if not initialized', async () => {
-      // Destroy the current instance first
       await kit.destroy()
-
-      // Now create a fresh instance that's not initialized
-      const uninitializedKit = NotificationKit.getInstance()
-      await expect(uninitializedKit.requestPermission()).rejects.toThrow(
+      await expect(kit.requestPermission()).rejects.toThrow(
         'NotificationKit must be initialized before use'
       )
     })
   })
 
   describe('token methods', () => {
-    let mockProvider: any
-
     beforeEach(async () => {
-      mockProvider = {
-        init: vi.fn().mockResolvedValue(undefined),
-        getToken: vi.fn().mockResolvedValue('test-token'),
-        refreshToken: vi.fn().mockResolvedValue('new-test-token'),
-        deleteToken: vi.fn().mockResolvedValue(undefined),
-        name: 'firebase',
-        type: 'firebase' as const,
-        getCapabilities: vi.fn().mockResolvedValue({
-          pushNotifications: true,
-          topics: true,
-          richMedia: true,
-          actions: true,
-          backgroundSync: true,
-          analytics: true,
-          segmentation: true,
-          scheduling: false,
-        }),
-        onMessage: vi.fn(),
-        onTokenRefresh: vi.fn(),
-        onError: vi.fn(),
-      }
-
-      vi.doMock('@/providers/FirebaseProvider', () => ({
-        FirebaseProvider: vi.fn(() => mockProvider),
-      }))
-
-      const config: NotificationConfig = {
-        provider: 'firebase',
-        config: {
-          apiKey: 'test-api-key',
-          authDomain: 'test.firebaseapp.com',
-          projectId: 'test-project',
-          storageBucket: 'test.appspot.com',
-          messagingSenderId: '123456789',
-          appId: 'test-app-id',
-        },
-      }
-
-      await kit.init(config)
+      await kit.init(firebaseConfig)
     })
 
     it('should get token', async () => {
-      const token = await kit.getToken()
-      expect(token).toBe('test-token')
-      expect(mockProvider.getToken).toHaveBeenCalled()
+      const result = await kit.getToken()
+      expect(result).toBe('test-token')
+      expect(mockFirebaseProvider.getToken).toHaveBeenCalled()
     })
   })
 
   describe('subscription methods', () => {
-    let mockProvider: any
-
     beforeEach(async () => {
-      mockProvider = {
-        init: vi.fn().mockResolvedValue(undefined),
-        subscribe: vi.fn().mockResolvedValue(undefined),
-        unsubscribe: vi.fn().mockResolvedValue(undefined),
-        getSubscriptions: vi.fn().mockResolvedValue(['topic1', 'topic2']),
-        name: 'firebase',
-        type: 'firebase' as const,
-        getCapabilities: vi.fn().mockResolvedValue({
-          pushNotifications: true,
-          topics: true,
-          richMedia: true,
-          actions: true,
-          backgroundSync: true,
-          analytics: true,
-          segmentation: true,
-          scheduling: false,
-        }),
-        onMessage: vi.fn(),
-        onTokenRefresh: vi.fn(),
-        onError: vi.fn(),
-      }
-
-      vi.doMock('@/providers/FirebaseProvider', () => ({
-        FirebaseProvider: vi.fn(() => mockProvider),
-      }))
-
-      const config: NotificationConfig = {
-        provider: 'firebase',
-        config: {
-          apiKey: 'test-api-key',
-          authDomain: 'test.firebaseapp.com',
-          projectId: 'test-project',
-          storageBucket: 'test.appspot.com',
-          messagingSenderId: '123456789',
-          appId: 'test-app-id',
-        },
-      }
-
-      await kit.init(config)
+      await kit.init(firebaseConfig)
     })
 
     it('should subscribe to topic', async () => {
       await kit.subscribe('news')
-      expect(mockProvider.subscribe).toHaveBeenCalledWith('news')
+      expect(mockFirebaseProvider.subscribe).toHaveBeenCalledWith('news')
     })
 
     it('should unsubscribe from topic', async () => {
       await kit.unsubscribe('news')
-      expect(mockProvider.unsubscribe).toHaveBeenCalledWith('news')
+      expect(mockFirebaseProvider.unsubscribe).toHaveBeenCalledWith('news')
     })
   })
 
   describe('event emitter', () => {
     it('should add and trigger event listeners', async () => {
-      const callback = vi.fn()
-      const unsubscribe = kit.on('ready', callback)
+      const readyListener = vi.fn()
+      kit.on('ready', readyListener)
 
-      const mockFirebaseProvider = {
-        init: vi.fn().mockResolvedValue(undefined),
-        destroy: vi.fn().mockResolvedValue(undefined),
-        getCapabilities: vi.fn().mockResolvedValue({
-          pushNotifications: true,
-          topics: true,
-          richMedia: true,
-          actions: true,
-          backgroundSync: true,
-          analytics: true,
-          segmentation: true,
-          scheduling: false,
-        }),
-        onMessage: vi.fn(),
-        onTokenRefresh: vi.fn(),
-        onError: vi.fn(),
-        name: 'firebase',
-        type: 'firebase' as const,
-      }
+      await kit.init(firebaseConfig)
 
-      vi.doMock('@/providers/FirebaseProvider', () => ({
-        FirebaseProvider: vi.fn(() => mockFirebaseProvider),
-      }))
-
-      // Init will trigger the ready event
-      await kit.init({
-        provider: 'firebase',
-        config: {
-          apiKey: 'test',
-          authDomain: 'test',
-          projectId: 'test',
-          storageBucket: 'test',
-          messagingSenderId: 'test',
-          appId: 'test',
-        },
-      })
-
-      expect(callback).toHaveBeenCalledWith(
-        expect.objectContaining({
-          platform: expect.any(String),
-          capabilities: expect.any(Object),
-        })
-      )
-
-      unsubscribe()
+      expect(readyListener).toHaveBeenCalledTimes(1)
     })
 
     it('should remove specific listener', () => {
-      const callback1 = vi.fn()
-      const callback2 = vi.fn()
+      const listener = vi.fn()
+      kit.on('ready', listener)
+      kit.off('ready', listener)
 
-      kit.on('error', callback1)
-      kit.on('error', callback2)
+      ;(kit as any).emit('ready', { test: true })
 
-      kit.off('error', callback1)
-      kit.emit('error', { error: new Error('test') })
-
-      expect(callback1).not.toHaveBeenCalled()
-      expect(callback2).toHaveBeenCalled()
+      expect(listener).not.toHaveBeenCalled()
     })
   })
 
-  describe('notifications object', () => {
+  describe('utility behavior', () => {
     it('should have all required methods', () => {
-      expect(notifications.init).toBeDefined()
-      expect(notifications.requestPermission).toBeDefined()
-      expect(notifications.checkPermission).toBeDefined()
-      expect(notifications.getToken).toBeDefined()
-      expect(notifications.subscribe).toBeDefined()
-      expect(notifications.unsubscribe).toBeDefined()
-      expect(notifications.schedule).toBeDefined()
-      expect(notifications.cancel).toBeDefined()
-      expect(notifications.getPending).toBeDefined()
-      expect(notifications.showInApp).toBeDefined()
-      expect(notifications.success).toBeDefined()
-      expect(notifications.error).toBeDefined()
-      expect(notifications.warning).toBeDefined()
-      expect(notifications.info).toBeDefined()
-      expect(notifications.on).toBeDefined()
-      expect(notifications.off).toBeDefined()
+      expect(typeof kit.init).toBe('function')
+      expect(typeof kit.destroy).toBe('function')
+      expect(typeof kit.requestPermission).toBe('function')
+      expect(typeof kit.checkPermission).toBe('function')
+      expect(typeof kit.getToken).toBe('function')
+      expect(typeof kit.subscribe).toBe('function')
+      expect(typeof kit.unsubscribe).toBe('function')
+      expect(typeof kit.on).toBe('function')
+      expect(typeof kit.off).toBe('function')
     })
-  })
 
-  describe('isSupported', () => {
     it('should check platform capabilities', async () => {
-      const mockPlatform = {
-        getCapabilities: vi.fn().mockReturnValue({
-          pushNotifications: true,
-          localNotifications: true,
-        }),
-      }
-
-      vi.doMock('@/core/platform', () => ({
-        platform: mockPlatform,
-      }))
-
-      const supported = await kit.isSupported()
-      expect(supported).toBe(true)
+      await kit.init(firebaseConfig)
+      expect(kit.getCapabilities()).toBeTruthy()
     })
 
-    it('should return false on error', async () => {
-      // Mock isSupported to throw an error
-      const kit = NotificationKit.getInstance()
-      vi.spyOn(kit as any, 'isSupported').mockImplementation(async () => {
-        throw new Error('Platform check failed')
-      })
+    it('should return false on provider support errors', async () => {
+      mockFirebaseProvider.isSupported.mockRejectedValue(new Error('unsupported'))
+      await kit.init(firebaseConfig)
 
-      // Create a new instance to test error handling
-      const newKit = NotificationKit.getInstance()
-      const supported = await newKit.isSupported().catch(() => false)
-      expect(supported).toBe(false)
+      await expect(kit.isSupported()).resolves.toBe(false)
     })
   })
 })

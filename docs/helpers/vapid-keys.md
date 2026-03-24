@@ -57,7 +57,7 @@ If you prefer to generate keys locally:
 ### Using Node.js
 
 ```bash
-npm install -g web-push
+yarn global add web-push
 web-push generate-vapid-keys
 ```
 
