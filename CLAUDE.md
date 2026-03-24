@@ -1,181 +1,86 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance for working in the `notification-kit` repository.
 
 ## Project Overview
 
-This is **notification-kit** - a unified notification library for React + Capacitor applications. The project provides a single API for push notifications, in-app notifications, and local notifications across Web, iOS, and Android platforms.
+`notification-kit` is a unified notification library for React + Capacitor applications. It exposes a single API for push notifications, local notifications, and in-app notifications across web, iOS, and Android usage patterns, with optional React hooks and provider integrations.
 
-**Current Status**: Early development stage - comprehensive documentation exists but implementation is pending.
+## Current Verified State
 
-## Project Architecture
+- Reviewed on: `2026-03-24`
+- Package version: `2.0.6`
+- Build: `yarn build` passed
+- Tests: `yarn test --run` failed
+- Current test snapshot:
+  - 90 tests passed
+  - 38 tests failed
+  - failures were concentrated in OneSignal provider tests and some React hook tests
+- Known warning in verification pass:
+  - Node `DEP0169` deprecation warnings surfaced during Yarn execution
 
-### Core Design Principles
-- **Framework Independent**: Works without providers or wrappers
-- **Type Safe**: Full TypeScript support with comprehensive type definitions
-- **Cross-Platform**: Unified API for Web, iOS, and Android
-- **Zero Configuration**: Simple initialization with minimal setup required
-- **Provider Agnostic**: Supports Firebase and OneSignal backends
-
-### Key Components Structure
-Based on the API documentation, the project should be structured around:
-
-1. **Core API** (`notification-kit`)
-   - `NotificationKit` - Main initialization class
-   - `notifications` - Core notification functions
-   - Provider adapters for Firebase and OneSignal
-
-2. **React Integration** (`notification-kit/react`)
-   - `useNotifications` - Main React hook
-   - `useInAppNotification` - In-app notification hook
-
-3. **Notification Types**
-   - Push notifications with Firebase/OneSignal
-   - Local notifications using Capacitor APIs
-   - In-app notifications (toast-style)
-
-## Dependencies and Technology Stack
-
-### Required Dependencies
-- `@capacitor/push-notifications` - Push notification support
-- `@capacitor/local-notifications` - Local notification scheduling
-- Firebase SDK (for Firebase provider)
-- OneSignal SDK (for OneSignal provider)
-
-### Development Dependencies
-- TypeScript - Full type safety
-- Vitest - Testing framework (per user preferences)
-- ESLint/Prettier - Code quality
-- Rollup/Vite - Build tooling
-- yarn - Package manager (NEVER use npm or pnpm)
-
-### Target Platforms
-- Web (with service worker for push notifications)
-- iOS (with proper Info.plist configuration)
-- Android (with Firebase/OneSignal setup)
-
-## Development Commands
-
-**Note**: Project currently has no package.json - these commands need to be established:
+## Commands
 
 ```bash
-# Install dependencies
-yarn install
-
-# Development mode
 yarn dev
-
-# Build library
 yarn build
-
-# Run tests
 yarn test
-
-# Type checking
+yarn test --run
+yarn test:coverage
 yarn type-check
-
-# Lint code
 yarn lint
-
-# Publish to npm
-yarn publish
+yarn lint:fix
+yarn format
+yarn format:check
 ```
 
-## API Structure
+## Architecture
 
-### Initialization Pattern
-```typescript
-NotificationKit.init({
-  provider: 'firebase' | 'onesignal',
-  config: ProviderConfig,
-  inApp?: InAppConfig,
-  styles?: StyleConfig
-})
-```
+- `src/core/`: `NotificationKit`, permissions, platform, and storage logic
+- `src/providers/`: Firebase and OneSignal provider implementations and tests
+- `src/react/`: React hooks and exports
+- `src/utils/`: validation, scheduling, formatting, dynamic loading, logging, and in-app helpers
+- `src/templates/`: service worker templates
+- `src/test/`: test setup and existing-app tests
 
-### Core Functions
-- Permission management (`requestPermission`, `isPermissionGranted`)
-- Token management (`getToken`)
-- Push notifications (`subscribe`, `unsubscribe`, `onPush`, `onPushOpened`)
-- Local notifications (`schedule`, `cancel`, `getPending`)
-- In-app notifications (`success`, `error`, `warning`, `info`, `showInApp`)
-- Channels (Android) and rich notifications
+## Working Rules
 
-### React Integration
-- `useNotifications()` - Main hook for notification management
-- `useInAppNotification()` - Simplified in-app notification hook
+- Keep docs aligned with the actual package state. Do not describe the project as “implementation pending”.
+- Use `yarn` as the default documented workflow for this package.
+- When refreshing project info, update `Readme.md`, `docs/README.md`, and the root portfolio file in the same pass.
+- Be explicit when verification is partial or failing; do not overclaim readiness.
 
-## TypeScript Types
+## Root Portfolio File Maintenance Rule
 
-The project emphasizes full type safety with comprehensive type definitions:
-- `NotificationConfig` - Initialization configuration
-- `ScheduleOptions` - Local notification scheduling
-- `InAppOptions` - In-app notification options
-- `Notification` - Core notification type
-- Platform-specific types for iOS/Android features
-
-## Platform Configuration
-
-### iOS Requirements
-- Push Notifications capability in Xcode
-- Background modes in Info.plist
-- GoogleService-Info.plist for Firebase
-
-### Android Requirements
-- google-services.json for Firebase
-- Gradle plugin configuration
-- Notification channels for Android 8+
-
-### Web Requirements
-- Service worker for push notifications
-- Firebase messaging configuration
-
-## Testing Strategy
-
-Per user preferences, use Vitest for testing:
-- Unit tests for core functionality
-- Integration tests for provider implementations
-- Platform-specific testing for iOS/Android
-- React hook testing for React integration
-
-## Development Guidelines
-
-- Keep components under 500 lines
-- Use absolute imports with route aliases
-- Update packages to latest versions
-- Follow defensive security practices
-- Maintain comprehensive documentation
-- Implement full offline support where applicable
-
----
+- Maintain exactly one current root portfolio info file for this package.
+- File naming format: `NOTIFICATION-KIT_portfolio-info_YYYY-MM-DD.md`
+- Refresh the portfolio file only after at least 7 days have passed unless a major release or material capability change happens sooner.
+- Keep at most 10 update-history records inside the portfolio file.
+- When the portfolio file changes, update `Readme.md` and `docs/README.md` in the same pass.
 
 ## Package Update History
 
 | Date | Updated By | Notes |
-|------|------------|-------|
+| --- | --- | --- |
+| 2026-03-24 | Codex | Refreshed docs, recorded current verification status, added portfolio maintenance rule |
 | 2026-02-02 | Claude | Full update to latest versions, all checks passing |
-
----
 
 ## Comprehensive Audit Record
 
 | Date | Audit Type | Status | Issues Found | Issues Resolved |
-|------|------------|--------|--------------|-----------------|
+| --- | --- | --- | --- | --- |
+| 2026-03-24 | Portfolio + Docs Refresh | Passed with issues | 38 | 0 |
 | 2026-02-02 | Package Update | Passed | 0 | 0 |
 | 2026-01-23 | Full Audit | Passed with issues | 1 | 0 |
 
 ### Last Audit Details
-- **Package Manager**: yarn confirmed
-- **Dependencies**: Updated to latest (2026-02-02)
-- **Build**: Passes (0 errors)
-- **Lint**: Passes (0 warnings)
-- **TypeScript**: Passes (0 errors)
-- **Features**: Core functionality complete
-- **TODOs**: 4 found (encryption, decryption, native settings, tablet detection)
-- **SEO**: N/A (npm package)
-- **OG Assets**: N/A (npm package)
 
-### Outstanding Issues
-1. 4 TODO comments in source code (storage.ts, permissions.ts, platform.ts)
+- Package Manager: yarn confirmed
+- Dependencies: no dependency audit performed in this pass
+- Build: passes
+- Lint: not run in this pass
+- TypeScript: not run separately in this pass
+- Tests: failing in current pass
+- Features: implementation exists across core, providers, hooks, and utilities
 
-### Next Audit Due: 2026-02-09 (7 days from last)
+### Next Audit Due: 2026-03-31

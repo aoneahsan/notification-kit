@@ -2,6 +2,21 @@
 
 A unified notification library for React + Capacitor apps. One API for push notifications, in-app notifications, and local notifications across Web, iOS, and Android.
 
+## Current State
+
+- Package version: `2.0.6`
+- Verified on: `2026-03-24`
+- Build: `yarn build` succeeds
+- Test status: `yarn test --run` currently fails
+- Current test snapshot:
+  - 90 tests passed
+  - 38 tests failed
+  - failures concentrated in OneSignal provider tests and some React hook tests
+- Known warning during verification:
+  - Node `DEP0169` deprecation warnings surfaced through Yarn execution
+- Root portfolio info file:
+  - `NOTIFICATION-KIT_portfolio-info_2026-03-24.md`
+
 ## 📚 Documentation
 
 - **[AI Integration Guide](./AI-INTEGRATION-GUIDE.md)** - Quick reference for AI development agents (Claude, Cursor, Copilot)
@@ -18,6 +33,21 @@ A unified notification library for React + Capacitor apps. One API for push noti
 - [**Troubleshooting**](https://github.com/aoneahsan/notification-kit/blob/main/docs/guides/troubleshooting.md) - Common issues
 
 > 🚧 **Documentation Website Coming Soon**: We're working on a dedicated documentation site with search, better navigation, and interactive examples.
+
+## Verified Package Architecture
+
+- `src/core/` contains the main `NotificationKit` API plus permission, platform, and storage logic.
+- `src/providers/` contains Firebase and OneSignal provider implementations.
+- `src/react/` contains React hooks for notification usage and in-app notifications.
+- `src/utils/` contains validation, scheduling, formatting, dynamic loading, and in-app utilities.
+- `src/templates/` contains service worker templates.
+
+## Verification Commands
+
+```bash
+yarn test --run
+yarn build
+```
 
 ## ✨ Features
 
