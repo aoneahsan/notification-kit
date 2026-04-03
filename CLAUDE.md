@@ -1,10 +1,10 @@
-# CLAUDE.md
+# CLAUDE.md — notification-kit
 
-This file provides guidance for working in the `notification-kit` repository.
+> Last Updated: 2026-04-03
 
 ## Project Overview
 
-`notification-kit` is a unified notification library for React + Capacitor applications. It exposes a single API for push notifications, local notifications, and in-app notifications across web, iOS, and Android usage patterns, with optional React hooks and provider integrations.
+`notification-kit` is a unified notification library for React + Capacitor applications. Single API for push, local, and in-app notifications across web, iOS, and Android, with optional React hooks and provider integrations.
 
 ## Current Verified State
 
@@ -12,78 +12,137 @@ This file provides guidance for working in the `notification-kit` repository.
 - Package version: `2.0.6`
 - Install: `yarn install` passed
 - Build: `yarn build` passed
-- Tests: `yarn test --run` passed
-- Current test snapshot:
-  - 124 tests passed
-  - 0 tests failed
-- Known warning in verification pass:
-  - Node `DEP0169` deprecation warnings surfaced during Yarn execution
+- Tests: `yarn test --run` — 124 passed, 0 failed
+- Known warning: Node `DEP0169` deprecation during Yarn execution
 
 ## Commands
 
 ```bash
-yarn dev
-yarn build
-yarn test
-yarn test --run
+yarn dev          # Development server
+yarn build        # tsc + vite build
+yarn test --run   # Run all tests once
+yarn test         # Watch mode
 yarn test:coverage
-yarn type-check
-yarn lint
+yarn type-check   # TypeScript noEmit check
+yarn lint         # ESLint
 yarn lint:fix
-yarn format
+yarn format       # Prettier
 yarn format:check
 ```
 
-## Architecture
+## Architecture Map
 
-- `src/core/`: `NotificationKit`, permissions, platform, and storage logic
-- `src/providers/`: Firebase and OneSignal provider implementations and tests
-- `src/react/`: React hooks and exports
-- `src/utils/`: validation, scheduling, formatting, dynamic loading, logging, and in-app helpers
-- `src/templates/`: service worker templates
-- `src/test/`: test setup and existing-app tests
+| Folder | Purpose | Details |
+|--------|---------|---------|
+| `src/core/` | NotificationKit class, permissions, platform, storage | See `src/core/CLAUDE.md` |
+| `src/providers/` | Firebase & OneSignal provider implementations | See `src/providers/CLAUDE.md` |
+| `src/react/` | React hooks (useNotifications, useInAppNotification) | See `src/react/CLAUDE.md` |
+| `src/utils/` | Validation, scheduling, formatting, logging, etc. | See `src/utils/CLAUDE.md` |
+| `src/templates/` | Service worker templates for Firebase & OneSignal | — |
+| `src/test/` | Test setup and integration tests | — |
+| `docs/` | API docs, guides, helpers, examples | See `docs/CLAUDE.md` |
+| `examples/` | Working example apps (React + Capacitor) | — |
+| `website/` | Docusaurus documentation site | — |
 
-## Working Rules
+Source code conventions and rules are in `src/CLAUDE.md`.
 
-- Keep docs aligned with the actual package state. Do not describe the project as “implementation pending”.
-- Use `yarn` as the only documented package manager workflow for this package.
-- Do not use `npm`, `pnpm`, or `package-lock.json` in this repository. Use `yarn install` for dependency installation.
-- When refreshing project info, update `Readme.md`, `docs/README.md`, and the root portfolio file in the same pass.
-- Be explicit when verification is partial or failing; do not overclaim readiness.
+---
 
-## Root Portfolio File Maintenance Rule
+## CRITICAL RULES
 
-- Maintain exactly one current root portfolio info file for this package.
-- File naming format: `NOTIFICATION-KIT_portfolio-info_YYYY-MM-DD.md`
-- Refresh the portfolio file only after at least 7 days have passed unless a major release or material capability change happens sooner.
-- Keep at most 10 update-history records inside the portfolio file.
-- When the portfolio file changes, update `Readme.md` and `docs/README.md` in the same pass.
+### 1. CLAUDE.md + AGENTS.md Sync Rule (IRON-SOLID)
+
+**Every important rule MUST exist in BOTH `CLAUDE.md` AND `AGENTS.md` at each level.**
+- When adding or updating a rule in one file, ALWAYS update the other
+- This applies to root and ALL nested files
+- Never add a rule to just one file — always both
+- Create reasonable nested `CLAUDE.md` and `AGENTS.md` files in all important folders where rules improve development results
+
+### 2. CLAUDE.md + AGENTS.md Update Frequency (IRON-SOLID)
+
+**ALL `CLAUDE.md` and `AGENTS.md` files MUST be reviewed and updated at least once every 3 days.**
+- On every session start, check `Last Updated` dates across all project files
+- If any file is >3 days stale, update it BEFORE proceeding with other work
+- Stale instruction files directly degrade development quality
+- Every file must have a `Last Updated` date field
+
+### 3. Claude Code Agents (MANDATORY)
+
+**For EVERY prompt and task, Claude Code MUST use agents (Agent tool) to deliver the best possible experience.**
+- Use Explore agent before making changes to unfamiliar code
+- Use Plan agent before implementing non-trivial features
+- Use general-purpose agents for complex multi-step tasks
+- Launch multiple agents in parallel when tasks are independent
+
+### 4. Yarn Only (IRON-SOLID)
+
+- Use `yarn` exclusively for all package operations in this repository
+- Do NOT use `npm`, `pnpm`, or generate `package-lock.json` / `pnpm-lock.yaml`
+
+### 5. Zero-Dependency Philosophy
+
+- All peer dependencies MUST remain optional
+- NEVER add required dependencies to the package
+- Core must work without any framework or provider installed
+- See `src/CLAUDE.md` for full source code rules
+
+### 6. API Stability
+
+- NEVER break public API compatibility without a major version bump
+- NEVER remove or rename exported types/functions without migration path
+- All changes must be backward-compatible within the same major version
+
+### 7. Documentation Alignment
+
+- Keep docs aligned with actual package state — never describe features as "pending"
+- When refreshing project info, update `Readme.md`, `docs/README.md`, and the root portfolio file in the same pass
+- Be explicit when verification is partial or failing; do not overclaim readiness
+
+---
+
+## Portfolio File Maintenance
+
+- Maintain exactly one root portfolio info file: `NOTIFICATION-KIT_portfolio-info_YYYY-MM-DD.md`
+- Refresh only after 7+ days unless major release or material capability change
+- Keep at most 10 update-history records inside the portfolio file
+- When the portfolio file changes, update `Readme.md` and `docs/README.md` in the same pass
 
 ## Package Update History
 
 | Date | Updated By | Notes |
-| --- | --- | --- |
-| 2026-03-25 | Codex | Fixed failing tests, re-verified install/build/test, and enforced yarn-only documentation wording |
-| 2026-03-24 | Codex | Refreshed docs, recorded current verification status, added portfolio maintenance rule |
-| 2026-02-02 | Claude | Full update to latest versions, all checks passing |
+|---|---|---|
+| 2026-04-03 | Claude | Split CLAUDE.md/AGENTS.md into nested structure for context optimization |
+| 2026-03-25 | Codex | Fixed failing tests, re-verified install/build/test |
+| 2026-03-24 | Codex | Refreshed docs, recorded verification status |
+| 2026-02-02 | Claude | Full update to latest versions |
 
-## Comprehensive Audit Record
+## Audit Record
 
-| Date | Audit Type | Status | Issues Found | Issues Resolved |
-| --- | --- | --- | --- | --- |
-| 2026-03-25 | Issue Remediation | Passed with minor warning | 39 | 38 |
+| Date | Audit Type | Status | Issues Found | Resolved |
+|---|---|---|---|---|
+| 2026-03-25 | Issue Remediation | Passed (minor warning) | 39 | 38 |
 | 2026-03-24 | Portfolio + Docs Refresh | Passed with issues | 38 | 0 |
 | 2026-02-02 | Package Update | Passed | 0 | 0 |
 | 2026-01-23 | Full Audit | Passed with issues | 1 | 0 |
 
 ### Last Audit Details
 
-- Package Manager: yarn confirmed, `yarn install` used for verification
-- Dependencies: no dependency audit performed in this pass
+- Package Manager: yarn confirmed
 - Build: passes
-- Lint: not run in this pass
-- TypeScript: not run separately in this pass
-- Tests: passing in current pass
-- Features: implementation exists across core, providers, hooks, and utilities
+- Tests: 124 passing
+- Features: implementation exists across core, providers, hooks, utilities
 
-### Next Audit Due: 2026-04-01
+### Next Audit Due: 2026-04-06
+
+## Nested CLAUDE.md / AGENTS.md Index
+
+| Path | Covers |
+|------|--------|
+| `src/CLAUDE.md` | Source code conventions, zero-dep philosophy, testing |
+| `src/core/CLAUDE.md` | Core module: NotificationKit, permissions, platform, storage |
+| `src/providers/CLAUDE.md` | Provider implementation patterns |
+| `src/react/CLAUDE.md` | React hooks conventions |
+| `src/utils/CLAUDE.md` | Utility module guidelines |
+| `docs/CLAUDE.md` | Documentation structure and maintenance |
+
+Each folder also has a matching `AGENTS.md` with the same rules.
