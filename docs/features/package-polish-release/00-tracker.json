@@ -186,13 +186,13 @@
     {
       "id": "phase11",
       "title": "Release: verify + bump + publish",
-      "status": "pending",
+      "status": "in_progress",
       "completedAt": null,
       "file": "docs/features/package-polish-release/phase11-release.md",
       "subTasks": [
-        { "id": "phase11.1", "title": "Full gate: install + type-check + build + lint + test all green; verify dist (import+require, types, templates)", "status": "pending", "note": null },
-        { "id": "phase11.2", "title": "Bump version 2.0.6 -> 2.1.0 in package.json + exported constant + docs", "status": "pending", "note": null },
-        { "id": "phase11.3", "title": "Final commit + git pull --rebase + push", "status": "pending", "note": null },
+        { "id": "phase11.1", "title": "Full gate: install + type-check + build + lint + test all green; verify dist (import+require, types, templates)", "status": "complete", "note": "install+type-check+lint+build OK; 124/124 tests; CJS require + ESM import both report version 2.1.0; templates shipped; no external.d.ts leak." },
+        { "id": "phase11.2", "title": "Bump version 2.0.6 -> 2.1.0 in package.json + exported constant + docs", "status": "complete", "note": "package.json 2.1.0; runtime constant single-sourced -> auto 2.1.0; docs already at 2.1.0." },
+        { "id": "phase11.3", "title": "Final commit + git pull --rebase + push", "status": "in_progress", "note": null },
         { "id": "phase11.4", "title": "npm whoami (aoneahsan) + npm publish; verify npm view notification-kit version == 2.1.0; report", "status": "pending", "note": "Outward-facing irreversible; user pre-authorized direct publish." }
       ]
     }
