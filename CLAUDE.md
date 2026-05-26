@@ -1,6 +1,6 @@
 # CLAUDE.md — notification-kit
 
-> Last Updated: 2026-04-03
+> Last Updated: 2026-05-26
 
 ## Project Overview
 
@@ -8,12 +8,16 @@
 
 ## Current Verified State
 
-- Reviewed on: `2026-03-25`
-- Package version: `2.0.6`
+- Reviewed on: `2026-05-26`
+- Package version: `2.1.0` (release in progress)
 - Install: `yarn install` passed
-- Build: `yarn build` passed
+- Build: `yarn build` passed (dual ESM + CJS)
+- Type-check / Lint: passed (ESLint `no-console` enforced)
 - Tests: `yarn test --run` — 124 passed, 0 failed
-- Known warning: Node `DEP0169` deprecation during Yarn execution
+- Dependencies: all at latest stable (TypeScript 6, ESLint 10, Vite 8, Vitest 4, jsdom 29, …); `@testing-library/react-hooks` removed
+- Peer floors raised: Capacitor `>=8`, firebase `>=12.13.0`, react `>=19.2.6`, react-onesignal `>=3.5.3`
+- Polish/release work tracked in `docs/features/package-polish-release/` (resumable `00-tracker.json`)
+- Logger deviation: leveled logger does NOT auto-patch the host console (library-appropriate; see `src/utils/CLAUDE.md`)
 
 ## Commands
 
@@ -111,6 +115,7 @@ Source code conventions and rules are in `src/CLAUDE.md`.
 
 | Date | Updated By | Notes |
 |---|---|---|
+| 2026-05-26 | Claude | Polish + 2.1.0: deps→latest, full audit remediation (security/core/react/utils/providers), OneSignal v3 rewrite, leveled logger, dual ESM/CJS packaging, docs refresh |
 | 2026-04-03 | Claude | Split CLAUDE.md/AGENTS.md into nested structure for context optimization |
 | 2026-03-25 | Codex | Fixed failing tests, re-verified install/build/test |
 | 2026-03-24 | Codex | Refreshed docs, recorded verification status |
@@ -120,19 +125,21 @@ Source code conventions and rules are in `src/CLAUDE.md`.
 
 | Date | Audit Type | Status | Issues Found | Resolved |
 |---|---|---|---|---|
+| 2026-05-26 | Deep audit + remediation (3-agent) | Passed | ~70 (8 critical, ~19 high, ~25 med, ~20 low) | All critical + high; minors deferred (see findings.md) |
 | 2026-03-25 | Issue Remediation | Passed (minor warning) | 39 | 38 |
 | 2026-03-24 | Portfolio + Docs Refresh | Passed with issues | 38 | 0 |
 | 2026-02-02 | Package Update | Passed | 0 | 0 |
 | 2026-01-23 | Full Audit | Passed with issues | 1 | 0 |
 
-### Last Audit Details
+### Last Audit Details (2026-05-26)
 
-- Package Manager: yarn confirmed
-- Build: passes
+- Package Manager: yarn confirmed; all deps at latest stable
+- Build: passes (dual ESM + CJS); type-check + lint clean (`no-console` enforced)
 - Tests: 124 passing
-- Features: implementation exists across core, providers, hooks, utilities
+- Security: OneSignal client REST-key leak + in-app icon XSS fixed
+- Findings + resumable plan: `docs/features/package-polish-release/`
 
-### Next Audit Due: 2026-04-06
+### Next Audit Due: 2026-06-26
 
 ## Nested CLAUDE.md / AGENTS.md Index
 

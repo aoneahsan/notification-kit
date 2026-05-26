@@ -5,6 +5,63 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-05-26
+
+A polish-and-hardening release: all dependencies updated to latest stable, a
+full security/correctness audit remediated, and packaging modernized.
+
+### ⚠️ Peer dependency requirements raised
+
+The minimum peer dependency versions were raised to current stable. If you are
+on an older major you will need to upgrade alongside this release:
+
+- `@capacitor/core` `>=8.3.4`, `@capacitor/local-notifications` `>=8.2.0`,
+  `@capacitor/preferences` `>=8.0.1`, `@capacitor/push-notifications` `>=8.1.1`
+- `firebase` `>=12.13.0`
+- `react` / `react-dom` `>=19.2.6`
+- `react-onesignal` `>=3.5.3` (the OneSignal provider was rewritten to the v3 API)
+
+### 🔒 Security
+
+- OneSignal `sendNotification()` no longer sends the REST API key from client
+  code — sending must be done from a trusted server (the key is account-level).
+- In-app notification icons are rendered safely (sandboxed `<img>` for image
+  URLs, `textContent` otherwise); no `innerHTML` sink remains.
+- `config-validator` no longer scans `process.env`; production checks are
+  browser-safe.
+
+### ✨ Fixes & improvements
+
+- `isSupported()` now reports real per-platform capabilities (was always false).
+- Push events reach `notifications.onPush` / `onPushOpened`; the event envelope
+  no longer corrupts `event.type`.
+- Native local-notification listeners are cleaned up on `destroy()`.
+- Firebase: foreground messages populate top-level `title`/`body`; native FCM
+  works via `PushNotifications.register()`; safer token refresh.
+- OneSignal provider rewritten to the react-onesignal **v3** namespaced API.
+- Storage: Unicode-safe value encoding, working `clear()`, per-record TTL.
+- React hooks: removed a 1 Hz render loop (subscription-based now), fixed
+  listener churn that dropped notifications, added `isPermissionGranted`.
+- Scheduling/date/cron math hardened; formatting edge cases guarded.
+- Leveled logger (default `warn`) with a `localStorage` switch and `setLevel`.
+
+### 📦 Packaging
+
+- Ships **both ESM and CommonJS** (`import` and `require` both work).
+- `engines.node` lowered to `>=20`; added `"sideEffects": false`.
+- Service-worker templates now ship in the package and are deployed by
+  `notification-kit-setup`.
+- `version` is single-sourced from `package.json`.
+
+### 🔧 Toolchain
+
+- Updated all dev dependencies to latest stable (TypeScript 6, ESLint 10,
+  Vite 8, Vitest 4, jsdom 29, and more). Removed the deprecated
+  `@testing-library/react-hooks`.
+
+> Note: `2.0.4`–`2.0.6` were maintenance releases without changelog entries;
+> their changes are consolidated into this `2.1.0` entry.
+
 ## [2.0.3] - 2025-08-06
 
 ### 🐛 Bug Fixes

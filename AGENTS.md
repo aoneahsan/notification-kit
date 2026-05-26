@@ -1,18 +1,20 @@
 # AGENTS.md — notification-kit
 
-> Last Updated: 2026-04-03
+> Last Updated: 2026-05-26
 
 ## Project Overview
 
-Unified notification library for React + Capacitor apps. Single API for push, local, and in-app notifications across Web, iOS, and Android. Zero required dependencies — all peer deps optional.
+Unified notification library for React + Capacitor apps. Single API for push, local, and in-app notifications across Web, iOS, and Android. Zero required dependencies — all peer deps optional. Ships dual ESM + CJS.
 
 | Property | Value |
 |----------|-------|
 | Package Name | `notification-kit` |
-| Version | 2.0.6 |
+| Version | 2.1.0 (release in progress) |
 | License | MIT |
-| Node.js | >= 24.13.0 |
+| Node.js | >= 20 |
 | Package Manager | yarn (ONLY) |
+
+State (2026-05-26): all deps at latest stable; full audit remediated (security/core/react/utils/providers); OneSignal provider on react-onesignal v3; leveled logger (no host-console auto-patch); dual ESM/CJS. Resumable plan: `docs/features/package-polish-release/`.
 
 ## Agent Responsibilities
 

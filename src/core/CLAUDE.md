@@ -1,6 +1,6 @@
 # CLAUDE.md — src/core/
 
-> Last Updated: 2026-04-03
+> Last Updated: 2026-05-26
 
 ## Core Module Rules
 

@@ -173,14 +173,14 @@
     {
       "id": "phase10",
       "title": "Documentation refresh",
-      "status": "pending",
-      "completedAt": null,
+      "status": "complete",
+      "completedAt": "2026-05-26",
       "file": "docs/features/package-polish-release/phase10-documentation.md",
       "subTasks": [
-        { "id": "phase10.1", "title": "PK-H2/H3/H4/M1/M2/M3: fix Readme.md + AI-INTEGRATION-GUIDE.md API mismatches", "status": "pending", "note": null },
-        { "id": "phase10.2", "title": "CHANGELOG 2.1.0 entry with deps + fixes + ⚠️ peer-dep note (PK-M4)", "status": "pending", "note": null },
-        { "id": "phase10.3", "title": "Refresh root + nested CLAUDE.md/AGENTS.md (Last Updated 2026-05-26, new state)", "status": "pending", "note": null },
-        { "id": "phase10.4", "title": "Refresh portfolio file + docs/ guides + website docs content to match API", "status": "pending", "note": null }
+        { "id": "phase10.1", "title": "PK-H2/H3/H4/M1/M2/M3: fix Readme.md + AI-INTEGRATION-GUIDE.md API mismatches", "status": "complete", "note": "AI-GUIDE event names -> onPush/onPushOpened + real keys; useInAppNotification return fixed; README success(title,message?) + cancel(string|number) + schedule top-level shape; PK-H4 isPermissionGranted already added in code. Widened cancel proxy to string|number; completed toCapacitorLocalNotification recurring mapping (every/on/count)." },
+        { "id": "phase10.2", "title": "CHANGELOG 2.1.0 entry with deps + fixes + peer-dep note (PK-M4)", "status": "complete", "note": "Full 2.1.0 entry with prominent peer-dep raise section; 2.0.4-2.0.6 consolidated." },
+        { "id": "phase10.3", "title": "Refresh root + nested CLAUDE.md/AGENTS.md (Last Updated 2026-05-26, new state)", "status": "complete", "note": "Root CLAUDE+AGENTS state/version/audit/history updated; all 12 nested CLAUDE/AGENTS dates bumped; src/react react-hooks reference corrected." },
+        { "id": "phase10.4", "title": "Refresh portfolio file + docs/ guides + website docs content to match API", "status": "complete", "note": "Portfolio refreshed + renamed to _2026-05-26 (refs updated); SW Firebase CDN 12.13.0 in docs; docs/ guides scanned clean. Docusaurus website/ scaffold (v0.0.0, not deployed) intentionally untouched." }
       ]
     },
     {
@@ -203,13 +203,14 @@
     { "date": "2026-05-26", "phase": "phase03+phase04", "summary": "Security: OneSignal sendNotification refuses client-side (REST-key leak), in-app icon XSS removed (safe applyIcon, zero innerHTML sinks), stripHtml doc, config-validator heuristic dropped + browser-safe. Core: emit() envelope fix + onPush firing, native listener cleanup, real per-platform capability matrix (isSupported works), getDelivered mapping, numeric-id validation, storage unicode-safe obfuscation + clear()/TTL fixes, Firebase top-level title/body + native FCM register + refreshToken safety, openSettings honest throw, logging in catches. Updated 5 tests to assert corrected behavior. 124/124 green.", "commit": "a39b237" },
     { "date": "2026-05-26", "phase": "phase05+phase06", "summary": "React hooks: in-app polling replaced by manager subscription (RU-C1), useNotifications functional updater + single subscription (RU-C2), listenerId counter (RU-C3), schedule shape (RU-H2), configure functional + memoized returns + isPermissionGranted (RU-M6/L7/L8, PK-H4), logged swallowed errors (RU-M9). Utils: scheduling date math (RU-H3/H4/H5), cron DOW mapping (RU-H6), formatting guards + substr->slice (RU-M3/M4/M5/L2), dynamic-loader module-not-found vs runtime error (RU-L4). Updated 6 in-app tests. 124/124 green.", "commit": "f991d8e" },
     { "date": "2026-05-26", "phase": "phase07+phase08", "summary": "OneSignal v3 rewrite (CP-M6): external.d.ts stub + provider rewritten to v3 namespaced API; ZERO unsafe casts; provider+setup mocks updated to v3. CP-H5/M7/H7/H8 provider honesty. Logger (STD-1): leveled (default warn) + localStorage switch + opt-in devtools. ESLint no-console:'error' (STD-2/PK-H5) + ecmaVersion 2022; grep gate zero. 124/124 green.", "commit": "2b75e39" },
-    { "date": "2026-05-26", "phase": "phase09", "summary": "Packaging: engines.node>=20 (PK-C2), sideEffects:false (PK-L2), dual ESM+CJS build + exports require/default conditions (PK-H1, verified require+import resolve), ship SW templates to dist/templates + setup.js deploys them (PK-C1), single-sourced version via Vite define (PK-M4), SW Firebase CDN 12.13.0 (PK-L5), setup.js red color + real URL (PK-M6), removed dead vite.config test block (PK-M5) + .npmignore (PK-L1). Also fixed external.d.ts leaking into dist (copyDtsFiles:false) + Node localStorage experimental warning (window-guarded logger). 124/124 green; type-check+lint+build clean.", "commit": "pending" }
+    { "date": "2026-05-26", "phase": "phase09", "summary": "Packaging: engines.node>=20, sideEffects:false, dual ESM+CJS + exports conditions (verified require+import), ship SW templates + setup.js deploy, single-sourced version, SW Firebase 12.13.0, setup.js red+URL, removed vite test block + .npmignore. Fixed external.d.ts dist leak + Node localStorage warning. 124/124 green.", "commit": "23a4183" },
+    { "date": "2026-05-26", "phase": "phase10", "summary": "Docs: fixed Readme + AI-INTEGRATION-GUIDE API mismatches (event names->onPush/real keys, useInAppNotification return, success/cancel signatures, schedule top-level shape); widened cancel proxy to string|number + completed toCapacitorLocalNotification recurring mapping; CHANGELOG 2.1.0 + peer-dep note; versions->2.1.0; SW Firebase 12.13.0; refreshed root + 12 nested CLAUDE/AGENTS; portfolio refreshed+renamed. 124/124 green; type-check+build clean.", "commit": "pending" }
   ],
   "nextSuggestion": {
-    "phase": "phase10",
-    "subTask": "phase10.1",
-    "rationale": "Code + packaging done and green. Next: documentation refresh — fix all docs-vs-code mismatches (event names, hook returns, isPermissionGranted, cancel id, success sig, schedule shape, SW versions), CHANGELOG 2.1.0 + peer-dep note, refresh CLAUDE/AGENTS + portfolio.",
-    "command": "Invoke documentation-writer + copywriting; fix Readme.md + AI-INTEGRATION-GUIDE.md (PK-H2/H3/H4/M1/M2/M3); add CHANGELOG 2.1.0 with peer-dep raise note (PK-M4); refresh root+nested CLAUDE.md/AGENTS.md (Last Updated 2026-05-26) + portfolio + docs/."
+    "phase": "phase11",
+    "subTask": "phase11.1",
+    "rationale": "All code + docs done and green. Final phase: release — full gate, bump version 2.0.6->2.1.0, commit+push, npm publish (user pre-authorized direct publish), verify.",
+    "command": "Full gate (install+type-check+build+lint+test); bump package.json version 2.0.6->2.1.0; commit+push; npm whoami==aoneahsan; npm publish; verify npm view notification-kit version==2.1.0; report."
   },
   "resumeInstructions": "1) Read this tracker. 2) Read 00-overview.md + findings.md. 3) Find the first phase/sub-task with status 'pending' or 'in_progress'. 4) Read that phase's spec file. 5) Invoke matching skills per RULE #0 for that phase. 6) Do the work; run the phase gate. 7) Mark sub-tasks 'complete', append a runHistory row, bump lastUpdated. 8) ONE commit per session including this tracker. 9) Phase 11.4 (npm publish) is the only irreversible step — user pre-authorized direct publish; still verify gates first."
 }

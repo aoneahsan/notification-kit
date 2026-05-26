@@ -4,8 +4,8 @@ A unified notification library for React + Capacitor apps. One API for push noti
 
 ## Current State
 
-- Package version: `2.0.6`
-- Verified on: `2026-03-25`
+- Package version: `2.1.0`
+- Verified on: `2026-05-26`
 - Install: `yarn install` succeeds
 - Build: `yarn build` succeeds
 - Test status: `yarn test --run` passes
@@ -15,7 +15,7 @@ A unified notification library for React + Capacitor apps. One API for push noti
 - Known warning during verification:
   - Node `DEP0169` deprecation warnings surfaced through Yarn execution
 - Root portfolio info file:
-  - `NOTIFICATION-KIT_portfolio-info_2026-03-25.md`
+  - `NOTIFICATION-KIT_portfolio-info_2026-05-26.md`
 
 ## 📚 Documentation
 
@@ -437,10 +437,10 @@ NotificationKit.init({
 
    ```js
    importScripts(
-   	'https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js'
+   	'https://www.gstatic.com/firebasejs/12.13.0/firebase-app-compat.js'
    );
    importScripts(
-   	'https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js'
+   	'https://www.gstatic.com/firebasejs/12.13.0/firebase-messaging-compat.js'
    );
 
    firebase.initializeApp({
@@ -607,17 +607,17 @@ notifications.onPush(callback: (notification) => void): () => void
 notifications.onPushOpened(callback: (notification) => void): () => void
 
 // Local Notifications
-notifications.schedule(options: ScheduleOptions): Promise<string>
-notifications.cancel(id: string): Promise<void>
+notifications.schedule(options: ScheduleOptions): Promise<void>
+notifications.cancel(id: string | number): Promise<void>
 notifications.cancelAll(): Promise<void>
 notifications.getPending(): Promise<Notification[]>
 
-// In-App Notifications
-notifications.success(message: string, options?: InAppOptions)
-notifications.error(message: string, options?: InAppOptions)
-notifications.warning(message: string, options?: InAppOptions)
-notifications.info(message: string, options?: InAppOptions)
-notifications.showInApp(options: InAppOptions)
+// In-App Notifications (title required; message optional)
+notifications.success(title: string, message?: string): Promise<string>
+notifications.error(title: string, message?: string): Promise<string>
+notifications.warning(title: string, message?: string): Promise<string>
+notifications.info(title: string, message?: string): Promise<string>
+notifications.showInApp(options: InAppOptions): Promise<string>
 
 // Channels (Android)
 notifications.createChannel(channel: Channel): Promise<void>
@@ -643,10 +643,10 @@ const {
 
 // In-app notifications hook
 const notify = useInAppNotification();
-notify.success(message, options?)
-notify.error(message, options?)
-notify.warning(message, options?)
-notify.info(message, options?)
+notify.success(title, message?, options?)
+notify.error(title, message?, options?)
+notify.warning(title, message?, options?)
+notify.info(title, message?, options?)
 notify.show(options)
 ```
 

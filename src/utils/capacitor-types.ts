@@ -128,8 +128,28 @@ export function toCapacitorLocalNotification(
     notification.summaryText = options.summaryText
   }
 
+  // Map the schedule timing: one-time `at`, plus recurring `every`/`on`/`count`
+  // (previously only `at` was wired, so recurring schedules were silently
+  // dropped). All timing fields are read from the top level of ScheduleOptions.
+  const schedule: any = {}
   if (options.at) {
-    notification.schedule = { at: options.at }
+    schedule.at = options.at instanceof Date ? options.at : new Date(options.at)
+  }
+  if (options.on) {
+    schedule.on = options.on
+  }
+  if (options.every) {
+    schedule.every = options.every
+    schedule.repeats = true
+  }
+  if (options.count !== undefined) {
+    schedule.count = options.count
+  }
+  if (options.allowWhileIdle !== undefined) {
+    schedule.allowWhileIdle = options.allowWhileIdle
+  }
+  if (Object.keys(schedule).length > 0) {
+    notification.schedule = schedule
   }
 
   if (options.sound !== undefined) {

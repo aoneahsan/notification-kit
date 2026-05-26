@@ -1,6 +1,6 @@
 # AGENTS.md — src/react/
 
-> Last Updated: 2026-04-03
+> Last Updated: 2026-05-26
 
 ## React Hooks Rules
 
@@ -26,7 +26,7 @@ React integration — the `notification-kit/react` entry point.
 
 ### Testing
 
-- Use `@testing-library/react` + `@testing-library/react-hooks`
+- Use `@testing-library/react` (its built-in `renderHook`); the legacy `@testing-library/react-hooks` is removed (deprecated for React 18+)
 - Mock `NotificationKit` core — never test real provider in hook tests
 
 ### Export Conventions

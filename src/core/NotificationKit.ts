@@ -685,7 +685,7 @@ export const notifications = {
   /**
    * Cancel local notification
    */
-  cancel: (id: number) =>
+  cancel: (id: string | number) =>
     NotificationKit.getInstance().cancelLocalNotification(id),
 
   /**

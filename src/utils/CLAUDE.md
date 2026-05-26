@@ -1,6 +1,6 @@
 # CLAUDE.md — src/utils/
 
-> Last Updated: 2026-04-03
+> Last Updated: 2026-05-26
 
 ## Utility Module Rules
 

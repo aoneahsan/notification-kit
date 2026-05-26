@@ -1,6 +1,6 @@
 # CLAUDE.md — src/react/
 
-> Last Updated: 2026-04-03
+> Last Updated: 2026-05-26
 
 ## React Hooks Rules
 
@@ -27,7 +27,7 @@ React integration for notification-kit. This module is the `notification-kit/rea
 
 ### Testing
 
-- Use `@testing-library/react` and `@testing-library/react-hooks`
+- Use `@testing-library/react` (its built-in `renderHook`) — the legacy `@testing-library/react-hooks` is deprecated for React 18+ and has been removed
 - Test: mount/unmount lifecycle, permission states, notification dispatch, error states
 - Mock `NotificationKit` core — never test real provider in hook tests
 

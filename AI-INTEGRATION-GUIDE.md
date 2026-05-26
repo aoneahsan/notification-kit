@@ -127,9 +127,7 @@ await notifications.schedule({
   id: 'reminder-1',
   title: 'Reminder',
   body: 'Time to check the app!',
-  schedule: {
-    at: new Date(Date.now() + 3600000), // 1 hour from now
-  },
+  at: new Date(Date.now() + 3600000), // 1 hour from now
 });
 
 await notifications.cancel('reminder-1');
@@ -171,36 +169,29 @@ dismissAllInAppNotifications();
 ```typescript
 import { notifications } from 'notification-kit';
 
-// Schedule at specific time
+// Schedule at a specific time (one-time)
 await notifications.schedule({
   id: 'meeting',
   title: 'Meeting Reminder',
   body: 'Team standup in 15 minutes',
-  schedule: {
-    at: new Date('2026-01-21T09:45:00'),
-  },
+  at: new Date('2026-01-21T09:45:00'),
 });
 
-// Recurring notification
+// Recurring notification (every day at 09:00)
 await notifications.schedule({
   id: 'daily-reminder',
   title: 'Daily Check-in',
   body: 'Time for your daily review',
-  schedule: {
-    every: 'day',
-    at: { hour: 9, minute: 0 },
-  },
+  every: 'day',
+  on: { hour: 9, minute: 0 },
 });
 
-// Weekly notification
+// Weekly notification (Mondays at 10:00)
 await notifications.schedule({
   id: 'weekly-report',
   title: 'Weekly Report',
   body: 'Review your weekly stats',
-  schedule: {
-    on: { weekday: 1 }, // Monday
-    at: { hour: 10, minute: 0 },
-  },
+  on: { weekday: 1, hour: 10, minute: 0 }, // 1 = Monday
 });
 ```
 
@@ -225,7 +216,7 @@ await notifications.schedule({
   title: 'Special Offer!',
   body: '50% off today only',
   channelId: 'promotions',
-  schedule: { at: new Date() },
+  at: new Date(),
 });
 ```
 
@@ -243,12 +234,12 @@ function MyComponent() {
     unsubscribe,
   } = useNotifications();
 
-  const { showSuccess, showError, showInfo, showWarning } = useInAppNotification();
+  const { success } = useInAppNotification();
 
   const handleEnable = async () => {
     const granted = await requestPermission();
     if (granted) {
-      showSuccess('Enabled!', 'Push notifications are now active');
+      success('Enabled!', 'Push notifications are now active');
       await subscribe('news');
     }
   };
@@ -276,31 +267,36 @@ const capabilities = platform.getCapabilities();
 ## Event Listeners
 
 ```typescript
-import NotificationKit from 'notification-kit';
+import { notifications } from 'notification-kit';
 
-const kit = NotificationKit.getInstance();
-
-// Push notification received (foreground)
-kit.on('push', (notification) => {
-  console.log('Push received:', notification);
+// Push notification received (foreground). Returns an unsubscribe function.
+const offPush = notifications.onPush((payload) => {
+  console.log('Push received:', payload);
 });
 
-// Push notification opened (user tapped)
-kit.on('pushOpened', (notification) => {
-  console.log('Push opened:', notification);
-  // Navigate to relevant screen
+// Notification opened / action performed (user tapped).
+const offOpened = notifications.onPushOpened((notification) => {
+  console.log('Notification opened:', notification);
+  // Navigate to the relevant screen
 });
 
-// Token refreshed
-kit.on('tokenRefresh', (token) => {
-  // Send new token to your backend
+// Token refreshed — send the new token to your backend.
+const offToken = notifications.on('tokenRefreshed', (event) => {
+  console.log('New token:', event.token);
 });
 
-// Permission changed
-kit.on('permissionChange', (status) => {
-  console.log('Permission:', status);
+// Permission changed.
+const offPermission = notifications.on('permissionChanged', (event) => {
+  console.log('Permission:', event.status);
 });
+
+// Call the returned functions to stop listening:
+// offPush(); offOpened(); offToken(); offPermission();
 ```
+
+> Valid `on(...)` event keys: `notificationReceived`, `notificationActionPerformed`,
+> `tokenReceived`, `tokenRefreshed`, `permissionChanged`. Use the `onPush` /
+> `onPushOpened` helpers above for the common push cases.
 
 ## Platform Setup
 
@@ -324,8 +320,8 @@ kit.on('permissionChange', (status) => {
 
 Create `public/firebase-messaging-sw.js`:
 ```javascript
-importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.13.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.13.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
   // Your Firebase config
@@ -352,8 +348,10 @@ const handleNotificationSetup = async () => {
 ### Handle Deep Links from Notifications
 
 ```typescript
-kit.on('pushOpened', (notification) => {
-  const { data } = notification;
+import { notifications } from 'notification-kit';
+
+notifications.onPushOpened((notification) => {
+  const data = notification?.data;
   if (data?.screen) {
     navigate(data.screen);
   }

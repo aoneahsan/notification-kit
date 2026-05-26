@@ -1,17 +1,18 @@
 # Notification Kit Portfolio Info
 
-Reference Date: 2026-03-25
+Reference Date: 2026-05-26
 Project Type: Open-source unified notification library
 Project Slug: notification-kit
 Primary Email Reference: aoneahsan@gmail.com
-Current Version Reviewed: 2.0.6
-Last Portfolio Update: 2026-03-25
-Next Eligible Update After: 2026-04-01
+Current Version Reviewed: 2.1.0
+Last Portfolio Update: 2026-05-26
+Next Eligible Update After: 2026-06-02
 
 ## Update History
 
 | Date | Type | Notes |
 | --- | --- | --- |
+| 2026-05-26 | Major polish + 2.1.0 | Updated all dependencies to latest stable; full deep-audit remediation (security, core/React/utils correctness, OneSignal v3 rewrite); leveled logger; dual ESM/CJS packaging; docs refresh. |
 | 2026-03-25 | Refreshed | Root portfolio file refreshed after issue remediation, `yarn install` verified, full automated test suite passing, build verified, and yarn-only workflow language aligned in project docs. |
 | 2026-03-24 | Created/Refreshed | Root portfolio file created from repository state during portfolio sweep. |
 
@@ -50,21 +51,22 @@ Create a dependable notification foundation that gives app teams one clean way t
 
 ## Current Verified State
 
-- Package version reviewed: `2.0.6`
-- Install: `yarn install` passed
+- Package version reviewed: `2.1.0`
+- Install: `yarn install` passed (Yarn 4.14.1)
+- Type-check / Lint / Build: passed (dual ESM + CJS; ESLint `no-console` enforced)
 - Tests: `yarn test --run` passed
-- Build: `yarn build` passed
 - Current test snapshot:
   - 124 tests passed
   - 0 tests failed
+- Dependencies: all at latest stable (TypeScript 6, ESLint 10, Vite 8, Vitest 4, jsdom 29, …); deprecated `@testing-library/react-hooks` removed
+- Peer floors raised: Capacitor `>=8`, firebase `>=12.13.0`, react `>=19.2.6`, react-onesignal `>=3.5.3`
 - Implementation areas confirmed in repository:
-  - core notification orchestration
-  - Firebase provider
-  - OneSignal provider
-  - React hooks
+  - core notification orchestration (events, capabilities, storage)
+  - Firebase provider (web + native FCM)
+  - OneSignal provider (react-onesignal v3 API)
+  - React hooks (subscription-based, no render loop)
   - validation, dynamic loading, scheduling, and in-app utilities
-- Operational note:
-  - Node `DEP0169` deprecation warnings still surface from the Yarn 1 runtime during command execution in this environment
+- 2026-05-26 audit remediated ~70 findings (security: client REST-key leak + in-app XSS; correctness across core/React/utils; packaging modernized). Resumable record: `docs/features/package-polish-release/`.
 
 ## Best Features
 
@@ -163,9 +165,10 @@ Use this project to highlight:
 
 ## Honest Constraints To Mention
 
-- Yarn commands in the current environment still emit a Node `DEP0169` warning from the Yarn 1 runtime layer.
 - Provider setup still depends on correct downstream app configuration for Firebase, OneSignal, and platform-specific notification permissions.
 - Real-world push delivery still requires app-level credentials, certificates, and service configuration outside this package.
+- Native OneSignal uses the generic Capacitor device token (not the OneSignal native SDK, which is intentionally not bundled to keep zero runtime deps); prefer the Firebase provider for native push.
+- Sending notifications is server-side only (provider REST/Admin keys must never ship in client code).
 
 ## Why This Project Has Strong Portfolio Value
 

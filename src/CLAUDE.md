@@ -1,6 +1,6 @@
 # CLAUDE.md — src/
 
-> Last Updated: 2026-04-03
+> Last Updated: 2026-05-26
 
 ## Source Code Conventions
 

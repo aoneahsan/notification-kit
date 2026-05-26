@@ -1,6 +1,6 @@
 # AGENTS.md — docs/
 
-> Last Updated: 2026-04-03
+> Last Updated: 2026-05-26
 
 ## Documentation Rules
 
