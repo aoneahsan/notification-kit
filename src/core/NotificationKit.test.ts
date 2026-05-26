@@ -250,11 +250,12 @@ describe('NotificationKit', () => {
       expect(kit.getCapabilities()).toBeTruthy()
     })
 
-    it('should return false on provider support errors', async () => {
-      mockFirebaseProvider.isSupported.mockRejectedValue(new Error('unsupported'))
+    it('should report supported based on platform capabilities', async () => {
       await kit.init(firebaseConfig)
 
-      await expect(kit.isSupported()).resolves.toBe(false)
+      // Web (the mocked platform) supports web push, so isSupported() is true.
+      // (Previously this always returned false due to an empty capability map.)
+      await expect(kit.isSupported()).resolves.toBe(true)
     })
   })
 })

@@ -62,26 +62,32 @@ export class PermissionManager {
   }
 
   /**
-   * Open system settings for notifications
+   * Open the system notification settings.
+   *
+   * This is intentionally NOT implemented internally: doing so requires a native
+   * plugin, which would break the zero-dependency guarantee. Rather than
+   * silently resolving (and misleading callers into thinking settings opened),
+   * it throws a descriptive error. Open settings from your app using a plugin
+   * such as `@capacitor-community/native-settings`:
+   *
+   * ```ts
+   * import { NativeSettings, AndroidSettings, IOSSettings } from '@capacitor-community/native-settings'
+   * await NativeSettings.open({ optionAndroid: AndroidSettings.AppNotification, optionIOS: IOSSettings.App })
+   * ```
    */
   async openSettings(): Promise<void> {
+    await this.ensurePlatform()
     if (this.platform === 'web') {
-      // Can't open settings from web
-      throw new Error('Cannot open settings from web platform')
+      throw new Error(
+        'notification-kit: cannot open system settings from the web. Direct users ' +
+          'to their browser/site notification settings instead.'
+      )
     }
-
-    try {
-      // TODO: Add native settings support when package is available
-      // const { NativeSettings } = await import('@capacitor-community/native-settings')
-      // await NativeSettings.open({
-      //   optionAndroid: 'APPLICATION_DETAILS_SETTINGS',
-      //   optionIOS: 'App-Prefs:NOTIFICATIONS_ID'
-      // })
-      // Native settings functionality not yet implemented
-    } catch (error) {
-      // Failed to open settings
-      throw error
-    }
+    throw new Error(
+      'notification-kit: openSettings() is not implemented internally to preserve the ' +
+        "zero-dependency design. Open the OS settings from your app using a native " +
+        "plugin (e.g. '@capacitor-community/native-settings')."
+    )
   }
 
   /**

@@ -351,7 +351,13 @@ export class FormattingUtils {
   }
 
   /**
-   * Clean HTML tags
+   * Remove HTML tags from a string for plain-text display.
+   *
+   * ⚠️ This is a DISPLAY FORMATTER, not a security sanitizer. It performs a
+   * naive tag strip and will NOT neutralize malformed markup or make untrusted
+   * HTML safe. Never feed its output into `innerHTML` /
+   * `dangerouslySetInnerHTML`. To render untrusted content, use `textContent`
+   * or a vetted sanitizer (e.g. DOMPurify) in your application.
    */
   static stripHtml(html: string): string {
     if (!html || typeof html !== 'string') {

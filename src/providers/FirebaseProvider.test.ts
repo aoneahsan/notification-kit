@@ -128,7 +128,13 @@ describe('FirebaseProvider', () => {
       await provider.init(mockConfig)
 
       expect(mockInitializeApp).toHaveBeenCalledWith(mockConfig)
-      expect(mockGetMessaging).toHaveBeenCalledWith(mockFirebaseApp)
+      // On native, push is delivered via @capacitor/push-notifications (a
+      // 'registration' listener), NOT the web firebase/messaging SDK.
+      expect(mockPushNotifications.addListener).toHaveBeenCalledWith(
+        'registration',
+        expect.any(Function)
+      )
+      expect(mockGetMessaging).not.toHaveBeenCalled()
     })
   })
 
@@ -221,10 +227,14 @@ describe('FirebaseProvider', () => {
 
     it('should get token on native platform', async () => {
       dynamicLoaderState.isNative = true
+      // Re-initialize on native so the push 'registration' listener is wired,
+      // then register (which the mock answers with 'native-token').
+      await provider.init(mockConfig)
+      await provider.requestPermission()
 
       const token = await provider.getToken()
 
-      expect(token).toBe('test-token')
+      expect(token).toBe('native-token')
     })
 
     it('should throw error if no messaging instance', async () => {
@@ -257,8 +267,10 @@ describe('FirebaseProvider', () => {
 
       expect(callback).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: '',
-          body: '',
+          // Top-level title/body are now populated from the notification (they
+          // were previously always empty strings).
+          title: 'Test',
+          body: 'Test message',
           data: expect.objectContaining({ key: 'value' }),
           notification: expect.objectContaining({
             title: 'Test',

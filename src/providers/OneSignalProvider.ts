@@ -1,6 +1,7 @@
 import { DynamicLoader } from '@/utils/dynamic-loader'
 import { OneSignalNativeBridge } from './OneSignalNativeBridge'
 import { ConfigValidator } from '@/utils/config-validator'
+import { Logger } from '@/utils/logger'
 import type OneSignal from 'react-onesignal'
 import type {
   NotificationProvider,
@@ -32,9 +33,17 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async init(config: OneSignalConfig): Promise<void> {
     try {
+      // Guard against accidental double-initialization (re-init replaces the
+      // previously stored config).
+      if (this.config || this.initialized) {
+        Logger.warn(
+          'OneSignalProvider.init() called more than once; re-initializing with the new config.'
+        )
+      }
+
       // Import the type guard function
       const { isOneSignalInstanceConfig } = await import('@/types')
-      
+
       this.config = config
 
       // Check if an existing OneSignal instance is provided
@@ -274,39 +283,28 @@ export class OneSignalProvider implements NotificationProvider {
   }
 
   /**
-   * Send notification (requires REST API)
+   * Sending notifications is intentionally NOT supported from the client.
+   *
+   * The OneSignal REST API key is an account-level secret. Calling the
+   * OneSignal notifications endpoint requires it in an `Authorization` header,
+   * so doing it from client/app code (web, iOS, Android) would embed the key
+   * in your JavaScript bundle and leak it over the network — allowing anyone
+   * to send notifications from, and read data in, your OneSignal account.
+   *
+   * Send notifications from a trusted server instead: your backend calls
+   * `POST https://api.onesignal.com/notifications` with the REST API key kept
+   * server-side. This method always throws to prevent the insecure pattern.
+   *
+   * @throws Always — client-side sending would leak the REST API key.
    */
-  async sendNotification(payload: PushNotificationPayload): Promise<void> {
-    if (!this.config || isOneSignalInstanceConfig(this.config) || !this.config.restApiKey) {
-      throw new Error('REST API key required for sending notifications')
-    }
-
-    try {
-      const response = await fetch(
-        'https://onesignal.com/api/v1/notifications',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Basic ${this.config.restApiKey}`,
-          },
-          body: JSON.stringify({
-            app_id: this.config.appId,
-            headings: { en: payload.notification?.title || 'Notification' },
-            contents: { en: payload.notification?.body || '' },
-            data: payload.data,
-            included_segments: ['All'],
-          }),
-        }
-      )
-
-      if (!response.ok) {
-        throw new Error(`OneSignal API error: ${response.statusText}`)
-      }
-    } catch (error) {
-      this.handleError(new Error(`Send notification failed: ${error}`))
-      throw error
-    }
+  async sendNotification(_payload: PushNotificationPayload): Promise<void> {
+    throw new Error(
+      'notification-kit: sending OneSignal notifications from the client is ' +
+        'disabled for security. The OneSignal REST API key is an account-level ' +
+        'secret and must never ship in client code. Send notifications from your ' +
+        'trusted backend (POST https://api.onesignal.com/notifications with the ' +
+        'REST API key in a server-side Authorization header).'
+    )
   }
 
   /**

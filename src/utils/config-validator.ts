@@ -66,75 +66,41 @@ export class ConfigValidator {
   }
 
   /**
-   * Perform security checks on configuration
+   * Perform best-effort security checks on configuration.
+   *
+   * Note: this intentionally does NOT attempt to detect "hardcoded" credentials
+   * by scanning `process.env`. Once a value reaches the config object it is just
+   * a string regardless of whether it originated from an env var, so that check
+   * produced false positives and missed common prefixes (GATSBY_, EXPO_PUBLIC_,
+   * etc.). Keeping secrets out of source is enforced by the developer's tooling
+   * (gitignore, secret scanning) — not reliably by a client library at runtime.
    */
   private static performSecurityChecks(config: Record<string, any>): void {
-    // Check for hardcoded credentials (common patterns)
-    const suspiciousPatterns = [
-      { field: 'apiKey', pattern: /^AIzaSy/, provider: 'Firebase' },
-      { field: 'appId', pattern: /^[0-9a-f]{8}-[0-9a-f]{4}-/, provider: 'OneSignal' },
-    ]
+    if (!this.isProduction()) return
 
-    for (const { field, pattern, provider } of suspiciousPatterns) {
-      if (config[field] && typeof config[field] === 'string') {
-        const value = config[field] as string
-        
-        // Check if it looks like a real credential
-        if (pattern.test(value)) {
-          // Check if it's from environment variable
-          const isFromEnv = this.isFromEnvironmentVariable(value)
-          
-          if (!isFromEnv && process.env.NODE_ENV === 'production') {
-            Logger.warn(
-              `Potential hardcoded ${provider} ${field} detected. ` +
-              'Consider using environment variables for better security.'
-            )
-          }
-        }
-      }
-    }
-
-    // Check for localhost in production
-    if (process.env.NODE_ENV === 'production') {
-      const localhostFields = ['authDomain', 'databaseURL']
-      for (const field of localhostFields) {
-        if (config[field] && config[field].includes('localhost')) {
-          Logger.warn(
-            `Configuration field '${field}' contains 'localhost' in production. ` +
-            'This may cause issues.'
-          )
-        }
+    // Warn when localhost endpoints are shipped to production.
+    const localhostFields = ['authDomain', 'databaseURL']
+    for (const field of localhostFields) {
+      const value = config[field]
+      if (typeof value === 'string' && value.includes('localhost')) {
+        Logger.warn(
+          `notification-kit: configuration field '${field}' contains 'localhost' ` +
+            'in production — this is likely a misconfiguration.'
+        )
       }
     }
   }
 
   /**
-   * Check if a value likely comes from an environment variable
+   * Best-effort production check that is safe in non-Node (browser) runtimes
+   * where `process` is not defined.
    */
-  private static isFromEnvironmentVariable(value: string): boolean {
-    // This is a heuristic - in a browser environment we can't directly check
-    // if a value came from process.env, but we can check common patterns
-    
-    // Check if running in Node.js environment
-    if (typeof process !== 'undefined' && process.env) {
-      // Check common environment variable names
-      const commonEnvVars = [
-        'FIREBASE_API_KEY',
-        'NEXT_PUBLIC_FIREBASE_API_KEY',
-        'REACT_APP_FIREBASE_API_KEY',
-        'VITE_FIREBASE_API_KEY',
-        'VUE_APP_FIREBASE_API_KEY',
-        'ONESIGNAL_APP_ID',
-        'NEXT_PUBLIC_ONESIGNAL_APP_ID',
-        'REACT_APP_ONESIGNAL_APP_ID',
-        'VITE_ONESIGNAL_APP_ID',
-        'VUE_APP_ONESIGNAL_APP_ID',
-      ]
-
-      return commonEnvVars.some(envVar => process.env[envVar] === value)
-    }
-
-    return false
+  private static isProduction(): boolean {
+    return (
+      typeof process !== 'undefined' &&
+      !!process.env &&
+      process.env.NODE_ENV === 'production'
+    )
   }
 
   /**

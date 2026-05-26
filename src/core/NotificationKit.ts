@@ -1,4 +1,5 @@
 import { DynamicLoader } from '@/utils/dynamic-loader'
+import { Logger } from '@/utils/logger'
 import type {
   NotificationConfig,
   NotificationProvider,
@@ -25,6 +26,38 @@ import {
 } from '@/utils/capacitor-types'
 
 /**
+ * Normalize a notification id to the numeric id Capacitor requires, throwing a
+ * descriptive error on non-numeric input instead of silently producing `NaN`
+ * (which would make cancel/remove operations no-op while reporting success).
+ */
+function toNumericNotificationId(id: string | number): number {
+  const numericId = typeof id === 'number' ? id : parseInt(id, 10)
+  if (!Number.isFinite(numericId)) {
+    throw new Error(
+      `notification-kit: invalid notification id "${id}". Local notification ids ` +
+        'must be numeric (or a numeric string) so they can be cancelled/removed later.'
+    )
+  }
+  return numericId
+}
+
+/**
+ * Generate a collision-resistant event id (prefer crypto.randomUUID, fall back
+ * to time + random for older runtimes). Avoids the `Date.now()`-only ids that
+ * collide for events emitted within the same millisecond.
+ */
+function generateEventId(): string {
+  const cryptoObj =
+    typeof globalThis !== 'undefined'
+      ? (globalThis.crypto as Crypto | undefined)
+      : undefined
+  if (cryptoObj && typeof cryptoObj.randomUUID === 'function') {
+    return cryptoObj.randomUUID()
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
+}
+
+/**
  * Main NotificationKit class - provides unified API for all notification types
  */
 export class NotificationKit {
@@ -35,6 +68,7 @@ export class NotificationKit {
   private eventListeners: Map<string, EventListener[]> = new Map()
   private platform: Platform = 'unknown'
   private capabilities: PlatformCapabilities | null = null
+  private localListenerHandles: Array<{ remove: () => Promise<void> }> = []
 
   private constructor() {
     // Platform detection will be done during init
@@ -85,6 +119,17 @@ export class NotificationKit {
    * Destroy notification kit instance
    */
   async destroy(): Promise<void> {
+    // Remove native local-notification listeners so they don't fire into a
+    // torn-down kit (and don't accumulate across destroy/re-init cycles).
+    for (const handle of this.localListenerHandles) {
+      try {
+        await handle.remove()
+      } catch (error) {
+        Logger.debug('notification-kit: failed to remove local listener', error)
+      }
+    }
+    this.localListenerHandles = []
+
     if (this.provider) {
       await this.provider.destroy()
       this.provider = null
@@ -246,7 +291,7 @@ export class NotificationKit {
         throw new Error('Local notifications are not available on this platform')
       }
       const { LocalNotifications } = localNotificationsModule
-      const numericId = typeof id === 'string' ? parseInt(id, 10) : id
+      const numericId = toNumericNotificationId(id)
       await LocalNotifications.cancel({
         notifications: [{ id: numericId }],
       })
@@ -432,18 +477,23 @@ export class NotificationKit {
    */
   private emit(event: string, data: any): void {
     const listeners = this.eventListeners.get(event) || []
+    // Expose the payload's fields at the top level for convenience, but set the
+    // canonical envelope fields LAST so a payload key named `type`/`id`/
+    // `timestamp` can never clobber them. (Previously `...data` came last and
+    // overwrote `event.type`, corrupting `switch(event.type)` and the onPush
+    // filters.) The full payload is always available under `event.data`.
     const notificationEvent: NotificationEvent = {
-      id: Date.now().toString(),
+      ...data,
+      data,
+      id: generateEventId(),
       type: event,
       timestamp: new Date(),
-      data,
-      ...data,
     }
     listeners.forEach(callback => {
       try {
         callback(notificationEvent)
       } catch (error) {
-        // Event listener error, continue to next listener
+        Logger.error(`notification-kit: "${event}" event listener threw`, error)
       }
     })
   }
@@ -520,7 +570,7 @@ export class NotificationKit {
           '@capacitor/local-notifications'
         )
 
-        LocalNotifications.addListener(
+        const receivedHandle = await LocalNotifications.addListener(
           'localNotificationReceived',
           (notification: any) => {
             this.emit('notificationReceived', {
@@ -530,8 +580,9 @@ export class NotificationKit {
             })
           }
         )
+        this.localListenerHandles.push(receivedHandle)
 
-        LocalNotifications.addListener(
+        const actionHandle = await LocalNotifications.addListener(
           'localNotificationActionPerformed',
           (action: any) => {
             this.emit('notificationActionPerformed', {
@@ -542,8 +593,12 @@ export class NotificationKit {
             })
           }
         )
+        this.localListenerHandles.push(actionHandle)
       } catch (error) {
-        // Local notifications not available on this platform
+        Logger.debug(
+          'notification-kit: local notification listeners unavailable',
+          error
+        )
       }
     }
   }
@@ -642,7 +697,7 @@ export const notifications = {
   /**
    * Get delivered notifications
    */
-  getDelivered: async () => {
+  getDelivered: async (): Promise<Notification[]> => {
     const kit = NotificationKit.getInstance()
     if (kit.getPlatform() === 'web') {
       throw new Error('getDelivered not supported on web platform')
@@ -653,7 +708,17 @@ export const notifications = {
     }
     const { LocalNotifications } = localNotificationsModule
     const result = await LocalNotifications.getDeliveredNotifications()
-    return result.notifications
+    // Map Capacitor's raw delivered-notification objects to the library's
+    // public Notification shape (consistent with getPending()).
+    return result.notifications.map((n: any) => ({
+      id: n.id?.toString() ?? '',
+      title: n.title ?? '',
+      body: n.body ?? '',
+      data: n.extra,
+      platform: kit.getPlatform(),
+      type: 'local' as const,
+      timestamp: new Date(),
+    }))
   },
 
   /**
@@ -670,7 +735,9 @@ export const notifications = {
     }
     const { LocalNotifications } = localNotificationsModule
     await LocalNotifications.removeDeliveredNotifications({
-      notifications: [{ id: parseInt(id, 10), title: '', body: '' }]
+      notifications: [
+        { id: toNumericNotificationId(id), title: '', body: '' },
+      ],
     })
   },
 
@@ -715,22 +782,30 @@ export const notifications = {
    * Listen for push notifications
    */
   onPush: (callback: (notification: any) => void) => {
-    return NotificationKit.getInstance().on('notificationReceived', (event) => {
-      if (event.type.startsWith('push.')) {
-        callback(event.notification)
+    return NotificationKit.getInstance().on(
+      'notificationReceived',
+      (event: any) => {
+        // `notificationReceived` fires for both push and local notifications;
+        // only forward push ones. The kind is carried on the payload envelope
+        // (event.data.type), since the canonical event.type is always
+        // 'notificationReceived'.
+        if (event?.data?.type === 'push') {
+          callback(event.data?.payload ?? event.payload)
+        }
       }
-    })
+    )
   },
 
   /**
-   * Listen for push notification opened
+   * Listen for a notification being opened / an action being performed.
    */
   onPushOpened: (callback: (notification: any) => void) => {
-    return NotificationKit.getInstance().on('notificationActionPerformed', (event) => {
-      if ((event as any).type === 'push.opened' || ((event as any).type === 'push.action' && event.actionId === 'tap')) {
-        callback(event.notification)
+    return NotificationKit.getInstance().on(
+      'notificationActionPerformed',
+      (event: any) => {
+        callback(event?.notification ?? event?.data?.notification)
       }
-    })
+    )
   },
 
   /**

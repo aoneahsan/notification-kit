@@ -29,6 +29,11 @@ export class FirebaseProvider implements NotificationProvider {
   private tokenListeners: ((token: string) => void)[] = []
   private errorListeners: ((error: Error) => void)[] = []
   private unsubscribeMessage: (() => void) | null = null
+  // Native (Capacitor) FCM/APNs state — populated when running on iOS/Android.
+  private nativeToken: string | null = null
+  private nativeListenerHandles: Array<{ remove: () => Promise<void> }> = []
+  private nativeRegistrationResolve: ((token: string) => void) | null = null
+  private nativeRegistrationPromise: Promise<string> | null = null
 
   /**
    * Initialize Firebase provider
@@ -77,8 +82,11 @@ export class FirebaseProvider implements NotificationProvider {
         this.app = firebaseApp.initializeApp(firebaseConfig)
       }
 
-      // Initialize messaging if supported
-      if (await this.isSupported()) {
+      // Wire up message delivery: native push via @capacitor/push-notifications,
+      // web push via firebase/messaging.
+      if (await DynamicLoader.isNativePlatform()) {
+        await this.setupNativePush()
+      } else if (await this.isSupported()) {
         await this.initializeMessaging()
       }
     } catch (error) {
@@ -96,6 +104,20 @@ export class FirebaseProvider implements NotificationProvider {
         this.unsubscribeMessage()
         this.unsubscribeMessage = null
       }
+
+      // Remove native push listeners so they don't fire into a torn-down
+      // provider or accumulate across re-init.
+      for (const handle of this.nativeListenerHandles) {
+        try {
+          await handle.remove()
+        } catch (error) {
+          this.handleError(new Error(`Failed to remove native listener: ${error}`))
+        }
+      }
+      this.nativeListenerHandles = []
+      this.nativeToken = null
+      this.nativeRegistrationPromise = null
+      this.nativeRegistrationResolve = null
 
       if (this.currentToken && this.messaging) {
         const firebaseMessaging = await DynamicLoader.loadFirebaseMessaging()
@@ -155,6 +177,21 @@ export class FirebaseProvider implements NotificationProvider {
    * Get FCM token
    */
   async getToken(): Promise<string> {
+    // Native: the FCM/APNs token arrives via the 'registration' event after
+    // PushNotifications.register() (called from requestPermission()).
+    if (await DynamicLoader.isNativePlatform()) {
+      if (this.nativeToken) {
+        return this.nativeToken
+      }
+      if (this.nativeRegistrationPromise) {
+        return await this.nativeRegistrationPromise
+      }
+      throw new Error(
+        'No FCM token yet. Call requestPermission() first — it registers the device ' +
+          'for push, and the token is delivered on the registration event.'
+      )
+    }
+
     if (!this.messaging) {
       throw new Error('Firebase messaging not initialized')
     }
@@ -193,12 +230,14 @@ export class FirebaseProvider implements NotificationProvider {
       throw new Error('Firebase messaging not initialized')
     }
 
+    const previousToken = this.currentToken
     try {
-      // Delete current token
+      // Delete the current token so the next getToken() issues a fresh one.
       if (this.currentToken) {
         const firebaseMessaging = await DynamicLoader.loadFirebaseMessaging()
         if (firebaseMessaging) {
           await firebaseMessaging.deleteToken(this.messaging)
+          this.currentToken = null
         }
       }
 
@@ -207,6 +246,9 @@ export class FirebaseProvider implements NotificationProvider {
       this.notifyTokenListeners(newToken)
       return newToken
     } catch (error) {
+      // Restore the previous token reference so a failed refresh doesn't leave
+      // the provider reporting a null/stale token.
+      this.currentToken = previousToken
       this.handleError(new Error(`Token refresh failed: ${error}`))
       throw error
     }
@@ -416,8 +458,10 @@ export class FirebaseProvider implements NotificationProvider {
         this.messaging,
         (payload: MessagePayload) => {
           const notificationPayload: PushNotificationPayload = {
-            title: '',
-            body: '',
+            // Surface the real title/body at the top level (consumers read
+            // payload.title/payload.body); previously these were always '').
+            title: payload.notification?.title || '',
+            body: payload.notification?.body || '',
             data: payload.data || {},
             ...(payload.from && { to: payload.from }),
             ...(payload.collapseKey && { collapseKey: payload.collapseKey }),
@@ -447,6 +491,76 @@ export class FirebaseProvider implements NotificationProvider {
   }
 
   /**
+   * Set up native push (FCM on Android, APNs on iOS) via
+   * @capacitor/push-notifications. The token is delivered asynchronously on the
+   * 'registration' event after PushNotifications.register() (see
+   * requestNativePermission()). Listener handles are stored for cleanup.
+   */
+  private async setupNativePush(): Promise<void> {
+    const pushNotificationsModule = await DynamicLoader.loadPushNotifications()
+    if (!pushNotificationsModule) {
+      return
+    }
+    const { PushNotifications } = pushNotificationsModule
+
+    const registrationHandle = await PushNotifications.addListener(
+      'registration',
+      (token: any) => {
+        this.nativeToken = token.value
+        this.currentToken = token.value
+        if (this.nativeRegistrationResolve) {
+          this.nativeRegistrationResolve(token.value)
+          this.nativeRegistrationResolve = null
+        }
+        this.notifyTokenListeners(token.value)
+      }
+    )
+    this.nativeListenerHandles.push(registrationHandle)
+
+    const registrationErrorHandle = await PushNotifications.addListener(
+      'registrationError',
+      (err: any) => {
+        this.handleError(new Error(`FCM registration error: ${err?.error}`))
+      }
+    )
+    this.nativeListenerHandles.push(registrationErrorHandle)
+
+    const receivedHandle = await PushNotifications.addListener(
+      'pushNotificationReceived',
+      (notification: any) => {
+        this.notifyMessageListeners(this.fromNativePush(notification))
+      }
+    )
+    this.nativeListenerHandles.push(receivedHandle)
+
+    const actionHandle = await PushNotifications.addListener(
+      'pushNotificationActionPerformed',
+      (action: any) => {
+        this.notifyMessageListeners(this.fromNativePush(action?.notification))
+      }
+    )
+    this.nativeListenerHandles.push(actionHandle)
+  }
+
+  /**
+   * Map a native Capacitor push notification to the library payload shape.
+   */
+  private fromNativePush(notification: any): PushNotificationPayload {
+    const title = notification?.title || ''
+    const body = notification?.body || ''
+    return {
+      title,
+      body,
+      data: notification?.data || {},
+      notification: {
+        title,
+        body,
+        ...(notification?.id && { id: notification.id }),
+      },
+    }
+  }
+
+  /**
    * Request native permission
    */
   private async requestNativePermission(): Promise<boolean> {
@@ -457,8 +571,21 @@ export class FirebaseProvider implements NotificationProvider {
       }
       const { PushNotifications } = pushNotificationsModule
       const result = await PushNotifications.requestPermissions()
-      return result.receive === 'granted'
-    } catch (_error) {
+      if (result.receive !== 'granted') {
+        return false
+      }
+      // Register the device for push so the FCM/APNs token is delivered on the
+      // 'registration' event (wired in setupNativePush()). Prime a promise so a
+      // getToken() racing the event resolves once the token arrives.
+      if (!this.nativeToken) {
+        this.nativeRegistrationPromise = new Promise<string>(resolve => {
+          this.nativeRegistrationResolve = resolve
+        })
+      }
+      await PushNotifications.register()
+      return true
+    } catch (error) {
+      this.handleError(new Error(`Native permission request failed: ${error}`))
       return false
     }
   }

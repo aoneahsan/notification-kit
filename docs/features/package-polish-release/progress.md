@@ -32,4 +32,16 @@
 ### Errors encountered
 | Error | Attempt | Resolution |
 |---|---|---|
-| 13 tests fail: `localStorage` undefined | baseline | Deferred to Phase 02.4 (test-env fix after jsdom 29) |
+| 13 tests fail: `localStorage` undefined | baseline | Fixed in Phase 02.4 (in-memory Storage mock in setup.ts) |
+| TS6 deprecates `baseUrl` (TS5101) | Phase 02.1 | Removed baseUrl; made `paths` relative (`./src/*`); added `types:["node"]` |
+| TS6 `process`/`global` not found | Phase 02.1 | `types:["node"]` in tsconfig |
+| `PlatformCapabilities` excess-property errors | Phase 04.3 | Real type has only 8 keys; old code's extra keys were masked by trailing `...spread`. Rewrote matrix to the 8 real keys. |
+| OneSignalProvider `config` unread (TS6133) after removing sendNotification body | Phase 03.1 | Added a real double-init guard that reads `this.config` |
+| 4 tests asserted old buggy behavior | Phase 04 | Updated to assert corrected behavior (isSupported true on web; native Firebase via push register; onMessage title/body populated) |
+
+### Commits this session
+- `774891f` — chore(deps): deps to latest + green toolchain + plan scaffolding (Phase 00-02)
+- (pending) — security + core correctness (Phase 03-04)
+
+### Session 1 status after Phase 04
+Phases 00-04 complete. type-check + build + lint clean; tests 124/124. Remaining: P05 react hooks, P06 utils, P07 providers/OneSignal-v3, P08 logger, P09 packaging, P10 docs, P11 release.

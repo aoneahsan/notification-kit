@@ -1,4 +1,5 @@
 import { DynamicLoader } from '@/utils/dynamic-loader'
+import { Logger } from '@/utils/logger'
 import type { Platform, StorageConfig } from '@/types'
 
 /**
@@ -63,7 +64,7 @@ export class StorageManager {
 
       return this.parseData<T>(data)
     } catch (error) {
-      // Storage get failed
+      Logger.debug('notification-kit: storage get failed', error)
       return null
     }
   }
@@ -116,7 +117,7 @@ export class StorageManager {
         return await this.getNativeStorageKeys()
       }
     } catch (error) {
-      // Storage keys failed
+      Logger.debug('notification-kit: storage keys lookup failed', error)
       return []
     }
   }
@@ -174,9 +175,11 @@ export class StorageManager {
    * Clear web storage
    */
   private async clearWebStorage(): Promise<void> {
+    // getWebStorageKeys() returns keys with the prefix already stripped, so the
+    // prefix must be re-added before removal (otherwise clear() is a no-op).
     const keys = await this.getWebStorageKeys()
     for (const key of keys) {
-      await this.removeWebStorage(key)
+      await this.removeWebStorage(this.prefix + key)
     }
   }
 
@@ -280,7 +283,7 @@ export class StorageManager {
     let serialized = JSON.stringify(data)
 
     if (this.config.encryption) {
-      serialized = this.encrypt(serialized)
+      serialized = this.obfuscate(serialized)
     }
 
     return serialized
@@ -291,45 +294,58 @@ export class StorageManager {
    */
   private parseData<T>(data: string): T | null {
     try {
-      let decrypted = data
+      let decoded = data
 
       if (this.config.encryption) {
-        decrypted = this.decrypt(data)
+        decoded = this.deobfuscate(data)
       }
 
-      const parsed = JSON.parse(decrypted)
+      const parsed = JSON.parse(decoded)
 
-      // Check TTL
-      if (this.config.ttl && this.config.ttl > 0) {
-        const now = Date.now()
-        const age = now - parsed.timestamp
-
-        if (age > this.config.ttl) {
+      // Honor the TTL that was stored WITH the record, not the current config —
+      // otherwise changing config.ttl later would retroactively expire/extend
+      // already-written records.
+      const recordTtl = typeof parsed.ttl === 'number' ? parsed.ttl : 0
+      if (recordTtl > 0) {
+        const age = Date.now() - parsed.timestamp
+        if (age > recordTtl) {
           return null
         }
       }
 
       return parsed.value
     } catch (error) {
-      // Data parsing failed
+      Logger.debug('notification-kit: failed to parse stored data', error)
       return null
     }
   }
 
   /**
-   * Encrypt data (basic implementation)
+   * Lightweight, Unicode-safe base64 OBFUSCATION (NOT encryption).
+   *
+   * ⚠️ This only base64-encodes the payload to keep it from being trivially
+   * human-readable in storage. It is reversible by anyone and provides NO
+   * confidentiality — never store secrets/credentials here. (The previous
+   * implementation used bare `btoa`, which throws on non-Latin1 characters and
+   * caused silent data loss for any value containing emoji/non-ASCII text.)
+   * For real protection, encrypt at the application layer before storing.
    */
-  private encrypt(data: string): string {
-    // TODO: Implement proper encryption
-    return btoa(data)
+  private obfuscate(data: string): string {
+    const bytes = new TextEncoder().encode(data)
+    let binary = ''
+    for (const byte of bytes) {
+      binary += String.fromCharCode(byte)
+    }
+    return btoa(binary)
   }
 
   /**
-   * Decrypt data (basic implementation)
+   * Reverse of {@link obfuscate} — Unicode-safe base64 decode.
    */
-  private decrypt(data: string): string {
-    // TODO: Implement proper decryption
-    return atob(data)
+  private deobfuscate(data: string): string {
+    const binary = atob(data)
+    const bytes = Uint8Array.from(binary, char => char.charCodeAt(0))
+    return new TextDecoder().decode(bytes)
   }
 
   /**

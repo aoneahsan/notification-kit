@@ -76,30 +76,30 @@
     {
       "id": "phase03",
       "title": "Security fixes",
-      "status": "pending",
-      "completedAt": null,
+      "status": "complete",
+      "completedAt": "2026-05-26",
       "file": "docs/features/package-polish-release/phase03-security-fixes.md",
       "subTasks": [
-        { "id": "phase03.1", "title": "CP-S1: OneSignal sendNotification client REST-key leak -> server-only throw", "status": "pending", "note": null },
-        { "id": "phase03.2", "title": "CP-S2: in-app icon innerHTML XSS -> safe rendering", "status": "pending", "note": null },
-        { "id": "phase03.3", "title": "RU-S1: stripHtml clarify not-a-sanitizer; ensure no innerHTML use", "status": "pending", "note": null },
-        { "id": "phase03.4", "title": "CP-S3/RU-L3: config-validator secret heuristic best-effort", "status": "pending", "note": null }
+        { "id": "phase03.1", "title": "CP-S1: OneSignal sendNotification client REST-key leak -> server-only throw", "status": "complete", "note": "sendNotification now always throws (never fetches with the key). Updated test to assert throw + fetch never called. Added double-init guard reading this.config." },
+        { "id": "phase03.2", "title": "CP-S2: in-app icon innerHTML XSS -> safe rendering", "status": "complete", "note": "Added applyIcon(): image URLs -> sandboxed <img>, else textContent. Default icon + dismiss button switched to textContent. Zero innerHTML sinks in src." },
+        { "id": "phase03.3", "title": "RU-S1: stripHtml clarify not-a-sanitizer; ensure no innerHTML use", "status": "complete", "note": "JSDoc warns it is a display formatter, not a sanitizer." },
+        { "id": "phase03.4", "title": "CP-S3/RU-L3: config-validator secret heuristic best-effort", "status": "complete", "note": "Removed brittle env-scan heuristic; added browser-safe isProduction() guard (fixes unguarded process.env access)." }
       ]
     },
     {
       "id": "phase04",
       "title": "Core correctness",
-      "status": "pending",
-      "completedAt": null,
+      "status": "complete",
+      "completedAt": "2026-05-26",
       "file": "docs/features/package-polish-release/phase04-core-correctness.md",
       "subTasks": [
-        { "id": "phase04.1", "title": "CP-H2: fix emit() envelope clobbering; CP-H1: onPush/onPushOpened firing", "status": "pending", "note": null },
-        { "id": "phase04.2", "title": "CP-C3/H3: capture+await+remove native LocalNotifications listeners on destroy", "status": "pending", "note": null },
-        { "id": "phase04.3", "title": "CP-M8/M9: per-platform capability matrix; isSupported() correct", "status": "pending", "note": null },
-        { "id": "phase04.4", "title": "CP-H6: getDelivered maps to public type; CP-M1: id validation (string|number)", "status": "pending", "note": null },
-        { "id": "phase04.5", "title": "CP-M3/M4/M5: storage unicode-safe obfuscation + clear() prefix + per-record TTL", "status": "pending", "note": null },
-        { "id": "phase04.6", "title": "CP-H4: Firebase onMessage top-level title/body; CP-M10: native register; CP-M11: refreshToken safety", "status": "pending", "note": null },
-        { "id": "phase04.7", "title": "CP-M2/L1-L8 polish (permissions routing, openSettings honesty, logging in catches, generateId)", "status": "pending", "note": null }
+        { "id": "phase04.1", "title": "CP-H2: fix emit() envelope clobbering; CP-H1: onPush/onPushOpened firing", "status": "complete", "note": "emit() sets canonical id/type/timestamp LAST; ids via crypto.randomUUID; onPush filters event.data.type==='push'; onPushOpened -> notificationActionPerformed." },
+        { "id": "phase04.2", "title": "CP-C3/H3: capture+await+remove native LocalNotifications listeners on destroy", "status": "complete", "note": "localListenerHandles stored, awaited, removed in destroy()." },
+        { "id": "phase04.3", "title": "CP-M8/M9: per-platform capability matrix; isSupported() correct", "status": "complete", "note": "Real 8-key matrix per platform (type only has 8 keys; old code's extra keys were masked by a spread). isSupported() now true on web/ios/android." },
+        { "id": "phase04.4", "title": "CP-H6: getDelivered maps to public type; CP-M1: id validation (string|number)", "status": "complete", "note": "getDelivered maps like getPending; toNumericNotificationId() throws on NaN instead of silent no-op." },
+        { "id": "phase04.5", "title": "CP-M3/M4/M5: storage unicode-safe obfuscation + clear() prefix + per-record TTL", "status": "complete", "note": "obfuscate/deobfuscate via TextEncoder (Unicode-safe, honestly named); clear() re-adds prefix; TTL reads per-record value." },
+        { "id": "phase04.6", "title": "CP-H4: Firebase onMessage top-level title/body; CP-M10: native register; CP-M11: refreshToken safety", "status": "complete", "note": "title/body copied from notification; native FCM via PushNotifications.register()+registration listener (setupNativePush); refreshToken restores previous token on failure." },
+        { "id": "phase04.7", "title": "CP-M2/L1-L8 polish", "status": "complete", "note": "CP-L1 openSettings now throws honestly (was silent no-op); CP-L5/L6 logging added (emit/storage catches). DEFERRED as minor: CP-M2 (permission routing dup), CP-L3 (getVersion=UA), CP-L4 (isTablet), CP-L8 (FirebaseNativeBridge dead validateEnvironmentVariables) — tracked in findings.md, low impact." }
       ]
     },
     {
@@ -199,13 +199,14 @@
   ],
   "runHistory": [
     { "date": "2026-05-26", "phase": "phase00", "summary": "Fresh start. Ran 3 parallel deep-audit agents + dependency sweep. Synthesized findings.md (8 critical, ~19 high, ~25 med, ~20 low). Captured 3 user decisions. Wrote overview + tracker + 11 phase specs.", "commit": "pending" },
-    { "date": "2026-05-26", "phase": "phase01+phase02", "summary": "Updated ALL deps to latest stable (incl. majors TS6, ESLint10, Vite8, jsdom29, lint-staged17, plugin-react6, dts5). Removed deprecated @testing-library/react-hooks. Raised peer floors (Capacitor8/firebase12.13/react19.2.6/onesignal3.5.3). Toolchain fixes: tsconfig baseUrl->relative paths + types:[node]; localStorage mock in test setup. Baseline 13 red tests -> 124/124 green. type-check+build+lint+test all clean.", "commit": "pending" }
+    { "date": "2026-05-26", "phase": "phase01+phase02", "summary": "Updated ALL deps to latest stable (incl. majors TS6, ESLint10, Vite8, jsdom29, lint-staged17, plugin-react6, dts5). Removed deprecated @testing-library/react-hooks. Raised peer floors (Capacitor8/firebase12.13/react19.2.6/onesignal3.5.3). Toolchain fixes: tsconfig baseUrl->relative paths + types:[node]; localStorage mock in test setup. Baseline 13 red tests -> 124/124 green. type-check+build+lint+test all clean.", "commit": "774891f" },
+    { "date": "2026-05-26", "phase": "phase03+phase04", "summary": "Security: OneSignal sendNotification refuses client-side (REST-key leak), in-app icon XSS removed (safe applyIcon, zero innerHTML sinks), stripHtml doc, config-validator heuristic dropped + browser-safe. Core: emit() envelope fix + onPush firing, native listener cleanup, real per-platform capability matrix (isSupported works), getDelivered mapping, numeric-id validation, storage unicode-safe obfuscation + clear()/TTL fixes, Firebase top-level title/body + native FCM register + refreshToken safety, openSettings honest throw, logging in catches. Updated 5 tests to assert corrected behavior. 124/124 green.", "commit": "pending" }
   ],
   "nextSuggestion": {
-    "phase": "phase03",
-    "subTask": "phase03.1",
-    "rationale": "Toolchain is green at latest deps. Next: security fixes (highest priority) — CP-S1 OneSignal client REST-key leak, CP-S2 in-app icon XSS.",
-    "command": "Invoke security-review + capacitor-best-practices skills; fix CP-S1, CP-S2, RU-S1, CP-S3 per phase03 spec."
+    "phase": "phase05",
+    "subTask": "phase05.1",
+    "rationale": "Security (P3) + core correctness (P4) done and green (124/124). Next: React hooks correctness — RU-C1 (in-app 1Hz render loop -> manager subscription) is the highest-impact remaining bug.",
+    "command": "Invoke react-best-practices + react-19 + simplify; add an emitter to InAppNotificationManager and subscribe in useInAppNotification (drop setInterval); fix RU-C2/C3 in useNotifications."
   },
   "resumeInstructions": "1) Read this tracker. 2) Read 00-overview.md + findings.md. 3) Find the first phase/sub-task with status 'pending' or 'in_progress'. 4) Read that phase's spec file. 5) Invoke matching skills per RULE #0 for that phase. 6) Do the work; run the phase gate. 7) Mark sub-tasks 'complete', append a runHistory row, bump lastUpdated. 8) ONE commit per session including this tracker. 9) Phase 11.4 (npm publish) is the only irreversible step — user pre-authorized direct publish; still verify gates first."
 }

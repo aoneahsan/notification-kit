@@ -221,24 +221,19 @@ describe('OneSignalProvider', () => {
       await provider.init(mockConfig)
     })
 
-    it('should send notification using the OneSignal REST API', async () => {
+    it('refuses to send from the client and never transmits the REST API key', async () => {
       const payload: PushNotificationPayload = {
         title: 'Test Notification',
         body: 'Test body',
         data: { key: 'value' },
       }
 
-      await provider.sendNotification(payload)
-
-      expect(fetch).toHaveBeenCalledWith(
-        'https://onesignal.com/api/v1/notifications',
-        expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({
-            Authorization: 'Basic test-rest-key',
-          }),
-        })
+      // Client-side sending is disabled for security: the OneSignal REST API
+      // key is an account-level secret and must stay server-side.
+      await expect(provider.sendNotification(payload)).rejects.toThrow(
+        /client|server|REST API key/i
       )
+      expect(fetch).not.toHaveBeenCalled()
     })
   })
 

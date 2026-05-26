@@ -142,48 +142,73 @@ export class PlatformManager {
   }
 
   /**
-   * Build platform capabilities
+   * Build platform capabilities.
+   *
+   * Returns a real per-platform truth table. (Previously every flag was `false`
+   * with the platform's *string* defaults spread on top, which both polluted
+   * the boolean map and made `isSupported()` return false on every platform.)
    */
   private buildCapabilities(platform: Platform): PlatformCapabilities {
-    const defaults = this.getDefaults()
-    const platformDefaults = (defaults as any)[platform] || {}
-
-    return {
+    const base: PlatformCapabilities = {
       pushNotifications: false,
       localNotifications: false,
       inAppNotifications: false,
-      notificationChannels: false,
-      notificationActions: false,
-      notificationBadging: false,
-      notificationSound: false,
-      notificationVibration: false,
-      notificationLights: false,
-      notificationGrouping: false,
-      notificationImportance: false,
-      notificationVisibility: false,
-      notificationLockScreen: false,
-      notificationFullScreen: false,
-      notificationHeadsUp: false,
-      notificationOngoing: false,
-      notificationProgress: false,
-      notificationBigText: false,
-      notificationBigPicture: false,
-      notificationInbox: false,
-      notificationMedia: false,
-      notificationCustom: false,
-      notificationScheduling: false,
-      notificationGeofencing: false,
-      notificationTriggers: false,
-      serviceWorker: false,
-      webPushProtocol: false,
-      backgroundSync: false,
-      foregroundService: false,
+      channels: false,
+      actions: false,
+      badges: false,
+      sounds: false,
       criticalAlerts: false,
-      provisionalAuth: false,
-      appBadge: false,
-      quietHours: false,
-      doNotDisturb: false,
-      ...platformDefaults,
+    }
+
+    switch (platform) {
+      case 'web':
+        // Web push via service worker; no native channels / critical alerts.
+        return {
+          ...base,
+          pushNotifications: true,
+          inAppNotifications: true,
+          actions: true,
+          badges: true,
+          sounds: true,
+        }
+      case 'ios':
+        // iOS has no notification channels; critical alerts need an entitlement.
+        return {
+          ...base,
+          pushNotifications: true,
+          localNotifications: true,
+          inAppNotifications: true,
+          actions: true,
+          badges: true,
+          sounds: true,
+          criticalAlerts: true,
+        }
+      case 'android':
+        return {
+          ...base,
+          pushNotifications: true,
+          localNotifications: true,
+          inAppNotifications: true,
+          channels: true,
+          actions: true,
+          badges: true,
+          sounds: true,
+        }
+      case 'electron':
+        return {
+          ...base,
+          localNotifications: true,
+          inAppNotifications: true,
+          actions: true,
+          sounds: true,
+        }
+      default:
+        // Unknown platform: a DOM may still be present, so only the
+        // framework-agnostic in-app notifications can be assumed.
+        return {
+          ...base,
+          inAppNotifications: true,
+        }
     }
   }
 

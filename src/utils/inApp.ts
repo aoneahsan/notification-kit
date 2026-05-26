@@ -185,10 +185,10 @@ export class InAppNotificationManager {
     if (options.icon) {
       const icon = document.createElement('div')
       icon.className = 'notification-kit-icon'
-      // Only set innerHTML if icon is a string
-      if (typeof options.icon === 'string') {
-        icon.innerHTML = options.icon
-      }
+      // Security: never assign the (developer- or payload-supplied) icon string
+      // to innerHTML — that is an XSS sink. Image URLs render as a sandboxed
+      // <img>; everything else (emoji / glyph / text) renders via textContent.
+      this.applyIcon(icon, options.icon)
       icon.style.cssText = `
         flex-shrink: 0;
         width: 24px;
@@ -205,7 +205,7 @@ export class InAppNotificationManager {
       if (defaultIcon) {
         const icon = document.createElement('div')
         icon.className = 'notification-kit-icon'
-        icon.innerHTML = defaultIcon
+        icon.textContent = defaultIcon
         icon.style.cssText = `
           flex-shrink: 0;
           width: 24px;
@@ -297,7 +297,7 @@ export class InAppNotificationManager {
     if (options.dismissible !== false) {
       const dismissButton = document.createElement('button')
       dismissButton.className = 'notification-kit-dismiss'
-      dismissButton.innerHTML = '×'
+      dismissButton.textContent = '×'
       dismissButton.style.cssText = `
         position: absolute;
         top: 8px;
@@ -401,6 +401,37 @@ export class InAppNotificationManager {
     }
 
     return colors[type as keyof typeof colors] || colors.info
+  }
+
+  /**
+   * Safely render an icon string into the given element.
+   *
+   * Security: the icon string is developer- (and potentially payload-)
+   * supplied, so it must never be assigned to `innerHTML` (an XSS sink). Image
+   * URLs (http(s), protocol-relative, `data:image/*`, or relative paths to an
+   * image file) are rendered through a sandboxed `<img>` (which cannot execute
+   * scripts); every other value (emoji, glyph, plain text) is rendered with
+   * `textContent`. Raw HTML/SVG markup is intentionally NOT injected — pass a
+   * CSS class (`className`) for fully custom icon styling instead.
+   */
+  private applyIcon(iconEl: HTMLElement, icon: string): void {
+    if (typeof icon !== 'string' || icon.length === 0) return
+    const value = icon.trim()
+    const isImageUrl =
+      /^https?:\/\//i.test(value) ||
+      /^\/\//.test(value) ||
+      /^data:image\//i.test(value) ||
+      /^\.{0,2}\/[^\s]+\.(png|jpe?g|gif|webp|svg|avif|ico)(\?.*)?$/i.test(value)
+
+    if (isImageUrl) {
+      const img = document.createElement('img')
+      img.src = value
+      img.alt = ''
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain;'
+      iconEl.appendChild(img)
+    } else {
+      iconEl.textContent = value
+    }
   }
 
   /**
