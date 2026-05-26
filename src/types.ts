@@ -496,7 +496,8 @@ export interface ScheduleOptions {
   at?: Date | string
   on?: ScheduleOn
   every?: ScheduleEvery | RepeatInterval
-  in?: number
+  /** Relative delay from now — a `Duration` object (e.g. `{ minutes: 5 }`) or a raw millisecond count. */
+  in?: number | Duration
   count?: number
   until?: Date
   days?: number[]

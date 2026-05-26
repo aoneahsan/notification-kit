@@ -169,7 +169,14 @@ export class NotificationKit {
   }
 
   /**
-   * Request notification permission
+   * Request notification permission.
+   *
+   * Delegates to the active provider's permission flow, which performs
+   * provider-specific work (e.g. FCM registration, the OneSignal prompt). This
+   * is intentionally a separate code path from the standalone `permissions`
+   * helper (PermissionManager), which is a generic, provider-agnostic permission
+   * API for callers that aren't going through a provider. When the kit is
+   * initialized with a provider, prefer this method.
    */
   async requestPermission(): Promise<boolean> {
     this.ensureInitialized()
@@ -187,7 +194,8 @@ export class NotificationKit {
   }
 
   /**
-   * Check notification permission status
+   * Check notification permission status (via the active provider — see the
+   * note on requestPermission() about the standalone `permissions` helper).
    */
   async checkPermission(): Promise<PermissionStatus> {
     this.ensureInitialized()

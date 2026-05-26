@@ -263,16 +263,15 @@ await notifications.schedule({
   title: 'Morning Routine',
   body: 'Start your day right',
   every: 'day',
-  at: { hour: 7, minute: 30 }
+  on: { hour: 7, minute: 30 }
 });
 
-// Multiple days per week
+// Weekly on a specific weekday (create one schedule per day for multiple days)
 await notifications.schedule({
   title: 'Workout Time',
   body: 'Let\'s exercise!',
   every: 'week',
-  days: ['monday', 'wednesday', 'friday'],
-  at: { hour: 18, minute: 0 }
+  on: { weekday: 1, hour: 18, minute: 0 } // 1 = Monday
 });
 
 // With actions

@@ -265,6 +265,11 @@ export class SchedulingUtils {
     }
 
     if (on.day !== undefined) {
+      // Validated against the absolute calendar range (1-31), not per-month.
+      // A day greater than the target month's length (e.g. day 31 in a 30-day
+      // month) is intentionally NOT rejected here; per JavaScript Date
+      // semantics it rolls forward into the following month when the time is
+      // computed. Use a per-month day if you need exact-day behavior.
       if (on.day < 1 || on.day > 31) {
         errors.push({
           code: 'INVALID_DAY',

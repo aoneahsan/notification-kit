@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2026-05-27
+
+Post-release polish. No breaking changes — a safe upgrade from 2.1.0.
+
+### Fixed & improved
+
+- **Platform detection:** `version` now reports a parsed browser/OS version
+  instead of echoing the full user-agent, and tablets are detected (iPad,
+  Android tablets, and iPadOS that masquerades as macOS) so `isDesktop` no
+  longer misclassifies them.
+- **Scheduling:** the relative-delay `in` option now works — it accepts a
+  `Duration` object (e.g. `{ minutes: 5 }`) or a millisecond number and resolves
+  to an absolute time. The README's recurring examples use the canonical
+  top-level `every` + `on` shape.
+- Documented the distinction between the kit's provider-backed permission flow
+  and the standalone `permissions` helper; documented schedule day-rollover.
+- Removed dead internal code (`FirebaseNativeBridge.validateEnvironmentVariables`).
+
+### Docs
+
+- Authored the full Docusaurus documentation site under `website/` (introduction,
+  guides, API reference, examples) matching the 2.1.x API.
+
 ## [2.1.0] - 2026-05-26
 
 A polish-and-hardening release: all dependencies updated to latest stable, a

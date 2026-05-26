@@ -8,6 +8,17 @@ ID scheme: `CP-*` = core/providers · `RU-*` = react/utils · `PK-*` = packaging
 
 ---
 
+## Resolution status (updated 2026-05-27)
+
+**All Critical, High, and Medium findings are resolved** — shipped in `2.1.0` (phases 01–11) and the post-release polish `2.1.1` (phase 12).
+
+- `2.1.0` (phases 03–10): every security (CP-S1/S2, RU-S1, CP-S3), core (CP-H1/H2/H4/H6, C3/H3, M1/M3/M4/M5/M8/M9/M10/M11), provider (CP-M6 OneSignal v3, H5/M7/H7/H8), react (RU-C1/C2/C3, H1/H2/M6/M9, L7/L8), utils (RU-H3/H4/H5/H6, M3/M4/M5, L2/L4), logger (STD-1/2), and packaging (PK-C1/C2/H1/H5, M4/M5/M6, L1/L2/L3/L5) item, plus all docs (PK-H2/H3/H4, M1/M2/M3).
+- `2.1.1` (phase 12, 2026-05-27): the previously-deferred minors — **CP-M2** (permission-routing divergence documented), **CP-L3** (getVersion parses a real version), **CP-L4** (real tablet detection), **CP-L8** (dead `validateEnvironmentVariables` removed), **RU-L9** (day-rollover documented). Also fixed a newly-found gap: the `in` (relative-delay) schedule option is now typed (`number | Duration`) and wired through `toCapacitorLocalNotification`, and the README scheduling examples are type-valid; and the Docusaurus `website/` docs were authored (15 pages) to match the v2.1.0 API.
+
+**Intentionally out of scope** (documented, not bugs): full native OneSignal SDK integration (CP-H8 — made honest; native uses the Capacitor device token, FCM recommended for native) and async Web-Crypto storage (CP-M3 — kept synchronous, honestly named "obfuscation"). Both were the user's "harden + complete existing, no net-new" decision.
+
+---
+
 ## A. Dependency sweep (latest stable = npm `latest` dist-tag)
 
 | Package | Current (dev) | Current (peer) | Latest stable | Bump |

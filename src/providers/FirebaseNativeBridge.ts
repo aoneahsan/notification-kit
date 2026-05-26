@@ -167,27 +167,4 @@ export class FirebaseNativeBridge {
   static reset(): void {
     this.isInitialized = false
   }
-
-  /**
-   * Validate environment variables
-   */
-  static validateEnvironmentVariables(): void {
-    const requiredEnvVars = [
-      'FIREBASE_API_KEY',
-      'FIREBASE_AUTH_DOMAIN',
-      'FIREBASE_PROJECT_ID',
-      'FIREBASE_STORAGE_BUCKET',
-      'FIREBASE_MESSAGING_SENDER_ID',
-      'FIREBASE_APP_ID'
-    ]
-
-    const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar])
-    
-    if (missingEnvVars.length > 0) {
-      Logger.warn(
-        `Missing Firebase environment variables: ${missingEnvVars.join(', ')}. ` +
-        'Make sure to set these in your .env file or deployment environment.'
-      )
-    }
-  }
 }

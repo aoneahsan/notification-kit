@@ -12,7 +12,23 @@ import type {
   NotificationChannel,
   ChannelImportance,
   LocalNotificationPayload,
+  Duration,
 } from '@/types'
+
+/**
+ * Convert a relative delay (Duration object or millisecond number) to ms.
+ */
+function durationToMs(value: number | Duration): number {
+  if (typeof value === 'number') {
+    return value
+  }
+  return (
+    (value.seconds ?? 0) * 1000 +
+    (value.minutes ?? 0) * 60_000 +
+    (value.hours ?? 0) * 3_600_000 +
+    (value.days ?? 0) * 86_400_000
+  )
+}
 
 /**
  * Convert our ChannelImportance to Capacitor's Importance
@@ -134,6 +150,10 @@ export function toCapacitorLocalNotification(
   const schedule: any = {}
   if (options.at) {
     schedule.at = options.at instanceof Date ? options.at : new Date(options.at)
+  }
+  if (options.in !== undefined && schedule.at === undefined) {
+    // Relative delay -> absolute time (ignored when an explicit `at` is given).
+    schedule.at = new Date(Date.now() + durationToMs(options.in))
   }
   if (options.on) {
     schedule.on = options.on

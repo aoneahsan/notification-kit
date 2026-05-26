@@ -28,10 +28,11 @@ export class PlatformManager {
     const isNative = isCapacitor
     const isWeb = platform === 'web'
     const isMobile = platform === 'ios' || platform === 'android'
-    const isDesktop = platform === 'electron' || (!isMobile && isWeb)
-    const isTablet = false // TODO: Implement tablet detection
     const userAgent =
       typeof navigator !== 'undefined' ? navigator.userAgent : ''
+    const isTablet = this.detectTablet(userAgent)
+    // A tablet is not a desktop, even though it is "not a phone".
+    const isDesktop = platform === 'electron' || (isWeb && !isMobile && !isTablet)
     const version = this.getVersion()
 
     this.detection = {
@@ -132,13 +133,41 @@ export class PlatformManager {
   }
 
   /**
-   * Get platform version
+   * Best-effort platform/browser version extracted from the user agent. Returns
+   * `'unknown'` when it cannot be parsed (the full string is available
+   * separately as `userAgent`, so this no longer just echoes it).
    */
   private getVersion(): string {
-    if (typeof window !== 'undefined') {
-      return window.navigator.userAgent
+    if (typeof navigator === 'undefined') {
+      return 'unknown'
     }
-    return 'unknown'
+    const match = /(?:Version|Chrome|Firefox|Edg|OPR|OS)[/ ]([0-9._]+)/.exec(
+      navigator.userAgent
+    )
+    return match?.[1]?.replace(/_/g, '.') ?? 'unknown'
+  }
+
+  /**
+   * Heuristically detect tablets from the user agent. Covers iPad, Android
+   * tablets (Android UA without the "Mobile" token), common e-readers, and
+   * iPadOS 13+ which masquerades as macOS (detected via touch points).
+   */
+  private detectTablet(userAgent: string): boolean {
+    if (!userAgent) {
+      return false
+    }
+    if (/\b(iPad|Tablet|PlayBook|Silk|Kindle)\b/i.test(userAgent)) {
+      return true
+    }
+    if (/\bAndroid\b/i.test(userAgent) && !/\bMobile\b/i.test(userAgent)) {
+      return true
+    }
+    const maxTouchPoints =
+      typeof navigator !== 'undefined'
+        ? ((navigator as { maxTouchPoints?: number }).maxTouchPoints ?? 0)
+        : 0
+    // iPadOS 13+ reports a Mac UA; a touch-capable "Mac" is really an iPad.
+    return /\bMacintosh\b/i.test(userAgent) && maxTouchPoints > 1
   }
 
   /**

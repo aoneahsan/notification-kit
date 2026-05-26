@@ -2,9 +2,9 @@
   "$schema": "package-polish-release-tracker",
   "description": "Resumable tracker for polishing notification-kit and releasing 2.1.0. The first phase/sub-task with status 'pending' or 'in_progress' is the next thing to work on. Read 00-overview.md + findings.md for context.",
   "module": "package-polish-release",
-  "status": "complete",
+  "status": "in_progress",
   "createdAt": "2026-05-26",
-  "lastUpdated": "2026-05-26",
+  "lastUpdated": "2026-05-27",
   "baselineVersion": "2.0.6",
   "targetVersion": "2.1.0",
   "overview": "docs/features/package-polish-release/00-overview.md",
@@ -196,6 +196,22 @@
         { "id": "phase11.3", "title": "Final commit + git pull --rebase + push", "status": "complete", "note": "commit 306f221 pushed to o/main before publish." },
         { "id": "phase11.4", "title": "npm whoami (aoneahsan) + npm publish; verify npm view notification-kit version == 2.1.0; report", "status": "complete", "note": "Published notification-kit@2.1.0 (npm whoami=aoneahsan). Verified: npm view version=2.1.0, dist-tags.latest=2.1.0, exports dual ESM/CJS confirmed. shasum d2a845c7." }
       ]
+    },
+    {
+      "id": "phase12",
+      "title": "Post-release polish (2.1.1) — deferred minors + website",
+      "status": "in_progress",
+      "completedAt": null,
+      "file": "docs/features/package-polish-release/findings.md (Resolution status section)",
+      "subTasks": [
+        { "id": "phase12.1", "title": "CP-M2: document permission-routing divergence (kit -> provider vs standalone PermissionManager)", "status": "complete", "note": "JSDoc on NotificationKit.requestPermission/checkPermission." },
+        { "id": "phase12.2", "title": "CP-L3 + CP-L4: real version parse from UA + tablet detection (isDesktop excludes tablets)", "status": "complete", "note": "platform.ts getVersion() parses version token; detectTablet() heuristic (iPad/Android-tablet/iPadOS-as-Mac)." },
+        { "id": "phase12.3", "title": "CP-L8: remove dead FirebaseNativeBridge.validateEnvironmentVariables", "status": "complete", "note": "Confirmed zero external refs; removed (was also buggy on env prefixes)." },
+        { "id": "phase12.4", "title": "RU-L9: document validateOnSchedule day-rollover behavior", "status": "complete", "note": "Comment clarifies 1-31 absolute range + JS Date rollover." },
+        { "id": "phase12.5", "title": "Wire `in` schedule option (newly found) + fix README scheduling examples", "status": "complete", "note": "ScheduleOptions.in widened to number|Duration; toCapacitorLocalNotification maps in->future at via durationToMs; README at:{hour}->on:{hour}, days:[strings] example fixed." },
+        { "id": "phase12.6", "title": "Author Docusaurus website docs (15 pages + logo) to match v2.1.0 API", "status": "complete", "note": "Sub-agent created website/docs/** (README, guides/*, api/*, examples/basic) + static/img/logo.svg; all sidebar IDs now resolve; verified no wrong API patterns." },
+        { "id": "phase12.7", "title": "Bump 2.1.0 -> 2.1.1, commit+push, publish, verify", "status": "in_progress", "note": null }
+      ]
     }
   ],
   "runHistory": [
@@ -206,13 +222,14 @@
     { "date": "2026-05-26", "phase": "phase07+phase08", "summary": "OneSignal v3 rewrite (CP-M6): external.d.ts stub + provider rewritten to v3 namespaced API; ZERO unsafe casts; provider+setup mocks updated to v3. CP-H5/M7/H7/H8 provider honesty. Logger (STD-1): leveled (default warn) + localStorage switch + opt-in devtools. ESLint no-console:'error' (STD-2/PK-H5) + ecmaVersion 2022; grep gate zero. 124/124 green.", "commit": "2b75e39" },
     { "date": "2026-05-26", "phase": "phase09", "summary": "Packaging: engines.node>=20, sideEffects:false, dual ESM+CJS + exports conditions (verified require+import), ship SW templates + setup.js deploy, single-sourced version, SW Firebase 12.13.0, setup.js red+URL, removed vite test block + .npmignore. Fixed external.d.ts dist leak + Node localStorage warning. 124/124 green.", "commit": "23a4183" },
     { "date": "2026-05-26", "phase": "phase10", "summary": "Docs: fixed Readme + AI-INTEGRATION-GUIDE API mismatches; widened cancel proxy + completed recurring schedule mapping; CHANGELOG 2.1.0 + peer-dep note; versions->2.1.0; refreshed root + 12 nested CLAUDE/AGENTS; portfolio refreshed+renamed. 124/124 green.", "commit": "2bd1636" },
-    { "date": "2026-05-26", "phase": "phase11", "summary": "RELEASE: bumped to 2.1.0, full gate green (124/124), committed (306f221) + pushed, then npm publish. Verified live: npm view notification-kit version=2.1.0, dist-tags.latest=2.1.0, dual ESM/CJS exports. Feature COMPLETE.", "commit": "306f221 (+ this tracker finalization)" }
+    { "date": "2026-05-26", "phase": "phase11", "summary": "RELEASE: bumped to 2.1.0, full gate green (124/124), committed (306f221) + pushed, then npm publish. Verified live: npm view notification-kit version=2.1.0, dist-tags.latest=2.1.0, dual ESM/CJS exports.", "commit": "306f221 (+ a566ed1 tracker finalization)" },
+    { "date": "2026-05-27", "phase": "phase12", "summary": "Post-release polish for 2.1.1: resolved all deferred minors (CP-M2 permission-routing doc, CP-L3 version parse, CP-L4 tablet detection, CP-L8 dead-code removal, RU-L9 day-rollover doc); wired the `in` schedule option (number|Duration -> future at) + fixed README scheduling examples; authored 15 Docusaurus website docs + logo (parallel sub-agent). 124/124 green; type-check+lint+build clean. Bumping to 2.1.1 + publishing.", "commit": "pending" }
   ],
   "nextSuggestion": {
     "phase": "done",
     "subTask": null,
-    "rationale": "All 11 phases complete. notification-kit@2.1.0 is published on npm. If re-run: this feature is COMPLETE — verify `npm view notification-kit version` (should be >= 2.1.0) and only re-engage for a new version.",
-    "command": "None — feature complete."
+    "rationale": "All phases (00-12) complete after 2.1.1 publishes. If re-run: this feature is COMPLETE — verify `npm view notification-kit version` (>= 2.1.1) and only re-engage for a new version or new findings.",
+    "command": "None — feature complete once 2.1.1 is published."
   },
   "resumeInstructions": "1) Read this tracker. 2) Read 00-overview.md + findings.md. 3) Find the first phase/sub-task with status 'pending' or 'in_progress'. 4) Read that phase's spec file. 5) Invoke matching skills per RULE #0 for that phase. 6) Do the work; run the phase gate. 7) Mark sub-tasks 'complete', append a runHistory row, bump lastUpdated. 8) ONE commit per session including this tracker. 9) Phase 11.4 (npm publish) is the only irreversible step — user pre-authorized direct publish; still verify gates first."
 }
