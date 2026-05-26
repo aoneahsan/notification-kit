@@ -27,6 +27,13 @@ export class OneSignalProvider implements NotificationProvider {
   private messageListeners: ((payload: PushNotificationPayload) => void)[] = []
   private tokenListeners: ((token: string) => void)[] = []
   private errorListeners: ((error: Error) => void)[] = []
+  // Native (Capacitor) device-push state. NOTE: native OneSignal here uses the
+  // generic @capacitor/push-notifications device token, NOT the OneSignal native
+  // SDK (which this zero-dependency library does not bundle). OneSignal-specific
+  // targeting on native requires adding onesignal's native plugin in your app;
+  // for native push prefer the Firebase (FCM) provider.
+  private nativeToken: string | null = null
+  private nativeListenerHandles: Array<{ remove: () => Promise<void> }> = []
 
   /**
    * Initialize OneSignal provider
@@ -123,14 +130,28 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async destroy(): Promise<void> {
     try {
-      if (this.initialized) {
-        // OneSignal doesn't have a destroy method, so we'll just clean up our state
-        this.initialized = false
-        this.config = null
-        this.messageListeners = []
-        this.tokenListeners = []
-        this.errorListeners = []
+      // Remove native push listeners so they don't fire into a torn-down
+      // provider or accumulate across re-init.
+      for (const handle of this.nativeListenerHandles) {
+        try {
+          await handle.remove()
+        } catch (error) {
+          Logger.debug(
+            'notification-kit: failed to remove OneSignal native listener',
+            error
+          )
+        }
       }
+      this.nativeListenerHandles = []
+      this.nativeToken = null
+
+      // OneSignal (web) has no teardown API; clear our own state.
+      this.initialized = false
+      this.config = null
+      this.OneSignal = null
+      this.messageListeners = []
+      this.tokenListeners = []
+      this.errorListeners = []
     } catch (error) {
       this.handleError(new Error(`OneSignal destroy failed: ${error}`))
       throw error
@@ -176,18 +197,27 @@ export class OneSignalProvider implements NotificationProvider {
    */
   async getToken(): Promise<string> {
     try {
+      const isNative = await DynamicLoader.isNativePlatform()
+      if (isNative) {
+        if (this.nativeToken) {
+          return this.nativeToken
+        }
+        throw new Error(
+          'No native push token yet. Call requestPermission() first — it registers ' +
+            'the device and the token arrives on the registration event.'
+        )
+      }
+
       if (!this.OneSignal) {
         throw new Error('OneSignal not initialized')
       }
-      const playerId = await (
-        this.OneSignal as unknown as { getUserId: () => Promise<string> }
-      ).getUserId()
-
-      if (playerId) {
-        return playerId
-      } else {
-        throw new Error('No OneSignal player ID available')
+      // v3: the push subscription id (the v1 "player id" equivalent) is the
+      // value you target when sending. It's a property, not an async call.
+      const subscriptionId = this.OneSignal.User.PushSubscription.id
+      if (subscriptionId) {
+        return subscriptionId
       }
+      throw new Error('No OneSignal subscription ID available yet')
     } catch (error) {
       this.handleError(new Error(`Token retrieval failed: ${error}`))
       throw error
@@ -217,9 +247,8 @@ export class OneSignalProvider implements NotificationProvider {
       if (!this.OneSignal) {
         throw new Error('OneSignal not initialized')
       }
-      await (
-        this.OneSignal as unknown as { logoutUser: () => Promise<void> }
-      ).logoutUser()
+      // v3: opt the device out of push (invalidates the subscription).
+      await this.OneSignal.User.PushSubscription.optOut()
     } catch (error) {
       this.handleError(new Error(`Token deletion failed: ${error}`))
       throw error
@@ -234,11 +263,8 @@ export class OneSignalProvider implements NotificationProvider {
       if (!this.OneSignal) {
         throw new Error('OneSignal not initialized')
       }
-      await (
-        this.OneSignal as unknown as {
-          sendTag: (key: string, value: string) => Promise<void>
-        }
-      ).sendTag(topic, 'true')
+      // v3: tags are OneSignal's topic equivalent. addTag is synchronous.
+      this.OneSignal.User.addTag(topic, 'true')
     } catch (error) {
       this.handleError(new Error(`Tag subscription failed: ${error}`))
       throw error
@@ -253,9 +279,7 @@ export class OneSignalProvider implements NotificationProvider {
       if (!this.OneSignal) {
         throw new Error('OneSignal not initialized')
       }
-      await (
-        this.OneSignal as unknown as { deleteTag: (key: string) => Promise<void> }
-      ).deleteTag(topic)
+      this.OneSignal.User.removeTag(topic)
     } catch (error) {
       this.handleError(new Error(`Tag unsubscription failed: ${error}`))
       throw error
@@ -270,11 +294,7 @@ export class OneSignalProvider implements NotificationProvider {
       if (!this.OneSignal) {
         throw new Error('OneSignal not initialized')
       }
-      const tags = await (
-        this.OneSignal as unknown as {
-          getTags: () => Promise<Record<string, string>>
-        }
-      ).getTags()
+      const tags = this.OneSignal.User.getTags()
       return Object.keys(tags || {})
     } catch (error) {
       this.handleError(new Error(`Get subscriptions failed: ${error}`))
@@ -433,48 +453,62 @@ export class OneSignalProvider implements NotificationProvider {
       
       const { PushNotifications } = pushNotificationsModule
 
-      // Listen for push notifications
-      await PushNotifications.addListener('pushNotificationReceived', (notification: any) => {
-        const payload: PushNotificationPayload = {
-          title: notification.title || '',
-          body: notification.body || '',
-          data: notification.data || {},
-          notification: {
-            title: notification.title || '',
-            body: notification.body || '',
-            ...(notification.id && { id: notification.id }),
-            ...(notification.badge && { badge: notification.badge.toString() }),
-          },
+      const receivedHandle = await PushNotifications.addListener(
+        'pushNotificationReceived',
+        (notification: any) => {
+          this.notifyMessageListeners(this.fromNativePush(notification))
         }
-        this.notifyMessageListeners(payload)
-      })
+      )
+      this.nativeListenerHandles.push(receivedHandle)
 
-      // Listen for notification actions
-      await PushNotifications.addListener('pushNotificationActionPerformed', (notificationAction: any) => {
-        const payload: PushNotificationPayload = {
-          title: notificationAction.notification?.title || '',
-          body: notificationAction.notification?.body || '',
-          data: notificationAction.notification.data || {},
-          notification: {
-            title: notificationAction.notification.title || '',
-            body: notificationAction.notification.body || '',
-            ...(notificationAction.notification.id && { id: notificationAction.notification.id }),
-          },
+      const actionHandle = await PushNotifications.addListener(
+        'pushNotificationActionPerformed',
+        (action: any) => {
+          // Consistent optional chaining — action.notification can be undefined.
+          this.notifyMessageListeners(this.fromNativePush(action?.notification))
         }
-        this.notifyMessageListeners(payload)
-      })
+      )
+      this.nativeListenerHandles.push(actionHandle)
 
-      // Listen for registration changes
-      await PushNotifications.addListener('registration', (token: any) => {
-        this.notifyTokenListeners(token.value)
-      })
+      const registrationHandle = await PushNotifications.addListener(
+        'registration',
+        (token: any) => {
+          this.nativeToken = token?.value ?? null
+          if (token?.value) {
+            this.notifyTokenListeners(token.value)
+          }
+        }
+      )
+      this.nativeListenerHandles.push(registrationHandle)
 
-      // Listen for registration errors
-      await PushNotifications.addListener('registrationError', (error: any) => {
-        this.handleError(new Error(`Registration error: ${error.error}`))
-      })
+      const registrationErrorHandle = await PushNotifications.addListener(
+        'registrationError',
+        (error: any) => {
+          this.handleError(new Error(`Registration error: ${error?.error}`))
+        }
+      )
+      this.nativeListenerHandles.push(registrationErrorHandle)
     } catch (error) {
       this.handleError(new Error(`Native event listener setup failed: ${error}`))
+    }
+  }
+
+  /**
+   * Map a native Capacitor push notification to the library payload shape.
+   */
+  private fromNativePush(notification: any): PushNotificationPayload {
+    const title = notification?.title || ''
+    const body = notification?.body || ''
+    return {
+      title,
+      body,
+      data: notification?.data || {},
+      notification: {
+        title,
+        body,
+        ...(notification?.id && { id: notification.id }),
+        ...(notification?.badge && { badge: String(notification.badge) }),
+      },
     }
   }
 
@@ -486,80 +520,46 @@ export class OneSignalProvider implements NotificationProvider {
       if (!this.OneSignal) {
         throw new Error('OneSignal not initialized')
       }
-      const oneSignalInstance = this.OneSignal as unknown as {
-        on: (event: string, callback: (data: unknown) => void) => void
-      }
+      const oneSignal = this.OneSignal
 
-      // Listen for notification received
-      oneSignalInstance.on('notificationReceived', notification => {
-        const notificationData = notification as Record<string, unknown>
-        const notificationObj: Record<string, unknown> = {
-          title: notificationData.heading as string,
-          body: notificationData.content as string,
-        }
-
-        if (notificationData.icon)
-          notificationObj.icon = notificationData.icon as string
-        if (notificationData.badge)
-          notificationObj.badge = notificationData.badge as string
-        if (notificationData.image)
-          notificationObj.image = notificationData.image as string
-
-        const payload: PushNotificationPayload = {
-          title: (notificationObj.title as string) || '',
-          body: (notificationObj.body as string) || '',
-          data:
-            (notificationData.additionalData as Record<string, unknown>) || {},
-          notification: notificationObj,
-        }
-
-        this.notifyMessageListeners(payload)
+      // Foreground notification received (v3 API).
+      oneSignal.Notifications.addEventListener('foregroundWillDisplay', event => {
+        this.notifyMessageListeners(this.fromOSNotification(event.notification))
       })
 
-      // Listen for notification clicked
-      oneSignalInstance.on('notificationClicked', notification => {
-        const notificationData = notification as Record<string, unknown>
-        const notificationObj: Record<string, unknown> = {
-          title: notificationData.heading as string,
-          body: notificationData.content as string,
-        }
-
-        if (notificationData.icon)
-          notificationObj.icon = notificationData.icon as string
-        if (notificationData.badge)
-          notificationObj.badge = notificationData.badge as string
-        if (notificationData.image)
-          notificationObj.image = notificationData.image as string
-
-        const payload: PushNotificationPayload = {
-          title: (notificationObj.title as string) || '',
-          body: (notificationObj.body as string) || '',
-          data:
-            (notificationData.additionalData as Record<string, unknown>) || {},
-          notification: notificationObj,
-        }
-
-        this.notifyMessageListeners(payload)
+      // Notification clicked / opened.
+      oneSignal.Notifications.addEventListener('click', event => {
+        this.notifyMessageListeners(this.fromOSNotification(event.notification))
       })
 
-      // Listen for subscription changes
-      oneSignalInstance.on('subscriptionChanged', isSubscribed => {
-        if (isSubscribed) {
-          this.getToken()
-            .then(token => {
-              this.notifyTokenListeners(token)
-            })
-            .catch(error => {
-              this.handleError(
-                new Error(
-                  `Token refresh on subscription change failed: ${error}`
-                )
-              )
-            })
+      // Push subscription changes — notify token listeners whenever a (new)
+      // subscription id is present (covers initial subscribe and resubscribe).
+      oneSignal.User.PushSubscription.addEventListener('change', event => {
+        const id = event.current?.id
+        if (id) {
+          this.notifyTokenListeners(id)
         }
       })
     } catch (error) {
       this.handleError(new Error(`Event listener setup failed: ${error}`))
+    }
+  }
+
+  /**
+   * Map an OSNotification (react-onesignal v3) to the library payload shape.
+   */
+  private fromOSNotification(notification: any): PushNotificationPayload {
+    const title = (notification?.title as string) || ''
+    const body = (notification?.body as string) || ''
+    return {
+      title,
+      body,
+      data: (notification?.additionalData as Record<string, unknown>) || {},
+      notification: {
+        title,
+        body,
+        ...(notification?.notificationId && { id: notification.notificationId }),
+      },
     }
   }
 
@@ -574,7 +574,13 @@ export class OneSignalProvider implements NotificationProvider {
       }
       const { PushNotifications } = pushNotificationsModule
       const result = await PushNotifications.requestPermissions()
-      return result.receive === 'granted'
+      if (result.receive !== 'granted') {
+        return false
+      }
+      // Register so the FCM/APNs device token arrives on the 'registration'
+      // event wired in setupNativeEventListeners().
+      await PushNotifications.register()
+      return true
     } catch (_error) {
       return false
     }
@@ -614,13 +620,11 @@ export class OneSignalProvider implements NotificationProvider {
       if (!this.OneSignal) {
         throw new Error('OneSignal not initialized')
       }
-      const permission = await (
-        this.OneSignal as unknown as { showSlidedownPrompt: () => Promise<boolean> }
-      ).showSlidedownPrompt()
-      return permission
+      // v3: resolves to whether permission is now granted.
+      return await this.OneSignal.Notifications.requestPermission()
     } catch (_error) {
-      // Fallback to native browser permission
-      if ('Notification' in window) {
+      // Fallback to the native browser permission prompt.
+      if (typeof window !== 'undefined' && 'Notification' in window) {
         const permission = await Notification.requestPermission()
         return permission === 'granted'
       }
@@ -636,20 +640,21 @@ export class OneSignalProvider implements NotificationProvider {
       if (!this.OneSignal) {
         throw new Error('OneSignal not initialized')
       }
-      const isSubscribed = await (
-        this.OneSignal as unknown as {
-          isPushNotificationsEnabled: () => Promise<boolean>
-        }
-      ).isPushNotificationsEnabled()
-      return isSubscribed ? 'granted' : 'prompt'
+      // v3: Notifications.permission is a boolean (true = granted).
+      if (this.OneSignal.Notifications.permission) {
+        return 'granted'
+      }
+      // Not granted — distinguish prompt vs denied via the browser permission.
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        return Notification.permission === 'denied' ? 'denied' : 'prompt'
+      }
+      return 'prompt'
     } catch (_error) {
-      // Fallback to native browser permission
-      if ('Notification' in window) {
+      if (typeof window !== 'undefined' && 'Notification' in window) {
         const permission = Notification.permission
-        if (permission === 'default') {
-          return 'prompt'
-        }
-        return permission as PermissionStatus
+        return permission === 'default'
+          ? 'prompt'
+          : (permission as PermissionStatus)
       }
       return 'denied'
     }

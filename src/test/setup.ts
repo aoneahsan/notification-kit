@@ -72,42 +72,38 @@ vi.mock('firebase/messaging', () => ({
   isSupported: vi.fn(() => Promise.resolve(true)),
 }))
 
-// Mock OneSignal
+// Mock OneSignal (react-onesignal v3 namespaced API)
 vi.mock('react-onesignal', () => ({
   __esModule: true,
   default: {
     init: vi.fn(),
-    showNativePrompt: vi.fn(),
-    isPushNotificationsEnabled: vi.fn(),
-    getUserId: vi.fn(),
-    getSubscription: vi.fn(),
-    setSubscription: vi.fn(),
-    sendTag: vi.fn(),
-    sendTags: vi.fn(),
-    getTags: vi.fn(),
-    deleteTag: vi.fn(),
-    deleteTags: vi.fn(),
-    addListenerForNotificationOpened: vi.fn(),
-    setNotificationWillShowInForegroundHandler: vi.fn(),
-    setNotificationOpenedHandler: vi.fn(),
-    setInAppMessageClickHandler: vi.fn(),
-    addTrigger: vi.fn(),
-    addTriggers: vi.fn(),
-    removeTrigger: vi.fn(),
-    removeTriggers: vi.fn(),
-    getTriggers: vi.fn(),
-    setLocation: vi.fn(),
-    requestPermission: vi.fn(),
-    registerForPushNotifications: vi.fn(),
-    on: vi.fn(),
-    off: vi.fn(),
-    once: vi.fn(),
+    login: vi.fn(),
+    logout: vi.fn(),
+    Notifications: {
+      permission: false,
+      requestPermission: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    },
+    User: {
+      addTag: vi.fn(),
+      addTags: vi.fn(),
+      removeTag: vi.fn(),
+      removeTags: vi.fn(),
+      getTags: vi.fn(() => ({})),
+      PushSubscription: {
+        id: undefined,
+        token: undefined,
+        optedIn: false,
+        optIn: vi.fn(),
+        optOut: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      },
+    },
     Slidedown: {
       promptPush: vi.fn(),
       promptPushCategories: vi.fn(),
-    },
-    Notifications: {
-      requestPermission: vi.fn(),
     },
   },
 }))

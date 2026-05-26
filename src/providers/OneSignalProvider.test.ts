@@ -6,16 +6,37 @@ import { ConfigValidator } from '@/utils/config-validator'
 import { OneSignalNativeBridge } from './OneSignalNativeBridge'
 import type { OneSignalConfig, PushNotificationPayload } from '@/types'
 
+// react-onesignal v3 namespaced API mock.
+const mockPushSubscription = {
+  id: 'test-user-id',
+  token: 'test-push-token',
+  optedIn: true,
+  optIn: vi.fn().mockResolvedValue(undefined),
+  optOut: vi.fn().mockResolvedValue(undefined),
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+}
 const mockOneSignal = {
   init: vi.fn(),
-  showSlidedownPrompt: vi.fn(),
-  isPushNotificationsEnabled: vi.fn(),
-  getUserId: vi.fn(),
-  sendTag: vi.fn(),
-  deleteTag: vi.fn(),
-  getTags: vi.fn(),
-  on: vi.fn(),
-  off: vi.fn(),
+  login: vi.fn().mockResolvedValue(undefined),
+  logout: vi.fn().mockResolvedValue(undefined),
+  Notifications: {
+    permission: true,
+    requestPermission: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  },
+  User: {
+    addTag: vi.fn(),
+    addTags: vi.fn(),
+    removeTag: vi.fn(),
+    removeTags: vi.fn(),
+    getTags: vi.fn(() => ({})),
+    PushSubscription: mockPushSubscription,
+  },
+  Slidedown: {
+    promptPush: vi.fn().mockResolvedValue(undefined),
+  },
 }
 
 vi.mock('@/utils/dynamic-loader', () => ({
@@ -62,14 +83,11 @@ describe('OneSignalProvider', () => {
     )
 
     mockOneSignal.init.mockResolvedValue(undefined)
-    mockOneSignal.showSlidedownPrompt.mockResolvedValue(true)
-    mockOneSignal.isPushNotificationsEnabled.mockResolvedValue(true)
-    mockOneSignal.getUserId.mockResolvedValue('test-user-id')
-    mockOneSignal.sendTag.mockResolvedValue(undefined)
-    mockOneSignal.deleteTag.mockResolvedValue(undefined)
-    mockOneSignal.getTags.mockResolvedValue({})
-    mockOneSignal.on.mockImplementation(() => undefined)
-    mockOneSignal.off.mockImplementation(() => undefined)
+    mockOneSignal.Notifications.permission = true
+    mockOneSignal.Notifications.requestPermission.mockResolvedValue(true)
+    mockOneSignal.User.getTags.mockReturnValue({})
+    mockPushSubscription.id = 'test-user-id'
+    mockPushSubscription.optOut.mockResolvedValue(undefined)
   })
 
   describe('init', () => {
@@ -90,7 +108,14 @@ describe('OneSignalProvider', () => {
           allowLocalhostAsSecureOrigin: false,
         })
       )
-      expect(mockOneSignal.on).toHaveBeenCalledTimes(3)
+      // v3 registers 2 notification listeners (foregroundWillDisplay + click)
+      // and 1 push-subscription change listener.
+      expect(mockOneSignal.Notifications.addEventListener).toHaveBeenCalledTimes(
+        2
+      )
+      expect(
+        mockOneSignal.User.PushSubscription.addEventListener
+      ).toHaveBeenCalledTimes(1)
       expect((provider as any).initialized).toBe(true)
     })
 
@@ -117,16 +142,16 @@ describe('OneSignalProvider', () => {
     })
 
     it('should request push notification permission on web', async () => {
-      mockOneSignal.showSlidedownPrompt.mockResolvedValue(true)
+      mockOneSignal.Notifications.requestPermission.mockResolvedValue(true)
 
       const result = await provider.requestPermission()
 
       expect(result).toBe(true)
-      expect(mockOneSignal.showSlidedownPrompt).toHaveBeenCalled()
+      expect(mockOneSignal.Notifications.requestPermission).toHaveBeenCalled()
     })
 
     it('should return false if the web prompt is rejected', async () => {
-      mockOneSignal.showSlidedownPrompt.mockRejectedValue(
+      mockOneSignal.Notifications.requestPermission.mockRejectedValue(
         new Error('prompt unavailable')
       )
       vi.stubGlobal('Notification', {
@@ -145,7 +170,7 @@ describe('OneSignalProvider', () => {
     })
 
     it('should return granted when push is enabled on web', async () => {
-      mockOneSignal.isPushNotificationsEnabled.mockResolvedValue(true)
+      mockOneSignal.Notifications.permission = true
 
       const result = await provider.checkPermission()
 
@@ -153,7 +178,8 @@ describe('OneSignalProvider', () => {
     })
 
     it('should return prompt when push is not enabled on web', async () => {
-      mockOneSignal.isPushNotificationsEnabled.mockResolvedValue(false)
+      mockOneSignal.Notifications.permission = false
+      vi.stubGlobal('Notification', { permission: 'default' })
 
       const result = await provider.checkPermission()
 
@@ -166,19 +192,19 @@ describe('OneSignalProvider', () => {
       await provider.init(mockConfig)
     })
 
-    it('should return the OneSignal user id', async () => {
-      mockOneSignal.getUserId.mockResolvedValue('test-token-123')
+    it('should return the OneSignal subscription id', async () => {
+      mockPushSubscription.id = 'test-token-123'
 
       const token = await provider.getToken()
 
       expect(token).toBe('test-token-123')
     })
 
-    it('should reject if no player id is available', async () => {
-      mockOneSignal.getUserId.mockResolvedValue('')
+    it('should reject if no subscription id is available', async () => {
+      mockPushSubscription.id = ''
 
       await expect(provider.getToken()).rejects.toThrow(
-        'No OneSignal player ID available'
+        'No OneSignal subscription ID available'
       )
     })
   })
@@ -191,17 +217,17 @@ describe('OneSignalProvider', () => {
     it('should subscribe to a topic using tags', async () => {
       await provider.subscribe('news')
 
-      expect(mockOneSignal.sendTag).toHaveBeenCalledWith('news', 'true')
+      expect(mockOneSignal.User.addTag).toHaveBeenCalledWith('news', 'true')
     })
 
     it('should unsubscribe from a topic', async () => {
       await provider.unsubscribe('news')
 
-      expect(mockOneSignal.deleteTag).toHaveBeenCalledWith('news')
+      expect(mockOneSignal.User.removeTag).toHaveBeenCalledWith('news')
     })
 
     it('should return all subscribed tag keys', async () => {
-      mockOneSignal.getTags.mockResolvedValue({
+      mockOneSignal.User.getTags.mockReturnValue({
         news: 'true',
         updates: 'true',
       })
@@ -246,14 +272,17 @@ describe('OneSignalProvider', () => {
       const callback = vi.fn()
       provider.onMessage(callback)
 
-      const clickedHandler = mockOneSignal.on.mock.calls.find(
-        call => call[0] === 'notificationClicked'
-      )?.[1]
+      const clickedHandler =
+        mockOneSignal.Notifications.addEventListener.mock.calls.find(
+          call => call[0] === 'click'
+        )?.[1]
 
       clickedHandler?.({
-        heading: 'Clicked',
-        content: 'Clicked body',
-        additionalData: { source: 'test' },
+        notification: {
+          title: 'Clicked',
+          body: 'Clicked body',
+          additionalData: { source: 'test' },
+        },
       })
 
       expect(callback).toHaveBeenCalledWith({
@@ -269,14 +298,14 @@ describe('OneSignalProvider', () => {
 
     it('should handle subscription changes by notifying token listeners', async () => {
       const callback = vi.fn()
-      mockOneSignal.getUserId.mockResolvedValue('new-token')
       provider.onTokenRefresh(callback)
 
-      const subscriptionChangedHandler = mockOneSignal.on.mock.calls.find(
-        call => call[0] === 'subscriptionChanged'
-      )?.[1]
+      const changeHandler =
+        mockOneSignal.User.PushSubscription.addEventListener.mock.calls.find(
+          call => call[0] === 'change'
+        )?.[1]
 
-      subscriptionChangedHandler?.(true)
+      changeHandler?.({ current: { id: 'new-token' } })
 
       await waitFor(() => {
         expect(callback).toHaveBeenCalledWith('new-token')

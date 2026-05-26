@@ -309,8 +309,10 @@ export class FirebaseProvider implements NotificationProvider {
       throw new Error('No FCM token available')
     }
 
-    // This would typically be handled server-side
-    // Return empty array as placeholder
+    // FCM does not expose a device's topic subscriptions to the client — they
+    // are only known server-side. Returns an empty list (rather than throwing)
+    // so callers can treat "unknown" as "none"; track subscriptions in your
+    // backend if you need an authoritative list.
     return []
   }
 
@@ -659,9 +661,15 @@ export class FirebaseProvider implements NotificationProvider {
     _topic: string,
     _token: string
   ): Promise<void> {
-    // This would typically call your backend API
-    // For now, we'll throw an error to indicate server-side implementation needed
-    throw new Error(`Topic ${action} must be implemented server-side`)
+    // FCM topic (un)subscription is a privileged, server-side operation
+    // (Firebase Admin SDK or the IID API) — it cannot be performed from client
+    // code, which has no admin credentials. Send the device token from
+    // getToken() to your backend and (un)subscribe it there.
+    throw new Error(
+      `notification-kit: Firebase topic "${action}" must be performed server-side ` +
+        '(Firebase Admin SDK / IID API), not from the client. Send the device token ' +
+        'from getToken() to your backend and (un)subscribe it there.'
+    )
   }
 
   /**
