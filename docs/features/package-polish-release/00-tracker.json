@@ -2,7 +2,7 @@
   "$schema": "package-polish-release-tracker",
   "description": "Resumable tracker for polishing notification-kit and releasing 2.1.0. The first phase/sub-task with status 'pending' or 'in_progress' is the next thing to work on. Read 00-overview.md + findings.md for context.",
   "module": "package-polish-release",
-  "status": "in_progress",
+  "status": "complete",
   "createdAt": "2026-05-26",
   "lastUpdated": "2026-05-27",
   "baselineVersion": "2.0.6",
@@ -200,8 +200,8 @@
     {
       "id": "phase12",
       "title": "Post-release polish (2.1.1) — deferred minors + website",
-      "status": "in_progress",
-      "completedAt": null,
+      "status": "complete",
+      "completedAt": "2026-05-27",
       "file": "docs/features/package-polish-release/findings.md (Resolution status section)",
       "subTasks": [
         { "id": "phase12.1", "title": "CP-M2: document permission-routing divergence (kit -> provider vs standalone PermissionManager)", "status": "complete", "note": "JSDoc on NotificationKit.requestPermission/checkPermission." },
@@ -210,7 +210,7 @@
         { "id": "phase12.4", "title": "RU-L9: document validateOnSchedule day-rollover behavior", "status": "complete", "note": "Comment clarifies 1-31 absolute range + JS Date rollover." },
         { "id": "phase12.5", "title": "Wire `in` schedule option (newly found) + fix README scheduling examples", "status": "complete", "note": "ScheduleOptions.in widened to number|Duration; toCapacitorLocalNotification maps in->future at via durationToMs; README at:{hour}->on:{hour}, days:[strings] example fixed." },
         { "id": "phase12.6", "title": "Author Docusaurus website docs (15 pages + logo) to match v2.1.0 API", "status": "complete", "note": "Sub-agent created website/docs/** (README, guides/*, api/*, examples/basic) + static/img/logo.svg; all sidebar IDs now resolve; verified no wrong API patterns." },
-        { "id": "phase12.7", "title": "Bump 2.1.0 -> 2.1.1, commit+push, publish, verify", "status": "in_progress", "note": null }
+        { "id": "phase12.7", "title": "Bump 2.1.0 -> 2.1.1, commit+push, publish, verify", "status": "complete", "note": "Committed fadb3a2 + pushed; published notification-kit@2.1.1; verified npm view version=2.1.1, dist-tags.latest=2.1.1. shasum 838fbebb." }
       ]
     }
   ],
@@ -223,7 +223,7 @@
     { "date": "2026-05-26", "phase": "phase09", "summary": "Packaging: engines.node>=20, sideEffects:false, dual ESM+CJS + exports conditions (verified require+import), ship SW templates + setup.js deploy, single-sourced version, SW Firebase 12.13.0, setup.js red+URL, removed vite test block + .npmignore. Fixed external.d.ts dist leak + Node localStorage warning. 124/124 green.", "commit": "23a4183" },
     { "date": "2026-05-26", "phase": "phase10", "summary": "Docs: fixed Readme + AI-INTEGRATION-GUIDE API mismatches; widened cancel proxy + completed recurring schedule mapping; CHANGELOG 2.1.0 + peer-dep note; versions->2.1.0; refreshed root + 12 nested CLAUDE/AGENTS; portfolio refreshed+renamed. 124/124 green.", "commit": "2bd1636" },
     { "date": "2026-05-26", "phase": "phase11", "summary": "RELEASE: bumped to 2.1.0, full gate green (124/124), committed (306f221) + pushed, then npm publish. Verified live: npm view notification-kit version=2.1.0, dist-tags.latest=2.1.0, dual ESM/CJS exports.", "commit": "306f221 (+ a566ed1 tracker finalization)" },
-    { "date": "2026-05-27", "phase": "phase12", "summary": "Post-release polish for 2.1.1: resolved all deferred minors (CP-M2 permission-routing doc, CP-L3 version parse, CP-L4 tablet detection, CP-L8 dead-code removal, RU-L9 day-rollover doc); wired the `in` schedule option (number|Duration -> future at) + fixed README scheduling examples; authored 15 Docusaurus website docs + logo (parallel sub-agent). 124/124 green; type-check+lint+build clean. Bumping to 2.1.1 + publishing.", "commit": "pending" }
+    { "date": "2026-05-27", "phase": "phase12", "summary": "Post-release polish for 2.1.1: resolved all deferred minors (CP-M2 permission-routing doc, CP-L3 version parse, CP-L4 tablet detection, CP-L8 dead-code removal, RU-L9 day-rollover doc); wired the `in` schedule option (number|Duration -> future at) + fixed README scheduling examples; authored 15 Docusaurus website docs + logo (parallel sub-agent). 124/124 green. Published notification-kit@2.1.1 (verified npm latest=2.1.1). FEATURE COMPLETE.", "commit": "fadb3a2" }
   ],
   "nextSuggestion": {
     "phase": "done",
