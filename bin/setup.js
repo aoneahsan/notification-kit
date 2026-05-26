@@ -34,6 +34,7 @@ const PROVIDERS = {
 const COLORS = {
   reset: '\x1b[0m',
   bright: '\x1b[1m',
+  red: '\x1b[31m',
   green: '\x1b[32m',
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
@@ -256,6 +257,63 @@ function MyComponent() {
   }
 }
 
+async function deployServiceWorker(provider) {
+  logHeader('Service Worker Setup')
+
+  const templates = {
+    firebase: {
+      src: 'firebase-messaging-sw.template.js',
+      dest: 'firebase-messaging-sw.js'
+    },
+    onesignal: {
+      src: 'onesignal-sw.template.js',
+      dest: 'OneSignalSDKWorker.js'
+    }
+  }
+
+  const tpl = templates[provider]
+  if (!tpl) {
+    return
+  }
+
+  // Templates are shipped alongside this CLI at <pkg>/dist/templates.
+  const srcPath = path.join(__dirname, '..', 'dist', 'templates', tpl.src)
+  const publicDir = path.join(process.cwd(), 'public')
+  const destPath = path.join(publicDir, tpl.dest)
+
+  try {
+    await fs.access(srcPath)
+  } catch {
+    log(`⚠ Service worker template "${tpl.src}" not found; skipping.`, 'yellow')
+    return
+  }
+
+  try {
+    await fs.mkdir(publicDir, { recursive: true })
+
+    let shouldWrite = true
+    try {
+      await fs.access(destPath)
+      const answer = await question(
+        `${tpl.dest} already exists in public/. Overwrite? (y/n): `
+      )
+      shouldWrite = answer.toLowerCase() === 'y'
+    } catch {
+      // Destination does not exist yet — safe to write.
+    }
+
+    if (shouldWrite) {
+      await fs.copyFile(srcPath, destPath)
+      log(`✓ Service worker written to: ${destPath}`, 'green')
+      log('  (web push requires this file served from your site root)', 'cyan')
+    } else {
+      log('Skipped service worker (kept existing file).', 'yellow')
+    }
+  } catch (error) {
+    log(`⚠ Could not write service worker: ${error.message}`, 'red')
+  }
+}
+
 async function main() {
   log('🔔 Welcome to notification-kit setup!', 'bright')
   console.log()
@@ -317,6 +375,9 @@ async function main() {
     await updateCapacitorConfig()
   }
   
+  // Deploy the web push service worker into public/
+  await deployServiceWorker(provider)
+
   // Show platform instructions
   await showPlatformInstructions(provider)
   
@@ -335,7 +396,7 @@ async function main() {
   console.log('2. Import and use notifications in your app')
   console.log('3. Test on device/emulator for best results')
   console.log()
-  log('For more information, visit: https://github.com/your-username/notification-kit', 'blue')
+  log('For more information, visit: https://github.com/aoneahsan/notification-kit', 'blue')
   
   rl.close()
 }

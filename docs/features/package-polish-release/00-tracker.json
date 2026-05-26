@@ -159,15 +159,15 @@
     {
       "id": "phase09",
       "title": "Packaging & build",
-      "status": "pending",
-      "completedAt": null,
+      "status": "complete",
+      "completedAt": "2026-05-26",
       "file": "docs/features/package-polish-release/phase09-packaging-build.md",
       "subTasks": [
-        { "id": "phase09.1", "title": "PK-C2: engines.node -> >=20; PK-L2: sideEffects:false", "status": "pending", "note": null },
-        { "id": "phase09.2", "title": "PK-H1: add CJS build (vite formats es+cjs) + exports require/default conditions; verify import & require", "status": "pending", "note": null },
-        { "id": "phase09.3", "title": "PK-C1: ship SW templates (copy to dist/templates + files) + wire setup.js to deploy them", "status": "pending", "note": null },
-        { "id": "phase09.4", "title": "PK-M6: setup.js red color + real repo URL; PK-M5: remove vite.config test block; PK-L1 .npmignore; PK-L3 eslint ecmaVersion; PK-L6 prepare/husky", "status": "pending", "note": null },
-        { "id": "phase09.5", "title": "PK-M4: drive exported version from package.json; PK-L5 align SW Firebase versions", "status": "pending", "note": null }
+        { "id": "phase09.1", "title": "PK-C2: engines.node -> >=20; PK-L2: sideEffects:false", "status": "complete", "note": "engines.node>=20; sideEffects:false added." },
+        { "id": "phase09.2", "title": "PK-H1: add CJS build + exports require/default conditions; verify import & require", "status": "complete", "note": "vite formats es+cjs (index.cjs/react.cjs); exports has types/import/require/default + main->cjs. Verified: node require() AND ESM import() both resolve NotificationKit + version." },
+        { "id": "phase09.3", "title": "PK-C1: ship SW templates + wire setup.js to deploy them", "status": "complete", "note": "vite plugin copies src/templates -> dist/templates (shipped via files:[dist]); setup.js deployServiceWorker() copies to user public/ with overwrite confirmation." },
+        { "id": "phase09.4", "title": "PK-M6/M5/L1/L3/L6 cleanup", "status": "complete", "note": "setup.js red color added + real repo URL; removed dead vite.config test block; deleted dead .npmignore (files[] is authoritative); ecmaVersion 2022 (done P8); prepare left empty (correct for publish, husky unused devDep retained — minor). Also fixed external.d.ts leaking into dist (copyDtsFiles:false) and the Node localStorage experimental warning (window-guarded logger storage)." },
+        { "id": "phase09.5", "title": "PK-M4: single-source version; PK-L5 align SW Firebase versions", "status": "complete", "note": "version single-sourced from package.json via Vite define (__NOTIFICATION_KIT_VERSION__); SW template Firebase compat CDN -> 12.13.0." }
       ]
     },
     {
@@ -202,13 +202,14 @@
     { "date": "2026-05-26", "phase": "phase01+phase02", "summary": "Updated ALL deps to latest stable (incl. majors TS6, ESLint10, Vite8, jsdom29, lint-staged17, plugin-react6, dts5). Removed deprecated @testing-library/react-hooks. Raised peer floors (Capacitor8/firebase12.13/react19.2.6/onesignal3.5.3). Toolchain fixes: tsconfig baseUrl->relative paths + types:[node]; localStorage mock in test setup. Baseline 13 red tests -> 124/124 green. type-check+build+lint+test all clean.", "commit": "774891f" },
     { "date": "2026-05-26", "phase": "phase03+phase04", "summary": "Security: OneSignal sendNotification refuses client-side (REST-key leak), in-app icon XSS removed (safe applyIcon, zero innerHTML sinks), stripHtml doc, config-validator heuristic dropped + browser-safe. Core: emit() envelope fix + onPush firing, native listener cleanup, real per-platform capability matrix (isSupported works), getDelivered mapping, numeric-id validation, storage unicode-safe obfuscation + clear()/TTL fixes, Firebase top-level title/body + native FCM register + refreshToken safety, openSettings honest throw, logging in catches. Updated 5 tests to assert corrected behavior. 124/124 green.", "commit": "a39b237" },
     { "date": "2026-05-26", "phase": "phase05+phase06", "summary": "React hooks: in-app polling replaced by manager subscription (RU-C1), useNotifications functional updater + single subscription (RU-C2), listenerId counter (RU-C3), schedule shape (RU-H2), configure functional + memoized returns + isPermissionGranted (RU-M6/L7/L8, PK-H4), logged swallowed errors (RU-M9). Utils: scheduling date math (RU-H3/H4/H5), cron DOW mapping (RU-H6), formatting guards + substr->slice (RU-M3/M4/M5/L2), dynamic-loader module-not-found vs runtime error (RU-L4). Updated 6 in-app tests. 124/124 green.", "commit": "f991d8e" },
-    { "date": "2026-05-26", "phase": "phase07+phase08", "summary": "OneSignal v3 rewrite (CP-M6): external.d.ts stub + provider rewritten to v3 namespaced API (Notifications/User/PushSubscription/Slidedown); ZERO unsafe casts; provider+setup mocks updated to v3. CP-H5 native optional chaining, CP-M7 subscription-change listener, CP-H7 Firebase topics honest errors, CP-H8 native OneSignal token capture + honest docs. Logger (STD-1): leveled (default warn) + localStorage switch + setLevel/getLevel + opt-in devtools (no host-console auto-patch). ESLint no-console:'error' (STD-2/PK-H5) + ecmaVersion 2022; grep gate zero. 124/124 green; type-check+lint+build clean.", "commit": "pending" }
+    { "date": "2026-05-26", "phase": "phase07+phase08", "summary": "OneSignal v3 rewrite (CP-M6): external.d.ts stub + provider rewritten to v3 namespaced API; ZERO unsafe casts; provider+setup mocks updated to v3. CP-H5/M7/H7/H8 provider honesty. Logger (STD-1): leveled (default warn) + localStorage switch + opt-in devtools. ESLint no-console:'error' (STD-2/PK-H5) + ecmaVersion 2022; grep gate zero. 124/124 green.", "commit": "2b75e39" },
+    { "date": "2026-05-26", "phase": "phase09", "summary": "Packaging: engines.node>=20 (PK-C2), sideEffects:false (PK-L2), dual ESM+CJS build + exports require/default conditions (PK-H1, verified require+import resolve), ship SW templates to dist/templates + setup.js deploys them (PK-C1), single-sourced version via Vite define (PK-M4), SW Firebase CDN 12.13.0 (PK-L5), setup.js red color + real URL (PK-M6), removed dead vite.config test block (PK-M5) + .npmignore (PK-L1). Also fixed external.d.ts leaking into dist (copyDtsFiles:false) + Node localStorage experimental warning (window-guarded logger). 124/124 green; type-check+lint+build clean.", "commit": "pending" }
   ],
   "nextSuggestion": {
-    "phase": "phase09",
-    "subTask": "phase09.1",
-    "rationale": "All code-correctness phases (3-8) done and green. Next: packaging — engines.node floor, CJS+ESM exports, sideEffects, ship SW templates + wire setup.js, version-from-package, bin fixes.",
-    "command": "Invoke vite + nodejs-best-practices; lower engines.node>=20; add sideEffects:false; add CJS build + require/default exports conditions; ship dist/templates + wire setup.js; fix setup.js red color + repo URL; remove vite.config test block; single-source version; check external.d.ts doesn't leak into dist."
+    "phase": "phase10",
+    "subTask": "phase10.1",
+    "rationale": "Code + packaging done and green. Next: documentation refresh — fix all docs-vs-code mismatches (event names, hook returns, isPermissionGranted, cancel id, success sig, schedule shape, SW versions), CHANGELOG 2.1.0 + peer-dep note, refresh CLAUDE/AGENTS + portfolio.",
+    "command": "Invoke documentation-writer + copywriting; fix Readme.md + AI-INTEGRATION-GUIDE.md (PK-H2/H3/H4/M1/M2/M3); add CHANGELOG 2.1.0 with peer-dep raise note (PK-M4); refresh root+nested CLAUDE.md/AGENTS.md (Last Updated 2026-05-26) + portfolio + docs/."
   },
   "resumeInstructions": "1) Read this tracker. 2) Read 00-overview.md + findings.md. 3) Find the first phase/sub-task with status 'pending' or 'in_progress'. 4) Read that phase's spec file. 5) Invoke matching skills per RULE #0 for that phase. 6) Do the work; run the phase gate. 7) Mark sub-tasks 'complete', append a runHistory row, bump lastUpdated. 8) ONE commit per session including this tracker. 9) Phase 11.4 (npm publish) is the only irreversible step — user pre-authorized direct publish; still verify gates first."
 }

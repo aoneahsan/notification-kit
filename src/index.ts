@@ -156,16 +156,21 @@ import { platform } from './core/platform'
 export default NotificationKit
 
 /**
- * Version information
+ * Version information — single-sourced from package.json at build time via
+ * Vite `define` (see vite.config.ts). The `typeof` guard keeps it safe in any
+ * environment where the replacement did not run.
  */
-export const version = '2.0.0'
+export const version: string =
+  typeof __NOTIFICATION_KIT_VERSION__ !== 'undefined'
+    ? __NOTIFICATION_KIT_VERSION__
+    : '0.0.0'
 
 /**
  * Library metadata
  */
 export const metadata = {
   name: 'notification-kit',
-  version: '2.0.0',
+  version,
   description: 'A unified notification library for React + Capacitor apps',
   author: 'Ahsan Mahmood',
   license: 'MIT',

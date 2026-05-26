@@ -39,16 +39,33 @@ function isLogLevel(value: unknown): value is LogLevel {
   )
 }
 
-function readStoredLevel(): LogLevel | null {
+/**
+ * Best-effort access to the browser's localStorage. Gated on `window` so it is
+ * never touched in Node/SSR (Node 20+ exposes an experimental `localStorage`
+ * global that warns on access without a backing file).
+ */
+function getBrowserStorage(): Storage | null {
   try {
-    if (typeof localStorage !== 'undefined') {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (isLogLevel(stored)) {
-        return stored
-      }
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.localStorage !== 'undefined'
+    ) {
+      return window.localStorage
     }
   } catch {
-    // localStorage can throw (e.g. privacy mode / sandboxed iframe) — ignore.
+    // Accessing window.localStorage can throw in sandboxed iframes.
+  }
+  return null
+}
+
+function readStoredLevel(): LogLevel | null {
+  try {
+    const stored = getBrowserStorage()?.getItem(STORAGE_KEY)
+    if (isLogLevel(stored)) {
+      return stored
+    }
+  } catch {
+    // localStorage can throw (e.g. privacy mode) — ignore.
   }
   return null
 }
@@ -64,9 +81,7 @@ export class Logger {
     }
     Logger.level = level
     try {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY, level)
-      }
+      getBrowserStorage()?.setItem(STORAGE_KEY, level)
     } catch {
       // Ignore persistence failures.
     }
