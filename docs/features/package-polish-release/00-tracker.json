@@ -2,6 +2,7 @@
   "$schema": "package-polish-release-tracker",
   "description": "Resumable tracker for polishing notification-kit and releasing 2.1.0. The first phase/sub-task with status 'pending' or 'in_progress' is the next thing to work on. Read 00-overview.md + findings.md for context.",
   "module": "package-polish-release",
+  "status": "complete",
   "createdAt": "2026-05-26",
   "lastUpdated": "2026-05-26",
   "baselineVersion": "2.0.6",
@@ -186,14 +187,14 @@
     {
       "id": "phase11",
       "title": "Release: verify + bump + publish",
-      "status": "in_progress",
-      "completedAt": null,
+      "status": "complete",
+      "completedAt": "2026-05-26",
       "file": "docs/features/package-polish-release/phase11-release.md",
       "subTasks": [
         { "id": "phase11.1", "title": "Full gate: install + type-check + build + lint + test all green; verify dist (import+require, types, templates)", "status": "complete", "note": "install+type-check+lint+build OK; 124/124 tests; CJS require + ESM import both report version 2.1.0; templates shipped; no external.d.ts leak." },
-        { "id": "phase11.2", "title": "Bump version 2.0.6 -> 2.1.0 in package.json + exported constant + docs", "status": "complete", "note": "package.json 2.1.0; runtime constant single-sourced -> auto 2.1.0; docs already at 2.1.0." },
-        { "id": "phase11.3", "title": "Final commit + git pull --rebase + push", "status": "in_progress", "note": null },
-        { "id": "phase11.4", "title": "npm whoami (aoneahsan) + npm publish; verify npm view notification-kit version == 2.1.0; report", "status": "pending", "note": "Outward-facing irreversible; user pre-authorized direct publish." }
+        { "id": "phase11.2", "title": "Bump version 2.0.6 -> 2.1.0 in package.json + exported constant + docs", "status": "complete", "note": "package.json 2.1.0; runtime constant single-sourced -> auto 2.1.0; docs at 2.1.0." },
+        { "id": "phase11.3", "title": "Final commit + git pull --rebase + push", "status": "complete", "note": "commit 306f221 pushed to o/main before publish." },
+        { "id": "phase11.4", "title": "npm whoami (aoneahsan) + npm publish; verify npm view notification-kit version == 2.1.0; report", "status": "complete", "note": "Published notification-kit@2.1.0 (npm whoami=aoneahsan). Verified: npm view version=2.1.0, dist-tags.latest=2.1.0, exports dual ESM/CJS confirmed. shasum d2a845c7." }
       ]
     }
   ],
@@ -204,13 +205,14 @@
     { "date": "2026-05-26", "phase": "phase05+phase06", "summary": "React hooks: in-app polling replaced by manager subscription (RU-C1), useNotifications functional updater + single subscription (RU-C2), listenerId counter (RU-C3), schedule shape (RU-H2), configure functional + memoized returns + isPermissionGranted (RU-M6/L7/L8, PK-H4), logged swallowed errors (RU-M9). Utils: scheduling date math (RU-H3/H4/H5), cron DOW mapping (RU-H6), formatting guards + substr->slice (RU-M3/M4/M5/L2), dynamic-loader module-not-found vs runtime error (RU-L4). Updated 6 in-app tests. 124/124 green.", "commit": "f991d8e" },
     { "date": "2026-05-26", "phase": "phase07+phase08", "summary": "OneSignal v3 rewrite (CP-M6): external.d.ts stub + provider rewritten to v3 namespaced API; ZERO unsafe casts; provider+setup mocks updated to v3. CP-H5/M7/H7/H8 provider honesty. Logger (STD-1): leveled (default warn) + localStorage switch + opt-in devtools. ESLint no-console:'error' (STD-2/PK-H5) + ecmaVersion 2022; grep gate zero. 124/124 green.", "commit": "2b75e39" },
     { "date": "2026-05-26", "phase": "phase09", "summary": "Packaging: engines.node>=20, sideEffects:false, dual ESM+CJS + exports conditions (verified require+import), ship SW templates + setup.js deploy, single-sourced version, SW Firebase 12.13.0, setup.js red+URL, removed vite test block + .npmignore. Fixed external.d.ts dist leak + Node localStorage warning. 124/124 green.", "commit": "23a4183" },
-    { "date": "2026-05-26", "phase": "phase10", "summary": "Docs: fixed Readme + AI-INTEGRATION-GUIDE API mismatches (event names->onPush/real keys, useInAppNotification return, success/cancel signatures, schedule top-level shape); widened cancel proxy to string|number + completed toCapacitorLocalNotification recurring mapping; CHANGELOG 2.1.0 + peer-dep note; versions->2.1.0; SW Firebase 12.13.0; refreshed root + 12 nested CLAUDE/AGENTS; portfolio refreshed+renamed. 124/124 green; type-check+build clean.", "commit": "pending" }
+    { "date": "2026-05-26", "phase": "phase10", "summary": "Docs: fixed Readme + AI-INTEGRATION-GUIDE API mismatches; widened cancel proxy + completed recurring schedule mapping; CHANGELOG 2.1.0 + peer-dep note; versions->2.1.0; refreshed root + 12 nested CLAUDE/AGENTS; portfolio refreshed+renamed. 124/124 green.", "commit": "2bd1636" },
+    { "date": "2026-05-26", "phase": "phase11", "summary": "RELEASE: bumped to 2.1.0, full gate green (124/124), committed (306f221) + pushed, then npm publish. Verified live: npm view notification-kit version=2.1.0, dist-tags.latest=2.1.0, dual ESM/CJS exports. Feature COMPLETE.", "commit": "306f221 (+ this tracker finalization)" }
   ],
   "nextSuggestion": {
-    "phase": "phase11",
-    "subTask": "phase11.1",
-    "rationale": "All code + docs done and green. Final phase: release — full gate, bump version 2.0.6->2.1.0, commit+push, npm publish (user pre-authorized direct publish), verify.",
-    "command": "Full gate (install+type-check+build+lint+test); bump package.json version 2.0.6->2.1.0; commit+push; npm whoami==aoneahsan; npm publish; verify npm view notification-kit version==2.1.0; report."
+    "phase": "done",
+    "subTask": null,
+    "rationale": "All 11 phases complete. notification-kit@2.1.0 is published on npm. If re-run: this feature is COMPLETE — verify `npm view notification-kit version` (should be >= 2.1.0) and only re-engage for a new version.",
+    "command": "None — feature complete."
   },
   "resumeInstructions": "1) Read this tracker. 2) Read 00-overview.md + findings.md. 3) Find the first phase/sub-task with status 'pending' or 'in_progress'. 4) Read that phase's spec file. 5) Invoke matching skills per RULE #0 for that phase. 6) Do the work; run the phase gate. 7) Mark sub-tasks 'complete', append a runHistory row, bump lastUpdated. 8) ONE commit per session including this tracker. 9) Phase 11.4 (npm publish) is the only irreversible step — user pre-authorized direct publish; still verify gates first."
 }
