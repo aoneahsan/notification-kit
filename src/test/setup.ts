@@ -136,14 +136,65 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
 }))
 
 // Mock IntersectionObserver
- 
+
 global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
 }))
 
-// Reset all mocks before each test
+// Mock the Web Storage API. jsdom on an opaque origin does not reliably expose
+// a writable `localStorage`/`sessionStorage`, so we install an in-memory
+// implementation on both `globalThis` and `window` for deterministic tests.
+function createStorageMock(): Storage {
+  let store: Record<string, string> = {}
+  return {
+    get length(): number {
+      return Object.keys(store).length
+    },
+    clear(): void {
+      store = {}
+    },
+    getItem(key: string): string | null {
+      return store[key] ?? null
+    },
+    key(index: number): string | null {
+      return Object.keys(store)[index] ?? null
+    },
+    removeItem(key: string): void {
+      delete store[key]
+    },
+    setItem(key: string, value: string): void {
+      store[key] = String(value)
+    },
+  } as Storage
+}
+
+const localStorageMock = createStorageMock()
+const sessionStorageMock = createStorageMock()
+
+Object.defineProperty(globalThis, 'localStorage', {
+  configurable: true,
+  value: localStorageMock,
+})
+Object.defineProperty(globalThis, 'sessionStorage', {
+  configurable: true,
+  value: sessionStorageMock,
+})
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'localStorage', {
+    configurable: true,
+    value: localStorageMock,
+  })
+  Object.defineProperty(window, 'sessionStorage', {
+    configurable: true,
+    value: sessionStorageMock,
+  })
+}
+
+// Reset all mocks + storage before each test
 beforeEach(() => {
   vi.clearAllMocks()
+  localStorageMock.clear()
+  sessionStorageMock.clear()
 })

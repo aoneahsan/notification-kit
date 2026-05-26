@@ -1,0 +1,211 @@
+{
+  "$schema": "package-polish-release-tracker",
+  "description": "Resumable tracker for polishing notification-kit and releasing 2.1.0. The first phase/sub-task with status 'pending' or 'in_progress' is the next thing to work on. Read 00-overview.md + findings.md for context.",
+  "module": "package-polish-release",
+  "createdAt": "2026-05-26",
+  "lastUpdated": "2026-05-26",
+  "baselineVersion": "2.0.6",
+  "targetVersion": "2.1.0",
+  "overview": "docs/features/package-polish-release/00-overview.md",
+  "findings": "docs/features/package-polish-release/findings.md",
+  "userDecisions": {
+    "npmRelease": "Claude publishes directly (npm publish) at Phase 11, then reports.",
+    "peerDepFloors": "Raise to latest stable (Capacitor >=8, firebase >=12.13.0, react >=19.2.6, react-onesignal >=3.5.3). Document loudly in changelog (KR-1).",
+    "featureScope": "Harden + complete existing, backward-compatible only. No net-new large features. Native OneSignal SDK + async Web-Crypto storage explicitly OUT (made honest)."
+  },
+  "knownRisks": [
+    "KR-1: peer major floor raise on a minor bump is non-standard semver -> loud changelog note",
+    "KR-2: TS6 / ESLint10 / Vite8 majors may break build/lint -> cluster + verify",
+    "KR-3: CP-M6 OneSignal v3 rewrite is riskiest -> base on installed @3.5.3 types",
+    "KR-4: adding CJS build changes pipeline -> verify import AND require resolve",
+    "KR-5: do NOT write new automated tests unless user asks (workspace rule); run existing as gate"
+  ],
+  "verificationGates": {
+    "install": "yarn install",
+    "typecheck": "yarn type-check",
+    "build": "yarn build",
+    "lint": "yarn lint",
+    "test": "yarn test --run",
+    "noConsole": "grep -rEn \"\\bconsole\\.(log|info|debug|trace|warn|error|table|time|timeEnd|group|groupCollapsed|groupEnd)\\(\" src --include=*.ts --include=*.tsx | grep -v src/utils/logger.ts  => zero"
+  },
+  "phases": [
+    {
+      "id": "phase00",
+      "title": "Planning & setup",
+      "status": "complete",
+      "completedAt": "2026-05-26",
+      "file": "docs/features/package-polish-release/00-overview.md",
+      "subTasks": [
+        { "id": "phase00.1", "title": "Confirm no prior plan; capture user decisions", "status": "complete", "note": "Fresh start; 3 decisions captured." },
+        { "id": "phase00.2", "title": "Deep audit (3 parallel agents) + dependency sweep", "status": "complete", "note": "Synthesized into findings.md." },
+        { "id": "phase00.3", "title": "Write findings.md, 00-overview.md, 00-tracker.json", "status": "complete", "note": null },
+        { "id": "phase00.4", "title": "Write phase01..phase11 spec files", "status": "complete", "note": "11 phase specs written." },
+        { "id": "phase00.5", "title": "Commit plan scaffolding with first session work (per Resumable-Trackers + one-commit-per-session)", "status": "complete", "note": "Committed with deps+toolchain milestone." }
+      ]
+    },
+    {
+      "id": "phase01",
+      "title": "Dependency updates to latest stable",
+      "status": "complete",
+      "completedAt": "2026-05-26",
+      "file": "docs/features/package-polish-release/phase01-dependency-updates.md",
+      "subTasks": [
+        { "id": "phase01.1", "title": "Update low-risk dev deps (types, vitest+coverage+ui, prettier, terser, ts-eslint, eslint-plugin-react-hooks, globals, react/dom dev, @capacitor/core dev)", "status": "complete", "note": "All at latest stable." },
+        { "id": "phase01.2", "title": "Remove deprecated @testing-library/react-hooks (DEP-1); switch tests to RTL renderHook", "status": "complete", "note": "Was not imported anywhere; tests already use RTL renderHook. Removed." },
+        { "id": "phase01.3", "title": "Update build majors: vite 8, @vitejs/plugin-react 6, vite-plugin-dts 5", "status": "complete", "note": "build green, no config change needed." },
+        { "id": "phase01.4", "title": "Update eslint 10 + jsdom 29 + lint-staged 17", "status": "complete", "note": "lint green (flat config compatible); lint-staged config shape still valid." },
+        { "id": "phase01.5", "title": "Update typescript 6.0", "status": "complete", "note": "Needed tsconfig fixes — see phase02.1." },
+        { "id": "phase01.6", "title": "Raise peerDependencies floors to latest stable (KR-1)", "status": "complete", "note": "Capacitor>=8, firebase>=12.13.0, react>=19.2.6, react-onesignal>=3.5.3." },
+        { "id": "phase01.7", "title": "yarn install clean; delete any package-lock/pnpm-lock", "status": "complete", "note": "Only yarn.lock present." }
+      ]
+    },
+    {
+      "id": "phase02",
+      "title": "Toolchain breakage / deprecation fixes",
+      "status": "complete",
+      "completedAt": "2026-05-26",
+      "file": "docs/features/package-polish-release/phase02-toolchain-breakage-fixes.md",
+      "subTasks": [
+        { "id": "phase02.1", "title": "Fix TypeScript 6.0 type-check errors/deprecations", "status": "complete", "note": "Removed deprecated baseUrl; made paths relative (./src/*); added types:[node] for process/global. tsconfig.json." },
+        { "id": "phase02.2", "title": "Fix ESLint 10 flat-config breakage", "status": "complete", "note": "No changes needed — eslint.config.js flat config compatible with v10." },
+        { "id": "phase02.3", "title": "Fix Vite 8 / plugin-react 6 / dts 5 build breakage", "status": "complete", "note": "No changes needed — build clean, dist artifacts intact." },
+        { "id": "phase02.4", "title": "Fix jsdom 29 / lint-staged 17 test+hook breakage", "status": "complete", "note": "Added in-memory localStorage/sessionStorage mock to src/test/setup.ts (jsdom opaque-origin gap). 124/124 tests pass." },
+        { "id": "phase02.5", "title": "GATE: type-check + build + lint + test all green", "status": "complete", "note": "type-check ✅ build ✅ lint ✅ test 124/124 ✅." }
+      ]
+    },
+    {
+      "id": "phase03",
+      "title": "Security fixes",
+      "status": "pending",
+      "completedAt": null,
+      "file": "docs/features/package-polish-release/phase03-security-fixes.md",
+      "subTasks": [
+        { "id": "phase03.1", "title": "CP-S1: OneSignal sendNotification client REST-key leak -> server-only throw", "status": "pending", "note": null },
+        { "id": "phase03.2", "title": "CP-S2: in-app icon innerHTML XSS -> safe rendering", "status": "pending", "note": null },
+        { "id": "phase03.3", "title": "RU-S1: stripHtml clarify not-a-sanitizer; ensure no innerHTML use", "status": "pending", "note": null },
+        { "id": "phase03.4", "title": "CP-S3/RU-L3: config-validator secret heuristic best-effort", "status": "pending", "note": null }
+      ]
+    },
+    {
+      "id": "phase04",
+      "title": "Core correctness",
+      "status": "pending",
+      "completedAt": null,
+      "file": "docs/features/package-polish-release/phase04-core-correctness.md",
+      "subTasks": [
+        { "id": "phase04.1", "title": "CP-H2: fix emit() envelope clobbering; CP-H1: onPush/onPushOpened firing", "status": "pending", "note": null },
+        { "id": "phase04.2", "title": "CP-C3/H3: capture+await+remove native LocalNotifications listeners on destroy", "status": "pending", "note": null },
+        { "id": "phase04.3", "title": "CP-M8/M9: per-platform capability matrix; isSupported() correct", "status": "pending", "note": null },
+        { "id": "phase04.4", "title": "CP-H6: getDelivered maps to public type; CP-M1: id validation (string|number)", "status": "pending", "note": null },
+        { "id": "phase04.5", "title": "CP-M3/M4/M5: storage unicode-safe obfuscation + clear() prefix + per-record TTL", "status": "pending", "note": null },
+        { "id": "phase04.6", "title": "CP-H4: Firebase onMessage top-level title/body; CP-M10: native register; CP-M11: refreshToken safety", "status": "pending", "note": null },
+        { "id": "phase04.7", "title": "CP-M2/L1-L8 polish (permissions routing, openSettings honesty, logging in catches, generateId)", "status": "pending", "note": null }
+      ]
+    },
+    {
+      "id": "phase05",
+      "title": "React hooks correctness",
+      "status": "pending",
+      "completedAt": null,
+      "file": "docs/features/package-polish-release/phase05-react-hooks-correctness.md",
+      "subTasks": [
+        { "id": "phase05.1", "title": "RU-C1: replace in-app 1Hz polling with manager show/dismiss subscription", "status": "pending", "note": null },
+        { "id": "phase05.2", "title": "RU-C2: useNotifications functional updater + drop state.notifications dep", "status": "pending", "note": null },
+        { "id": "phase05.3", "title": "RU-C3: listenerId collision -> counter/uuid", "status": "pending", "note": null },
+        { "id": "phase05.4", "title": "RU-H2: scheduleNotification proper NotificationSchedule shape", "status": "pending", "note": null },
+        { "id": "phase05.5", "title": "RU-M6/M7: configure functional + queue off events; RU-H1: document destroy semantics", "status": "pending", "note": null },
+        { "id": "phase05.6", "title": "RU-M9/L7/L8: log swallowed errors; memoize hook return identities", "status": "pending", "note": null }
+      ]
+    },
+    {
+      "id": "phase06",
+      "title": "Utils correctness",
+      "status": "pending",
+      "completedAt": null,
+      "file": "docs/features/package-polish-release/phase06-utils-correctness.md",
+      "subTasks": [
+        { "id": "phase06.1", "title": "RU-H4: calculateAtTime advance-to-future; RU-H3: calculateOnTime precedence", "status": "pending", "note": null },
+        { "id": "phase06.2", "title": "RU-H5: month-overflow clamp + timezone honor/remove + document local-time", "status": "pending", "note": null },
+        { "id": "phase06.3", "title": "RU-H6: cron DOW + ranges/steps or documented limitation; remove dead code", "status": "pending", "note": null },
+        { "id": "phase06.4", "title": "RU-M3/M4/M5: truncateText, formatRelativeTime future, formatFileSize guards; substr->slice", "status": "pending", "note": null },
+        { "id": "phase06.5", "title": "RU-L4: dynamic-loader MODULE_NOT_FOUND check; RU-L9 day-per-month validation", "status": "pending", "note": null }
+      ]
+    },
+    {
+      "id": "phase07",
+      "title": "Provider honesty + OneSignal v3 + completion",
+      "status": "pending",
+      "completedAt": null,
+      "file": "docs/features/package-polish-release/phase07-provider-honesty-onesignal-v3.md",
+      "subTasks": [
+        { "id": "phase07.1", "title": "CP-M6: rewrite OneSignalProvider to react-onesignal v3 API (based on installed @3.5.3 types); remove unsafe casts", "status": "pending", "note": "Riskiest (KR-3)." },
+        { "id": "phase07.2", "title": "CP-H5/M7: OneSignal native action optional-chaining; subscriptionChanged await/both-states", "status": "pending", "note": null },
+        { "id": "phase07.3", "title": "CP-H7: Firebase topics -> honest capability + optional topicsEndpoint hook", "status": "pending", "note": null },
+        { "id": "phase07.4", "title": "CP-H8: native OneSignal honest errors + correct capability + docs", "status": "pending", "note": null }
+      ]
+    },
+    {
+      "id": "phase08",
+      "title": "Logger standard + ESLint no-console",
+      "status": "pending",
+      "completedAt": null,
+      "file": "docs/features/package-polish-release/phase08-logger-standard.md",
+      "subTasks": [
+        { "id": "phase08.1", "title": "STD-1/RU-M1: logger level gating, default warn, localStorage switch, setLevel, window devtools, console patching", "status": "pending", "note": null },
+        { "id": "phase08.2", "title": "STD-2/PK-H5: add no-console:'error' (logger exempt); fix any newly-flagged callsites", "status": "pending", "note": null },
+        { "id": "phase08.3", "title": "GATE: no-console grep zero outside logger", "status": "pending", "note": null }
+      ]
+    },
+    {
+      "id": "phase09",
+      "title": "Packaging & build",
+      "status": "pending",
+      "completedAt": null,
+      "file": "docs/features/package-polish-release/phase09-packaging-build.md",
+      "subTasks": [
+        { "id": "phase09.1", "title": "PK-C2: engines.node -> >=20; PK-L2: sideEffects:false", "status": "pending", "note": null },
+        { "id": "phase09.2", "title": "PK-H1: add CJS build (vite formats es+cjs) + exports require/default conditions; verify import & require", "status": "pending", "note": null },
+        { "id": "phase09.3", "title": "PK-C1: ship SW templates (copy to dist/templates + files) + wire setup.js to deploy them", "status": "pending", "note": null },
+        { "id": "phase09.4", "title": "PK-M6: setup.js red color + real repo URL; PK-M5: remove vite.config test block; PK-L1 .npmignore; PK-L3 eslint ecmaVersion; PK-L6 prepare/husky", "status": "pending", "note": null },
+        { "id": "phase09.5", "title": "PK-M4: drive exported version from package.json; PK-L5 align SW Firebase versions", "status": "pending", "note": null }
+      ]
+    },
+    {
+      "id": "phase10",
+      "title": "Documentation refresh",
+      "status": "pending",
+      "completedAt": null,
+      "file": "docs/features/package-polish-release/phase10-documentation.md",
+      "subTasks": [
+        { "id": "phase10.1", "title": "PK-H2/H3/H4/M1/M2/M3: fix Readme.md + AI-INTEGRATION-GUIDE.md API mismatches", "status": "pending", "note": null },
+        { "id": "phase10.2", "title": "CHANGELOG 2.1.0 entry with deps + fixes + ⚠️ peer-dep note (PK-M4)", "status": "pending", "note": null },
+        { "id": "phase10.3", "title": "Refresh root + nested CLAUDE.md/AGENTS.md (Last Updated 2026-05-26, new state)", "status": "pending", "note": null },
+        { "id": "phase10.4", "title": "Refresh portfolio file + docs/ guides + website docs content to match API", "status": "pending", "note": null }
+      ]
+    },
+    {
+      "id": "phase11",
+      "title": "Release: verify + bump + publish",
+      "status": "pending",
+      "completedAt": null,
+      "file": "docs/features/package-polish-release/phase11-release.md",
+      "subTasks": [
+        { "id": "phase11.1", "title": "Full gate: install + type-check + build + lint + test all green; verify dist (import+require, types, templates)", "status": "pending", "note": null },
+        { "id": "phase11.2", "title": "Bump version 2.0.6 -> 2.1.0 in package.json + exported constant + docs", "status": "pending", "note": null },
+        { "id": "phase11.3", "title": "Final commit + git pull --rebase + push", "status": "pending", "note": null },
+        { "id": "phase11.4", "title": "npm whoami (aoneahsan) + npm publish; verify npm view notification-kit version == 2.1.0; report", "status": "pending", "note": "Outward-facing irreversible; user pre-authorized direct publish." }
+      ]
+    }
+  ],
+  "runHistory": [
+    { "date": "2026-05-26", "phase": "phase00", "summary": "Fresh start. Ran 3 parallel deep-audit agents + dependency sweep. Synthesized findings.md (8 critical, ~19 high, ~25 med, ~20 low). Captured 3 user decisions. Wrote overview + tracker + 11 phase specs.", "commit": "pending" },
+    { "date": "2026-05-26", "phase": "phase01+phase02", "summary": "Updated ALL deps to latest stable (incl. majors TS6, ESLint10, Vite8, jsdom29, lint-staged17, plugin-react6, dts5). Removed deprecated @testing-library/react-hooks. Raised peer floors (Capacitor8/firebase12.13/react19.2.6/onesignal3.5.3). Toolchain fixes: tsconfig baseUrl->relative paths + types:[node]; localStorage mock in test setup. Baseline 13 red tests -> 124/124 green. type-check+build+lint+test all clean.", "commit": "pending" }
+  ],
+  "nextSuggestion": {
+    "phase": "phase03",
+    "subTask": "phase03.1",
+    "rationale": "Toolchain is green at latest deps. Next: security fixes (highest priority) — CP-S1 OneSignal client REST-key leak, CP-S2 in-app icon XSS.",
+    "command": "Invoke security-review + capacitor-best-practices skills; fix CP-S1, CP-S2, RU-S1, CP-S3 per phase03 spec."
+  },
+  "resumeInstructions": "1) Read this tracker. 2) Read 00-overview.md + findings.md. 3) Find the first phase/sub-task with status 'pending' or 'in_progress'. 4) Read that phase's spec file. 5) Invoke matching skills per RULE #0 for that phase. 6) Do the work; run the phase gate. 7) Mark sub-tasks 'complete', append a runHistory row, bump lastUpdated. 8) ONE commit per session including this tracker. 9) Phase 11.4 (npm publish) is the only irreversible step — user pre-authorized direct publish; still verify gates first."
+}
