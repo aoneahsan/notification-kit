@@ -206,11 +206,18 @@ export class FormattingUtils {
    * Format file size
    */
   static formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes'
+    // Guard non-finite, negative, and sub-1-byte values (Math.log would yield
+    // NaN / a negative index and render "undefined").
+    if (!Number.isFinite(bytes) || bytes < 1) {
+      return '0 Bytes'
+    }
 
     const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+    const i = Math.min(
+      Math.floor(Math.log(bytes) / Math.log(k)),
+      sizes.length - 1
+    )
 
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
@@ -261,6 +268,12 @@ export class FormattingUtils {
       return text
     }
 
+    // For very small limits there is no room for an ellipsis; hard-truncate so
+    // the result never exceeds maxLength (e.g. truncate('hello', 2) -> 'he').
+    if (maxLength <= 3) {
+      return text.slice(0, Math.max(0, maxLength))
+    }
+
     return text.substring(0, maxLength - 3) + '...'
   }
 
@@ -285,7 +298,7 @@ export class FormattingUtils {
 
     return text.replace(
       /\w\S*/g,
-      txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+      txt => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase()
     )
   }
 
@@ -294,20 +307,26 @@ export class FormattingUtils {
    */
   static formatRelativeTime(date: Date): string {
     const now = new Date()
-    const diff = now.getTime() - date.getTime()
-    const seconds = Math.floor(diff / 1000)
+    const diffMs = now.getTime() - date.getTime()
+    const isFuture = diffMs < 0
+    const seconds = Math.floor(Math.abs(diffMs) / 1000)
     const minutes = Math.floor(seconds / 60)
     const hours = Math.floor(minutes / 60)
     const days = Math.floor(hours / 24)
 
     if (seconds < 60) {
       return 'Just now'
-    } else if (minutes < 60) {
-      return `${minutes}m ago`
+    }
+
+    // Handle both past ("5m ago") and future ("in 5m") timestamps.
+    const phrase = (value: string) => (isFuture ? `in ${value}` : `${value} ago`)
+
+    if (minutes < 60) {
+      return phrase(`${minutes}m`)
     } else if (hours < 24) {
-      return `${hours}h ago`
+      return phrase(`${hours}h`)
     } else if (days < 7) {
-      return `${days}d ago`
+      return phrase(`${days}d`)
     } else {
       return date.toLocaleDateString()
     }

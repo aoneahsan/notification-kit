@@ -46,36 +46,62 @@ export class SchedulingUtils {
   static calculateAtTime(at: Date, now: Date): Date {
     const scheduledTime = new Date(at)
 
-    // If the time has already passed, schedule for tomorrow
+    // If the time has already passed, roll forward to the next future occurrence
+    // of that time-of-day. (The old code added a single day, which left dates
+    // more than a day in the past still in the past.)
     if (scheduledTime <= now) {
-      scheduledTime.setDate(scheduledTime.getDate() + 1)
+      scheduledTime.setFullYear(now.getFullYear(), now.getMonth(), now.getDate())
+      if (scheduledTime <= now) {
+        scheduledTime.setDate(scheduledTime.getDate() + 1)
+      }
     }
 
     return scheduledTime
   }
 
   /**
-   * Calculate schedule on specific day/time
+   * Calculate the next scheduled time from `on` components.
+   *
+   * Precedence (the two are mutually exclusive — mixing them is ambiguous):
+   *  - If `weekday` is set → WEEKDAY mode: year/month/day are ignored and the
+   *    next matching weekday (at the given time-of-day) is chosen.
+   *  - Otherwise → DATE mode: the explicit year/month/day are applied; if the
+   *    resulting time is in the past it rolls forward (by a month when a
+   *    day-of-month was specified, else by a day).
+   *
+   * All math is in LOCAL time (matching the device); the `timezone` option is
+   * not applied here.
    */
   static calculateOnTime(on: DateComponents, now: Date): Date {
     const scheduledTime = new Date(now)
 
-    if (on.year) scheduledTime.setFullYear(on.year)
-    if (on.month) scheduledTime.setMonth(on.month - 1) // Month is 0-indexed
-    if (on.day) scheduledTime.setDate(on.day)
+    // Time-of-day applies in both modes.
     if (on.hour !== undefined) scheduledTime.setHours(on.hour)
     if (on.minute !== undefined) scheduledTime.setMinutes(on.minute)
     if (on.second !== undefined) scheduledTime.setSeconds(on.second)
+    if (on.second === undefined) scheduledTime.setSeconds(0)
+    scheduledTime.setMilliseconds(0)
 
-    // If the time has already passed, find the next occurrence
+    if (on.weekday !== undefined) {
+      // WEEKDAY mode.
+      const weekdayNumber = this.weekdayToNumber(on.weekday as WeekDay)
+      const dayDiff = (weekdayNumber - scheduledTime.getDay() + 7) % 7
+      scheduledTime.setDate(scheduledTime.getDate() + dayDiff)
+      if (scheduledTime <= now) {
+        scheduledTime.setDate(scheduledTime.getDate() + 7)
+      }
+      return scheduledTime
+    }
+
+    // DATE mode.
+    if (on.year !== undefined) scheduledTime.setFullYear(on.year)
+    if (on.month !== undefined) scheduledTime.setMonth(on.month - 1) // 0-indexed
+    if (on.day !== undefined) scheduledTime.setDate(on.day)
+
     if (scheduledTime <= now) {
-      if (on.weekday !== undefined) {
-        // Schedule for next occurrence of the weekday
-        const weekdayNumber = this.weekdayToNumber(on.weekday as WeekDay)
-        const dayDiff = (weekdayNumber - scheduledTime.getDay() + 7) % 7
-        scheduledTime.setDate(scheduledTime.getDate() + (dayDiff || 7))
+      if (on.day !== undefined) {
+        scheduledTime.setMonth(scheduledTime.getMonth() + 1)
       } else {
-        // Schedule for next occurrence
         scheduledTime.setDate(scheduledTime.getDate() + 1)
       }
     }
@@ -90,7 +116,7 @@ export class SchedulingUtils {
     const scheduledTime = new Date(now)
     const frequency = every.interval || 1
 
-    // Handle based on the frequency type
+    // Handle based on the frequency type. (All math is in LOCAL time.)
     switch (every.frequency) {
       case 'daily':
         scheduledTime.setDate(scheduledTime.getDate() + Number(frequency))
@@ -98,9 +124,20 @@ export class SchedulingUtils {
       case 'weekly':
         scheduledTime.setDate(scheduledTime.getDate() + Number(frequency) * 7)
         break
-      case 'monthly':
+      case 'monthly': {
+        // Clamp the day so e.g. Jan 31 + 1 month → Feb 28/29, not a rollover to
+        // March (setMonth alone overflows when the target month is shorter).
+        const day = scheduledTime.getDate()
+        scheduledTime.setDate(1)
         scheduledTime.setMonth(scheduledTime.getMonth() + Number(frequency))
+        const daysInTargetMonth = new Date(
+          scheduledTime.getFullYear(),
+          scheduledTime.getMonth() + 1,
+          0
+        ).getDate()
+        scheduledTime.setDate(Math.min(day, daysInTargetMonth))
         break
+      }
       case 'yearly':
         scheduledTime.setFullYear(scheduledTime.getFullYear() + Number(frequency))
         break
@@ -366,8 +403,11 @@ export class SchedulingUtils {
    * Parse cron expression to schedule options
    */
   static parseCronExpression(cron: string): ScheduleOptions | null {
-    // Basic cron parsing (simplified)
-    const parts = cron.split(' ')
+    // Basic cron parsing: supports a single numeric value or '*' per field.
+    // Ranges (1-5), steps (*/2), and lists (1,3,5) are NOT supported — such
+    // fields are treated as '*'. The 5 fields are: minute hour day-of-month
+    // month day-of-week.
+    const parts = cron.trim().split(/\s+/)
     if (parts.length !== 5) {
       return null
     }
@@ -377,35 +417,29 @@ export class SchedulingUtils {
       hour = '*',
       dayOfMonth = '*',
       month = '*',
-      _dayOfWeek = '*',
+      dayOfWeek = '*',
     ] = parts
 
     const schedule: ScheduleOptions = {
       title: '',
-      body: ''
+      body: '',
     }
 
-    // Handle simple cases
-    if (minute !== '*' || hour !== '*') {
-      const on: DateComponents = {}
+    const on: DateComponents = {}
+    const setField = (raw: string, assign: (n: number) => void): void => {
+      if (raw === '*') return
+      const parsed = parseInt(raw, 10)
+      if (!isNaN(parsed)) assign(parsed)
+    }
 
-      if (minute !== '*') {
-        const parsed = parseInt(minute, 10)
-        if (!isNaN(parsed)) on.minute = parsed
-      }
-      if (hour !== '*') {
-        const parsed = parseInt(hour, 10)
-        if (!isNaN(parsed)) on.hour = parsed
-      }
-      if (dayOfMonth !== '*') {
-        const parsed = parseInt(dayOfMonth, 10)
-        if (!isNaN(parsed)) on.day = parsed
-      }
-      if (month !== '*') {
-        const parsed = parseInt(month, 10)
-        if (!isNaN(parsed)) on.month = parsed
-      }
+    setField(minute, n => (on.minute = n))
+    setField(hour, n => (on.hour = n))
+    setField(dayOfMonth, n => (on.day = n))
+    setField(month, n => (on.month = n))
+    // Cron day-of-week is 0-6 (Sun-Sat) with 7 also meaning Sunday.
+    setField(dayOfWeek, n => (on.weekday = (n === 7 ? 0 : n) as WeekDay))
 
+    if (Object.keys(on).length > 0) {
       schedule.on = on as any
     }
 
@@ -421,7 +455,10 @@ export class SchedulingUtils {
       const hour = schedule.on.hour !== undefined ? schedule.on.hour : '*'
       const dayOfMonth = schedule.on.day !== undefined ? schedule.on.day : '*'
       const month = schedule.on.month !== undefined ? schedule.on.month : '*'
-      const dayOfWeek = '*' // Simplified for now
+      const dayOfWeek =
+        schedule.on.weekday !== undefined
+          ? this.weekdayToNumber(schedule.on.weekday as WeekDay)
+          : '*'
 
       return `${minute} ${hour} ${dayOfMonth} ${month} ${dayOfWeek}`
     }
@@ -449,7 +486,8 @@ export class SchedulingUtils {
           case 'daily':
             return `0 0 */${interval} * *`
           case 'weekly':
-            return `0 0 * * ${interval === 1 ? '0' : '*'}`
+            // Cron cannot express "every N weeks"; emit weekly-on-Sunday.
+            return `0 0 * * 0`
           case 'monthly':
             return `0 0 1 */${interval} *`
           case 'yearly':
@@ -511,13 +549,4 @@ export class SchedulingUtils {
     }
     return typeof weekday === 'number' ? weekday : (map[weekday] || 0)
   }
-
-  /**
-   * Convert number to weekday
-   */
-  // Currently unused but may be needed for future functionality
-  // private static numberToWeekday(num: number): WeekDay | undefined {
-  //   const weekdays: WeekDay[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-  //   return weekdays[num]
-  // }
 }

@@ -1,3 +1,4 @@
+import { Logger } from './logger'
 import type { InAppOptions, InAppConfig } from '@/types'
 
 /**
@@ -9,6 +10,7 @@ export class InAppNotificationManager {
   private activeNotifications: Map<string, InAppNotificationInstance> =
     new Map()
   private config: InAppConfig = {}
+  private changeListeners: Set<() => void> = new Set()
 
   private constructor() {
     this.createContainer()
@@ -39,6 +41,7 @@ export class InAppNotificationManager {
     const notification = this.createNotification(id, options)
 
     this.activeNotifications.set(id, notification)
+    this.notifyChange()
 
     if (this.container) {
       this.container.appendChild(notification.element)
@@ -76,6 +79,7 @@ export class InAppNotificationManager {
         this.container.removeChild(notification.element)
       }
       this.activeNotifications.delete(id)
+      this.notifyChange()
     }, 300)
 
     if (notification.options.onDismiss) {
@@ -96,6 +100,31 @@ export class InAppNotificationManager {
    */
   getActive(): InAppNotificationInstance[] {
     return Array.from(this.activeNotifications.values())
+  }
+
+  /**
+   * Subscribe to active-notification changes (fires on show and on dismiss).
+   * Returns an unsubscribe function. Lets React hooks react to changes via a
+   * subscription instead of polling on an interval.
+   */
+  subscribe(listener: () => void): () => void {
+    this.changeListeners.add(listener)
+    return () => {
+      this.changeListeners.delete(listener)
+    }
+  }
+
+  /**
+   * Notify all change subscribers. A throwing subscriber never blocks others.
+   */
+  private notifyChange(): void {
+    this.changeListeners.forEach(listener => {
+      try {
+        listener()
+      } catch (error) {
+        Logger.debug('notification-kit: in-app change listener threw', error)
+      }
+    })
   }
 
   /**
@@ -489,7 +518,14 @@ export class InAppNotificationManager {
    * Generate unique ID
    */
   private generateId(): string {
-    return Math.random().toString(36).substr(2, 9)
+    const cryptoObj =
+      typeof globalThis !== 'undefined'
+        ? (globalThis.crypto as Crypto | undefined)
+        : undefined
+    if (cryptoObj && typeof cryptoObj.randomUUID === 'function') {
+      return cryptoObj.randomUUID()
+    }
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
   }
 }
 

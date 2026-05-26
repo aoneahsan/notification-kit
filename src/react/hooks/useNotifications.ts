@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { NotificationKit, notifications } from '@/core/NotificationKit'
+import { Logger } from '@/utils/logger'
 import type {
   NotificationConfig,
   PermissionStatus,
@@ -37,6 +38,8 @@ export interface UseNotificationsReturn extends UseNotificationsState {
   // Permissions
   requestPermission: () => Promise<boolean>
   checkPermission: () => Promise<PermissionStatus>
+  /** Convenience flag: true when `permission === 'granted'`. */
+  isPermissionGranted: boolean
 
   // Token management
   getToken: () => Promise<string>
@@ -97,6 +100,7 @@ export function useNotifications(): UseNotificationsReturn {
 
   const notificationKitRef = useRef<NotificationKit | null>(null)
   const eventListenersRef = useRef<Map<string, () => void>>(new Map())
+  const listenerIdCounterRef = useRef(0)
 
   /**
    * Update state helper
@@ -125,7 +129,7 @@ export function useNotifications(): UseNotificationsReturn {
           try {
             token = await notificationKitRef.current.getToken()
           } catch (error) {
-            // Token retrieval failed, continue without token
+            Logger.debug('notification-kit: token retrieval failed at init', error)
           }
         }
 
@@ -148,7 +152,12 @@ export function useNotifications(): UseNotificationsReturn {
   )
 
   /**
-   * Destroy notification kit
+   * Destroy the notification kit.
+   *
+   * NOTE: NotificationKit is a process-global singleton, so calling destroy()
+   * tears it down for EVERY consumer of the kit/hook in the app — it is not
+   * scoped to this component instance. Call it only when shutting notifications
+   * down app-wide (e.g. on sign-out), not on routine component unmount.
    */
   const destroy = useCallback(async () => {
     try {
@@ -194,7 +203,10 @@ export function useNotifications(): UseNotificationsReturn {
         try {
           token = await notificationKitRef.current.getToken()
         } catch (error) {
-          // Token retrieval failed after permission, continue without token
+          Logger.debug(
+            'notification-kit: token retrieval failed after permission grant',
+            error
+          )
         }
       }
 
@@ -271,15 +283,18 @@ export function useNotifications(): UseNotificationsReturn {
 
       try {
         await notificationKitRef.current.subscribe(topic)
-        updateState({
-          subscriptions: [...state.subscriptions, topic],
-        })
+        setState(prev => ({
+          ...prev,
+          subscriptions: prev.subscriptions.includes(topic)
+            ? prev.subscriptions
+            : [...prev.subscriptions, topic],
+        }))
       } catch (error) {
         updateState({ error: error as Error })
         throw error
       }
     },
-    [state.subscriptions, updateState]
+    [updateState]
   )
 
   /**
@@ -293,15 +308,16 @@ export function useNotifications(): UseNotificationsReturn {
 
       try {
         await notificationKitRef.current.unsubscribe(topic)
-        updateState({
-          subscriptions: state.subscriptions.filter(sub => sub !== topic),
-        })
+        setState(prev => ({
+          ...prev,
+          subscriptions: prev.subscriptions.filter(sub => sub !== topic),
+        }))
       } catch (error) {
         updateState({ error: error as Error })
         throw error
       }
     },
-    [state.subscriptions, updateState]
+    [updateState]
   )
 
   /**
@@ -347,36 +363,34 @@ export function useNotifications(): UseNotificationsReturn {
           ...notificationPayload
         } = options
 
-        const scheduleOptions: ScheduleOptions = {
-          title: '',
-          body: ''
-        }
-        if (at !== undefined) scheduleOptions.at = at
-        if (inProp !== undefined) scheduleOptions.in = inProp
-        if (every !== undefined) scheduleOptions.every = every
-        if (count !== undefined) scheduleOptions.count = count
-        if (until !== undefined) scheduleOptions.until = until
-        if (on !== undefined) scheduleOptions.on = on
-        if (days !== undefined) scheduleOptions.days = days
-        if (timezone !== undefined) scheduleOptions.timezone = timezone
-        if (allowWhileIdle !== undefined)
-          scheduleOptions.allowWhileIdle = allowWhileIdle
-        if (exact !== undefined) scheduleOptions.exact = exact
-        if (wakeDevice !== undefined) scheduleOptions.wakeDevice = wakeDevice
-        if (priority !== undefined) scheduleOptions.priority = priority
-        if (category !== undefined) scheduleOptions.category = category
-        if (identifier !== undefined) scheduleOptions.identifier = identifier
+        // Collect only the scheduling fields. title/body belong on the
+        // notification payload, NOT on the schedule object (the old code stuffed
+        // empty title/body here, producing dead/confusing data).
+        const schedule: Record<string, unknown> = {}
+        if (at !== undefined) schedule.at = at
+        if (inProp !== undefined) schedule.in = inProp
+        if (every !== undefined) schedule.every = every
+        if (count !== undefined) schedule.count = count
+        if (until !== undefined) schedule.until = until
+        if (on !== undefined) schedule.on = on
+        if (days !== undefined) schedule.days = days
+        if (timezone !== undefined) schedule.timezone = timezone
+        if (allowWhileIdle !== undefined) schedule.allowWhileIdle = allowWhileIdle
+        if (exact !== undefined) schedule.exact = exact
+        if (wakeDevice !== undefined) schedule.wakeDevice = wakeDevice
+        if (category !== undefined) schedule.category = category
+        if (identifier !== undefined) schedule.identifier = identifier
         if (triggerInBackground !== undefined)
-          scheduleOptions.triggerInBackground = triggerInBackground
+          schedule.triggerInBackground = triggerInBackground
         if (skipIfBatteryLow !== undefined)
-          scheduleOptions.skipIfBatteryLow = skipIfBatteryLow
+          schedule.skipIfBatteryLow = skipIfBatteryLow
         if (respectQuietHours !== undefined)
-          scheduleOptions.respectQuietHours = respectQuietHours
+          schedule.respectQuietHours = respectQuietHours
 
         const payload: LocalNotificationPayload = {
           ...notificationPayload,
           priority: priorityMap[priority || 'normal'] || 'default',
-          schedule: scheduleOptions as any,
+          schedule: schedule as any,
         }
 
         await notificationKitRef.current.scheduleLocalNotification(
@@ -503,7 +517,9 @@ export function useNotifications(): UseNotificationsReturn {
       }
 
       const unsubscribe = notificationKitRef.current.on(event, callback)
-      const listenerId = `${event}-${Date.now()}`
+      // Monotonic counter avoids the Date.now() collisions that could overwrite
+      // a prior listener's cleanup entry when two register in the same ms.
+      const listenerId = `${event}-${++listenerIdCounterRef.current}`
       eventListenersRef.current.set(listenerId, unsubscribe)
 
       return () => {
@@ -547,7 +563,7 @@ export function useNotifications(): UseNotificationsReturn {
         try {
           token = await notificationKitRef.current.getToken()
         } catch (error) {
-          // Token refresh failed, continue without token
+          Logger.debug('notification-kit: token refresh failed during refresh', error)
         }
       }
 
@@ -578,25 +594,45 @@ export function useNotifications(): UseNotificationsReturn {
   }, [])
 
   /**
-   * In-app notification methods
+   * In-app notification methods (memoized so the object identity is stable
+   * across renders for consumers that depend on it).
    */
-  const showInApp = {
-    show: useCallback(async (options: InAppOptions) => {
-      return await notifications.showInApp(options)
-    }, []),
-    success: useCallback(async (title: string, message?: string) => {
-      return await notifications.success(title, message)
-    }, []),
-    error: useCallback(async (title: string, message?: string) => {
-      return await notifications.error(title, message)
-    }, []),
-    warning: useCallback(async (title: string, message?: string) => {
-      return await notifications.warning(title, message)
-    }, []),
-    info: useCallback(async (title: string, message?: string) => {
-      return await notifications.info(title, message)
-    }, []),
-  }
+  const showInAppShow = useCallback(
+    (options: InAppOptions) => notifications.showInApp(options),
+    []
+  )
+  const showInAppSuccess = useCallback(
+    (title: string, message?: string) => notifications.success(title, message),
+    []
+  )
+  const showInAppError = useCallback(
+    (title: string, message?: string) => notifications.error(title, message),
+    []
+  )
+  const showInAppWarning = useCallback(
+    (title: string, message?: string) => notifications.warning(title, message),
+    []
+  )
+  const showInAppInfo = useCallback(
+    (title: string, message?: string) => notifications.info(title, message),
+    []
+  )
+  const showInApp = useMemo(
+    () => ({
+      show: showInAppShow,
+      success: showInAppSuccess,
+      error: showInAppError,
+      warning: showInAppWarning,
+      info: showInAppInfo,
+    }),
+    [
+      showInAppShow,
+      showInAppSuccess,
+      showInAppError,
+      showInAppWarning,
+      showInAppInfo,
+    ]
+  )
 
   /**
    * Setup event listeners on initialization
@@ -609,17 +645,26 @@ export function useNotifications(): UseNotificationsReturn {
     // Listen for notifications
     const unsubscribeNotification = notificationKitRef.current.on(
       'notificationReceived',
-      event => {
-        const notification: Notification = {
-          id: event.notification?.id || '',
-          title: event.notification?.title || '',
-          body: event.notification?.body || '',
-          data: event.notification?.data || {},
+      (event: any) => {
+        // After the emit() envelope fix the received payload lives at
+        // event.data.payload (mirrored at event.payload).
+        const payload = event?.data?.payload ?? event?.payload ?? {}
+        const inner = payload.notification ?? payload
+        const incoming: Notification = {
+          id: String(inner?.id ?? payload?.id ?? ''),
+          title: payload?.title ?? inner?.title ?? '',
+          body: payload?.body ?? inner?.body ?? '',
+          data: payload?.data ?? inner?.data ?? {},
         }
 
-        updateState({
-          notifications: [...state.notifications, notification],
-        })
+        // Functional update (and no state.notifications dependency below) so the
+        // effect registers listeners ONCE instead of tearing down and
+        // re-subscribing on every received notification — which dropped any
+        // event that arrived during the re-subscribe gap.
+        setState(prev => ({
+          ...prev,
+          notifications: [...prev.notifications, incoming],
+        }))
       }
     )
 
@@ -652,10 +697,11 @@ export function useNotifications(): UseNotificationsReturn {
       unsubscribePermission()
       unsubscribeError()
     }
-  }, [state.isInitialized, state.notifications, updateState])
+  }, [state.isInitialized, updateState])
 
   return {
     ...state,
+    isPermissionGranted: state.permission === 'granted',
     init,
     destroy,
     requestPermission,

@@ -9,6 +9,23 @@ export class DynamicLoader {
   private static loadingPromises = new Map<string, Promise<any>>()
 
   /**
+   * Distinguish a genuinely-missing optional dependency from a runtime error
+   * thrown by the (installed) module during import — so we never mislead the
+   * developer with a "please install it" message when the package IS installed
+   * but failed for another reason.
+   */
+  private static isModuleNotFound(error: unknown): boolean {
+    const code = (error as { code?: string } | null)?.code
+    if (code === 'MODULE_NOT_FOUND' || code === 'ERR_MODULE_NOT_FOUND') {
+      return true
+    }
+    const message = error instanceof Error ? error.message : String(error)
+    return /cannot find module|failed to (resolve|fetch|load)|module not found|dynamically imported module/i.test(
+      message
+    )
+  }
+
+  /**
    * Check if Capacitor is available
    */
   static isCapacitorAvailable(): boolean {
@@ -71,10 +88,13 @@ export class DynamicLoader {
         this.loadedModules.set(cacheKey, module)
         return module
       } catch (error) {
-        throw new Error(
-          'Push notifications require @capacitor/push-notifications. ' +
-          'Please install it: yarn add @capacitor/push-notifications'
-        )
+        if (this.isModuleNotFound(error)) {
+          throw new Error(
+            'Push notifications require @capacitor/push-notifications. ' +
+              'Please install it: yarn add @capacitor/push-notifications'
+          )
+        }
+        throw error instanceof Error ? error : new Error(String(error))
       }
     })()
 
@@ -102,10 +122,13 @@ export class DynamicLoader {
         this.loadedModules.set(cacheKey, module)
         return module
       } catch (error) {
-        throw new Error(
-          'Local notifications require @capacitor/local-notifications. ' +
-          'Please install it: yarn add @capacitor/local-notifications'
-        )
+        if (this.isModuleNotFound(error)) {
+          throw new Error(
+            'Local notifications require @capacitor/local-notifications. ' +
+              'Please install it: yarn add @capacitor/local-notifications'
+          )
+        }
+        throw error instanceof Error ? error : new Error(String(error))
       }
     })()
 
@@ -162,10 +185,13 @@ export class DynamicLoader {
         this.loadedModules.set(cacheKey, module)
         return module
       } catch (error) {
-        throw new Error(
-          'Firebase provider requires firebase. ' +
-          'Please install it: yarn add firebase'
-        )
+        if (this.isModuleNotFound(error)) {
+          throw new Error(
+            'Firebase provider requires firebase. ' +
+              'Please install it: yarn add firebase'
+          )
+        }
+        throw error instanceof Error ? error : new Error(String(error))
       }
     })()
 
@@ -193,10 +219,13 @@ export class DynamicLoader {
         this.loadedModules.set(cacheKey, module)
         return module
       } catch (error) {
-        throw new Error(
-          'Firebase messaging requires firebase. ' +
-          'Please install it: yarn add firebase'
-        )
+        if (this.isModuleNotFound(error)) {
+          throw new Error(
+            'Firebase messaging requires firebase. ' +
+              'Please install it: yarn add firebase'
+          )
+        }
+        throw error instanceof Error ? error : new Error(String(error))
       }
     })()
 
@@ -224,10 +253,13 @@ export class DynamicLoader {
         this.loadedModules.set(cacheKey, module)
         return module
       } catch (error) {
-        throw new Error(
-          'OneSignal provider requires react-onesignal. ' +
-          'Please install it: yarn add react-onesignal'
-        )
+        if (this.isModuleNotFound(error)) {
+          throw new Error(
+            'OneSignal provider requires react-onesignal. ' +
+              'Please install it: yarn add react-onesignal'
+          )
+        }
+        throw error instanceof Error ? error : new Error(String(error))
       }
     })()
 

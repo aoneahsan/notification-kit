@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   InAppNotificationManager,
   type InAppNotificationInstance,
@@ -8,6 +8,7 @@ import {
   getActiveInAppNotifications,
   configureInAppNotifications,
 } from '@/utils/inApp'
+import { Logger } from '@/utils/logger'
 import type { InAppOptions, InAppConfig } from '@/types'
 
 /**
@@ -80,7 +81,7 @@ export function useInAppNotification(): UseInAppNotificationReturn {
     Set<(notification: InAppNotificationInstance) => void>
   >(new Set())
   const dismissCallbacksRef = useRef<Set<(id: string) => void>>(new Set())
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const mountedRef = useRef(true)
 
   /**
    * Update state helper
@@ -106,8 +107,10 @@ export function useInAppNotification(): UseInAppNotificationReturn {
    * Update active notifications
    */
   const updateActiveNotifications = useCallback(() => {
-    const active = getActiveInAppNotifications()
-    updateState({ activeNotifications: active })
+    if (!mountedRef.current) {
+      return
+    }
+    updateState({ activeNotifications: getActiveInAppNotifications() })
   }, [updateState])
 
   /**
@@ -117,12 +120,13 @@ export function useInAppNotification(): UseInAppNotificationReturn {
     (config: InAppConfig) => {
       initializeManager()
       configureInAppNotifications(config)
-      updateState({
+      setState(prev => ({
+        ...prev,
         isConfigured: true,
-        config: { ...state.config, ...config },
-      })
+        config: { ...prev.config, ...config },
+      }))
     },
-    [initializeManager, state.config, updateState]
+    [initializeManager]
   )
 
   /**
@@ -132,26 +136,26 @@ export function useInAppNotification(): UseInAppNotificationReturn {
     async (options: InAppOptions) => {
       initializeManager()
 
-      const id = await showInAppNotification(options, state.config || undefined)
+      // The manager retains config set via configure(); no need to re-pass it.
+      const id = await showInAppNotification(options)
 
-      // Update active notifications
+      // Reflect the change immediately (the manager subscription also fires, but
+      // an explicit update avoids waiting a tick); then notify show callbacks.
       updateActiveNotifications()
-
-      // Notify show callbacks
       const notification = getActiveInAppNotifications().find(n => n.id === id)
       if (notification) {
         showCallbacksRef.current.forEach(callback => {
           try {
             callback(notification)
           } catch (error) {
-            // Show callback error, continue to next callback
+            Logger.warn('notification-kit: onShow callback threw', error)
           }
         })
       }
 
       return id
     },
-    [initializeManager, state.config, updateActiveNotifications]
+    [initializeManager, updateActiveNotifications]
   )
 
   /**
@@ -237,15 +241,12 @@ export function useInAppNotification(): UseInAppNotificationReturn {
     async (id: string) => {
       await dismissInAppNotification(id)
 
-      // Update active notifications
       updateActiveNotifications()
-
-      // Notify dismiss callbacks
       dismissCallbacksRef.current.forEach(callback => {
         try {
           callback(id)
         } catch (error) {
-          // Dismiss callback error, continue to next callback
+          Logger.warn('notification-kit: onDismiss callback threw', error)
         }
       })
     },
@@ -256,24 +257,21 @@ export function useInAppNotification(): UseInAppNotificationReturn {
    * Dismiss all notifications
    */
   const dismissAll = useCallback(async () => {
-    const activeIds = state.activeNotifications.map(n => n.id)
+    const activeIds = getActiveInAppNotifications().map(n => n.id)
 
     await dismissAllInAppNotifications()
 
-    // Update active notifications
     updateActiveNotifications()
-
-    // Notify dismiss callbacks for all dismissed notifications
     activeIds.forEach(id => {
       dismissCallbacksRef.current.forEach(callback => {
         try {
           callback(id)
         } catch (error) {
-          // Dismiss callback error, continue to next callback
+          Logger.warn('notification-kit: onDismiss callback threw', error)
         }
       })
     })
-  }, [state.activeNotifications, updateActiveNotifications])
+  }, [updateActiveNotifications])
 
   /**
    * Get active notifications
@@ -308,58 +306,66 @@ export function useInAppNotification(): UseInAppNotificationReturn {
   }, [])
 
   /**
-   * Setup active notifications polling
+   * Subscribe to manager changes (replaces the old 1 Hz polling) and load the
+   * initial active list. The subscription fires on every show and dismiss, so
+   * the component re-renders only when the notification set actually changes.
    */
   useEffect(() => {
-    // Poll active notifications every 1 second
-    intervalRef.current = setInterval(() => {
-      updateActiveNotifications()
-    }, 1000)
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
-    }
-  }, [updateActiveNotifications])
-
-  /**
-   * Initial active notifications load
-   */
-  useEffect(() => {
+    mountedRef.current = true
+    const manager = initializeManager()
+    const unsubscribe = manager.subscribe(updateActiveNotifications)
     updateActiveNotifications()
-  }, [updateActiveNotifications])
+
+    return () => {
+      mountedRef.current = false
+      unsubscribe()
+    }
+  }, [initializeManager, updateActiveNotifications])
 
   /**
-   * Cleanup on unmount
+   * Clear callback registries on unmount.
    */
   useEffect(() => {
+    const showCallbacks = showCallbacksRef.current
+    const dismissCallbacks = dismissCallbacksRef.current
     return () => {
-      showCallbacksRef.current.clear()
-      dismissCallbacksRef.current.clear()
-
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
+      showCallbacks.clear()
+      dismissCallbacks.clear()
     }
   }, [])
 
-  return {
-    ...state,
-    configure,
-    show,
-    success,
-    error,
-    warning,
-    info,
-    dismiss,
-    dismissAll,
-    getActive,
-    hasActive: state.activeNotifications.length > 0,
-    activeCount: state.activeNotifications.length,
-    onShow,
-    onDismiss,
-  }
+  return useMemo(
+    () => ({
+      ...state,
+      configure,
+      show,
+      success,
+      error,
+      warning,
+      info,
+      dismiss,
+      dismissAll,
+      getActive,
+      hasActive: state.activeNotifications.length > 0,
+      activeCount: state.activeNotifications.length,
+      onShow,
+      onDismiss,
+    }),
+    [
+      state,
+      configure,
+      show,
+      success,
+      error,
+      warning,
+      info,
+      dismiss,
+      dismissAll,
+      getActive,
+      onShow,
+      onDismiss,
+    ]
+  )
 }
 
 /**

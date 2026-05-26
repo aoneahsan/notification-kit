@@ -12,7 +12,9 @@ import type { InAppOptions } from '@/types'
 vi.mock('@/utils/inApp', () => ({
   InAppNotificationManager: {
     getInstance: vi.fn(() => ({
-      // Mock instance methods if needed
+      // subscribe returns an unsubscribe function (the hook subscribes to
+      // change events instead of polling).
+      subscribe: vi.fn(() => () => {}),
     })),
   },
   showInAppNotification: vi
@@ -71,7 +73,8 @@ describe('useInAppNotification', () => {
         expect(id).toBe('notification-id')
       })
 
-      expect(showInAppNotification).toHaveBeenCalledWith(options, undefined)
+      // show() no longer re-passes config (the manager retains it from configure()).
+      expect(showInAppNotification).toHaveBeenCalledWith(options)
     })
 
     it('should show success notification', async () => {
@@ -86,14 +89,11 @@ describe('useInAppNotification', () => {
         expect(id).toBe('notification-id')
       })
 
-      expect(showInAppNotification).toHaveBeenCalledWith(
-        {
-          title: 'Success!',
-          message: 'Operation completed',
-          type: 'success',
-        },
-        undefined
-      )
+      expect(showInAppNotification).toHaveBeenCalledWith({
+        title: 'Success!',
+        message: 'Operation completed',
+        type: 'success',
+      })
     })
 
     it('should show error notification', async () => {
@@ -105,14 +105,11 @@ describe('useInAppNotification', () => {
         expect(id).toBe('notification-id')
       })
 
-      expect(showInAppNotification).toHaveBeenCalledWith(
-        {
-          title: 'Error!',
-          message: 'Something went wrong',
-          type: 'error',
-        },
-        undefined
-      )
+      expect(showInAppNotification).toHaveBeenCalledWith({
+        title: 'Error!',
+        message: 'Something went wrong',
+        type: 'error',
+      })
     })
 
     it('should dismiss notification', async () => {
