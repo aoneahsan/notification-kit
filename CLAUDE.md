@@ -1,6 +1,6 @@
 # CLAUDE.md — notification-kit
 
-> Last Updated: 2026-05-26
+> Last Updated: 2026-05-29
 
 ## Project Overview
 
@@ -8,16 +8,18 @@
 
 ## Current Verified State
 
-- Reviewed on: `2026-05-26`
-- Package version: `2.1.0` (release in progress)
-- Install: `yarn install` passed
-- Build: `yarn build` passed (dual ESM + CJS)
-- Type-check / Lint: passed (ESLint `no-console` enforced)
-- Tests: `yarn test --run` — 124 passed, 0 failed
-- Dependencies: all at latest stable (TypeScript 6, ESLint 10, Vite 8, Vitest 4, jsdom 29, …); `@testing-library/react-hooks` removed
-- Peer floors raised: Capacitor `>=8`, firebase `>=12.13.0`, react `>=19.2.6`, react-onesignal `>=3.5.3`
+- Reviewed on: `2026-05-29` (portfolio refresh pass)
+- Package version: `2.1.1` (published on npm)
+- Install: `yarn install` passed (Yarn 4.14.1)
+- Build: `yarn build` passed (dual ESM + CJS, fresh dist regenerated)
+- Type-check: `yarn type-check` passed
+- Tests: `yarn test --run` — 124 passed (7 files), 0 failed
+- Dependencies: at latest stable (TypeScript 6, ESLint 10, Vite 8, Vitest 4, jsdom 29, …). 2026-05-29 ncu pass bumped only `eslint-plugin-prettier` 5.5.5 → 5.5.6 (devDep, patch). No risky majors held back.
+- Known dev-only peer warning: `eslint-plugin-react` requests eslint `^8.57 || ^9.7` while repo runs eslint 10 — devDependency-only, does not affect the published package.
+- Peer floors: Capacitor `>=8.3.4`, firebase `>=12.13.0`, react `>=19.2.6`, react-onesignal `>=3.5.3`; engines node `>=20`
 - Polish/release work tracked in `docs/features/package-polish-release/` (resumable `00-tracker.json`)
 - Logger deviation: leveled logger does NOT auto-patch the host console (library-appropriate; see `src/utils/CLAUDE.md`)
+- Packaging note: `package.json` `files` lists `LICENSE` but no `LICENSE` file exists at repo root (license is MIT, declared in `package.json`). README is `Readme.md`. Worth adding a real `LICENSE` file to silence `npm pack` warnings.
 
 ## Commands
 
@@ -104,17 +106,28 @@ Source code conventions and rules are in `src/CLAUDE.md`.
 
 ---
 
-## Portfolio File Maintenance
+## Portfolio Info File — Weekly Update Rule
 
-- Maintain exactly one root portfolio info file: `NOTIFICATION-KIT_portfolio-info_YYYY-MM-DD.md`
-- Refresh only after 7+ days unless major release or material capability change
-- Keep at most 10 update-history records inside the portfolio file
-- When the portfolio file changes, update `Readme.md` and `docs/README.md` in the same pass
+- Canonical portfolio info file: `/home/ahsan/Documents/ahsan-notebook/static/assets/personal/projects-info-as-portfolio-item/packages/NOTIFICATION-KIT_portfolio-info_<YYYY-MM-DD>.md`
+- Update at least once per week (and on any material change). Keep the last-updated date in the filename.
+- Keep a max-10-entry update history inside the file. On each refresh: prepend today's row, delete the previous dated file, write the new one.
+- Tracker: `/home/ahsan/Documents/01-code/docs/tracking/portfolio-info-files-update-tracker.json`
+- Last applied: 2026-05-29
+
+## Package Upgrades: Use `npm-check-updates`
+
+For dependency upgrades use `npx -y npm-check-updates -u && yarn install` (latest STABLE), NOT `yarn upgrade --latest`. Published-package caution: hold back any major that raises `engines.node` or breaks peer compatibility. Full rule in global `~/.claude/CLAUDE.md`. Last applied: 2026-05-29
+
+## Portfolio File Maintenance (legacy root copy)
+
+- A legacy root portfolio file `NOTIFICATION-KIT_portfolio-info_*.md` may still exist in this repo; the canonical one now lives in ahsan-notebook (see block above).
+- When the portfolio file changes, optionally update `Readme.md` and `docs/README.md` in the same pass
 
 ## Package Update History
 
 | Date | Updated By | Notes |
 |---|---|---|
+| 2026-05-29 | Claude | Portfolio refresh pass: verified v2.1.1 (published); ncu bumped only eslint-plugin-prettier 5.5.6 (patch); type-check + build (dual ESM/CJS) + 124 tests all pass; refreshed CLAUDE.md/AGENTS.md; canonical portfolio file moved to ahsan-notebook/packages |
 | 2026-05-26 | Claude | Polish + 2.1.0: deps→latest, full audit remediation (security/core/react/utils/providers), OneSignal v3 rewrite, leveled logger, dual ESM/CJS packaging, docs refresh |
 | 2026-04-03 | Claude | Split CLAUDE.md/AGENTS.md into nested structure for context optimization |
 | 2026-03-25 | Codex | Fixed failing tests, re-verified install/build/test |

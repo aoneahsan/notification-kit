@@ -1,6 +1,6 @@
 # AGENTS.md — notification-kit
 
-> Last Updated: 2026-05-26
+> Last Updated: 2026-05-29
 
 ## Project Overview
 
@@ -9,12 +9,12 @@ Unified notification library for React + Capacitor apps. Single API for push, lo
 | Property | Value |
 |----------|-------|
 | Package Name | `notification-kit` |
-| Version | 2.1.0 (release in progress) |
-| License | MIT |
+| Version | 2.1.1 (published on npm) |
+| License | MIT (no LICENSE file at root yet — declared in package.json) |
 | Node.js | >= 20 |
-| Package Manager | yarn (ONLY) |
+| Package Manager | yarn 4.14.1 (ONLY) |
 
-State (2026-05-26): all deps at latest stable; full audit remediated (security/core/react/utils/providers); OneSignal provider on react-onesignal v3; leveled logger (no host-console auto-patch); dual ESM/CJS. Resumable plan: `docs/features/package-polish-release/`.
+State (2026-05-29, portfolio refresh): v2.1.1 published; deps at latest stable; 2026-05-29 ncu bumped only `eslint-plugin-prettier` → 5.5.6 (devDep patch, no risky majors held). `yarn type-check` + `yarn build` (dual ESM/CJS, fresh dist) + `yarn test --run` (124 passed) all green. Dev-only peer warning: eslint-plugin-react wants eslint ^8.57||^9.7 vs repo eslint 10 (no effect on published package). Resumable polish plan: `docs/features/package-polish-release/`.
 
 ## Agent Responsibilities
 
@@ -124,6 +124,18 @@ yarn lint         # Must pass
 yarn type-check   # Must pass
 npm publish       # Publish to NPM
 ```
+
+## Portfolio Info File — Weekly Update Rule
+
+- Canonical portfolio info file: `/home/ahsan/Documents/ahsan-notebook/static/assets/personal/projects-info-as-portfolio-item/packages/NOTIFICATION-KIT_portfolio-info_<YYYY-MM-DD>.md`
+- Update at least once per week (and on any material change). Keep the last-updated date in the filename.
+- Keep a max-10-entry update history inside the file. On each refresh: prepend today's row, delete the previous dated file, write the new one.
+- Tracker: `/home/ahsan/Documents/01-code/docs/tracking/portfolio-info-files-update-tracker.json`
+- Last applied: 2026-05-29
+
+## Package Upgrades: Use `npm-check-updates`
+
+For dependency upgrades use `npx -y npm-check-updates -u && yarn install` (latest STABLE), NOT `yarn upgrade --latest`. Published-package caution: hold back any major that raises `engines.node` or breaks peer compatibility. Full rule in global `~/.claude/CLAUDE.md`. Last applied: 2026-05-29
 
 ## Nested AGENTS.md Index
 
