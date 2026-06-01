@@ -166,3 +166,12 @@ For dependency upgrades use `npx -y npm-check-updates -u && yarn install` (lates
 | `docs/CLAUDE.md` | Documentation structure and maintenance |
 
 Each folder also has a matching `AGENTS.md` with the same rules.
+
+<!-- project-links:start -->
+## Links
+
+- Live: https://www.npmjs.com/package/notification-kit
+- NPM: https://www.npmjs.com/package/notification-kit
+
+_URL source of truth: `01-code/projects/project-live-urls.json` (auto-generated — do not hand-edit between these markers)._
+<!-- project-links:end -->

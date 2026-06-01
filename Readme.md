@@ -705,3 +705,12 @@ MIT
 - **Comprehensive Documentation** - Extensive docs covering every feature
 - **Maximum Flexibility** - All options configurable with sensible defaults
 - **User-First API** - Intuitive API design prioritizing developer experience
+
+<!-- project-links:start -->
+## Links
+
+- Live: https://www.npmjs.com/package/notification-kit
+- NPM: https://www.npmjs.com/package/notification-kit
+
+_URL source of truth: `01-code/projects/project-live-urls.json` (auto-generated — do not hand-edit between these markers)._
+<!-- project-links:end -->

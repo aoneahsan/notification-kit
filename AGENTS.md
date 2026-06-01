@@ -147,3 +147,12 @@ For dependency upgrades use `npx -y npm-check-updates -u && yarn install` (lates
 | `src/react/AGENTS.md` | React hooks conventions |
 | `src/utils/AGENTS.md` | Utility module guidelines |
 | `docs/AGENTS.md` | Documentation structure and maintenance |
+
+<!-- project-links:start -->
+## Links
+
+- Live: https://www.npmjs.com/package/notification-kit
+- NPM: https://www.npmjs.com/package/notification-kit
+
+_URL source of truth: `01-code/projects/project-live-urls.json` (auto-generated — do not hand-edit between these markers)._
+<!-- project-links:end -->
