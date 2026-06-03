@@ -30,19 +30,6 @@ export default [
     },
   },
   {
-    files: ['**/*.test.{js,jsx,ts,tsx}', '**/*.spec.{js,jsx,ts,tsx}'],
-    languageOptions: {
-      globals: {
-        ...globals.jest,
-        ...globals.node,
-      },
-    },
-    rules: {
-      'no-console': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
-    },
-  },
-  {
     // Service-worker templates are shipped verbatim and legitimately use
     // `console` in the worker context — they are not part of the linted source.
     ignores: [
