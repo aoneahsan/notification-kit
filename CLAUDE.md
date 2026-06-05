@@ -1,6 +1,6 @@
 # CLAUDE.md — notification-kit
 
-> Last Updated: 2026-05-29
+> Last Updated: 2026-06-05
 
 ## Project Overview
 
@@ -8,12 +8,13 @@
 
 ## Current Verified State
 
-- Reviewed on: `2026-05-29` (portfolio refresh pass)
+- Reviewed on: `2026-06-05` (portfolio refresh pass)
 - Package version: `2.1.1` (published on npm)
 - Install: `yarn install` passed (Yarn 4.14.1)
-- Build: `yarn build` passed (dual ESM + CJS, fresh dist regenerated)
-- Type-check: `yarn type-check` passed
-- Dependencies: at latest stable (TypeScript 6, ESLint 10, Vite 8, …). 2026-05-29 ncu pass bumped only `eslint-plugin-prettier` 5.5.5 → 5.5.6 (devDep, patch). No risky majors held back.
+- Build: `yarn build` passed (dual ESM + CJS, fresh dist regenerated — `index` + `react` entries, `.esm.js` / `.cjs` / `.d.ts` each)
+- Type-check: `yarn type-check` passed; `yarn lint` passed
+- **Automated test suite removed** (2026-06-03, workspace-wide testing-infrastructure removal): no `test` script, no Vitest/jsdom/testing-library deps, no test files. Quality gates are now `yarn type-check` + `yarn build` + `yarn lint` (ESLint `no-console`) + manual verification. Do NOT re-add a test framework unless explicitly requested.
+- Dependencies: at latest stable (TypeScript 6, ESLint 10, Vite 8, …). 2026-06-05 ncu pass bumped only `@types/react` 19.2.16 → 19.2.17 (devDep, patch). No risky majors held back; published `engines.node` unchanged (`>=20`).
 - Known dev-only peer warning: `eslint-plugin-react` requests eslint `^8.57 || ^9.7` while repo runs eslint 10 — devDependency-only, does not affect the published package.
 - Peer floors: Capacitor `>=8.3.4`, firebase `>=12.13.0`, react `>=19.2.6`, react-onesignal `>=3.5.3`; engines node `>=20`
 - Polish/release work tracked in `docs/features/package-polish-release/` (resumable `00-tracker.json`)
@@ -107,21 +108,22 @@ Source code conventions and rules are in `src/CLAUDE.md`.
 - Update at least once per week (and on any material change). Keep the last-updated date in the filename.
 - Keep a max-10-entry update history inside the file. On each refresh: prepend today's row, delete the previous dated file, write the new one.
 - Tracker: `/home/ahsan/Documents/01-code/docs/tracking/portfolio-info-files-update-tracker.json`
-- Last applied: 2026-05-29
+- Last applied: 2026-06-05
 
 ## Package Upgrades: Use `npm-check-updates`
 
-For dependency upgrades use `npx -y npm-check-updates -u && yarn install` (latest STABLE), NOT `yarn upgrade --latest`. Published-package caution: hold back any major that raises `engines.node` or breaks peer compatibility. Full rule in global `~/.claude/CLAUDE.md`. Last applied: 2026-05-29
+For dependency upgrades use `npx -y npm-check-updates -u && yarn install` (latest STABLE), NOT `yarn upgrade --latest`. Published-package caution: hold back any major that raises `engines.node` or breaks peer compatibility. Full rule in global `~/.claude/CLAUDE.md`. Last applied: 2026-06-05
 
-## Portfolio File Maintenance (legacy root copy)
+## Portfolio File Maintenance
 
-- A legacy root portfolio file `NOTIFICATION-KIT_portfolio-info_*.md` may still exist in this repo; the canonical one now lives in ahsan-notebook (see block above).
+- The canonical portfolio info file lives in ahsan-notebook (see "Weekly Update Rule" block above) — NOT in this repo. The legacy root copy was removed on 2026-06-05 to prevent drift; do not re-create a local copy.
 - When the portfolio file changes, optionally update `Readme.md` and `docs/README.md` in the same pass
 
 ## Package Update History
 
 | Date | Updated By | Notes |
 |---|---|---|
+| 2026-06-05 | Claude | Portfolio refresh pass: verified v2.1.1 (published); ncu bumped only `@types/react` 19.2.17 (devDep patch); `yarn type-check` + `yarn build` (dual ESM/CJS) + `yarn lint` all green. Confirmed the automated test suite was removed (2026-06-03 testing-infra removal) — quality gates now type-check + build + lint. Removed the legacy root portfolio copy to prevent drift; refreshed CLAUDE.md/AGENTS.md (Last Updated 2026-06-05) + canonical ahsan-notebook portfolio file. |
 | 2026-05-29 | Claude | Portfolio refresh pass: verified v2.1.1 (published); ncu bumped only eslint-plugin-prettier 5.5.6 (patch); type-check + build (dual ESM/CJS) + 124 tests all pass; refreshed CLAUDE.md/AGENTS.md; canonical portfolio file moved to ahsan-notebook/packages |
 | 2026-05-26 | Claude | Polish + 2.1.0: deps→latest, full audit remediation (security/core/react/utils/providers), OneSignal v3 rewrite, leveled logger, dual ESM/CJS packaging, docs refresh |
 | 2026-04-03 | Claude | Split CLAUDE.md/AGENTS.md into nested structure for context optimization |

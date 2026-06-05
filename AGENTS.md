@@ -1,6 +1,6 @@
 # AGENTS.md — notification-kit
 
-> Last Updated: 2026-05-29
+> Last Updated: 2026-06-05
 
 ## Project Overview
 
@@ -14,13 +14,13 @@ Unified notification library for React + Capacitor apps. Single API for push, lo
 | Node.js | >= 20 |
 | Package Manager | yarn 4.14.1 (ONLY) |
 
-State (2026-05-29, portfolio refresh): v2.1.1 published; deps at latest stable; 2026-05-29 ncu bumped only `eslint-plugin-prettier` → 5.5.6 (devDep patch, no risky majors held). `yarn type-check` + `yarn build` (dual ESM/CJS, fresh dist) all green. Dev-only peer warning: eslint-plugin-react wants eslint ^8.57||^9.7 vs repo eslint 10 (no effect on published package). Resumable polish plan: `docs/features/package-polish-release/`.
+State (2026-06-05, portfolio refresh): v2.1.1 published; deps at latest stable; 2026-06-05 ncu bumped only `@types/react` → 19.2.17 (devDep patch, no risky majors held). `yarn type-check` + `yarn build` (dual ESM/CJS, fresh dist) + `yarn lint` all green. **Automated test suite removed (2026-06-03 workspace testing-infra removal)** — no `test` script / Vitest / test files; quality gates are type-check + build + lint + manual verification (do NOT re-add tests unless asked). Dev-only peer warning: eslint-plugin-react wants eslint ^8.57||^9.7 vs repo eslint 10 (no effect on published package). Resumable polish plan: `docs/features/package-polish-release/`.
 
 ## Agent Responsibilities
 
 | Agent | Role |
 |-------|------|
-| **Claude Code** | Primary implementation. Writes code, runs tests, publishes. |
+| **Claude Code** | Primary implementation. Writes code, runs build/type-check/lint gates, publishes. |
 | **Codex** | Reviews, provides specs. Does NOT implement unless explicitly requested. |
 
 ## Commands
@@ -103,7 +103,7 @@ import { useNotifications } from 'notification-kit/react';
 ## Project-Specific DOs
 
 1. **DO** maintain zero-dependency philosophy
-2. **DO** test all notification types
+2. **DO** verify all notification types manually (no automated test suite — removed 2026-06-03)
 3. **DO** handle permissions gracefully
 4. **DO** use agents for every task
 
@@ -128,11 +128,11 @@ npm publish       # Publish to NPM
 - Update at least once per week (and on any material change). Keep the last-updated date in the filename.
 - Keep a max-10-entry update history inside the file. On each refresh: prepend today's row, delete the previous dated file, write the new one.
 - Tracker: `/home/ahsan/Documents/01-code/docs/tracking/portfolio-info-files-update-tracker.json`
-- Last applied: 2026-05-29
+- Last applied: 2026-06-05
 
 ## Package Upgrades: Use `npm-check-updates`
 
-For dependency upgrades use `npx -y npm-check-updates -u && yarn install` (latest STABLE), NOT `yarn upgrade --latest`. Published-package caution: hold back any major that raises `engines.node` or breaks peer compatibility. Full rule in global `~/.claude/CLAUDE.md`. Last applied: 2026-05-29
+For dependency upgrades use `npx -y npm-check-updates -u && yarn install` (latest STABLE), NOT `yarn upgrade --latest`. Published-package caution: hold back any major that raises `engines.node` or breaks peer compatibility. Full rule in global `~/.claude/CLAUDE.md`. Last applied: 2026-06-05
 
 ## Nested AGENTS.md Index
 
