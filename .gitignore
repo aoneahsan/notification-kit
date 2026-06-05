@@ -129,6 +129,15 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+# Nested sub-project Yarn artifacts (examples/*, website) — never commit
+**/.yarn/cache
+**/.yarn/install-state.gz
+**/.yarn/build-state.yml
+
+# Docusaurus website build artifacts (website/)
+website/build/
+website/.docusaurus/
+
 # macOS
 .DS_Store
 .DS_Store?

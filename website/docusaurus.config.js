@@ -7,7 +7,11 @@ const config = {
   organizationName: 'aoneahsan',
   projectName: 'notification-kit',
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
