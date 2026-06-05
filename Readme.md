@@ -66,7 +66,6 @@ yarn build
 - 🚀 **Performance Optimized** - Lightweight with tree-shaking support
 - 🔒 **Secure** - No sensitive data logging, secure token handling
 - 📦 **Modular** - Import only what you need
-- 🧪 **Well Tested** - Comprehensive test coverage
 - 📖 **Extensively Documented** - Detailed docs with examples
 - 🪶 **Zero Dependencies** - Core library has no runtime dependencies
 

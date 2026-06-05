@@ -13,7 +13,7 @@
 - Install: `yarn install` passed (Yarn 4.14.1)
 - Build: `yarn build` passed (dual ESM + CJS, fresh dist regenerated)
 - Type-check: `yarn type-check` passed
-- Dependencies: at latest stable (TypeScript 6, ESLint 10, Vite 8, Vitest 4, jsdom 29, …). 2026-05-29 ncu pass bumped only `eslint-plugin-prettier` 5.5.5 → 5.5.6 (devDep, patch). No risky majors held back.
+- Dependencies: at latest stable (TypeScript 6, ESLint 10, Vite 8, …). 2026-05-29 ncu pass bumped only `eslint-plugin-prettier` 5.5.5 → 5.5.6 (devDep, patch). No risky majors held back.
 - Known dev-only peer warning: `eslint-plugin-react` requests eslint `^8.57 || ^9.7` while repo runs eslint 10 — devDependency-only, does not affect the published package.
 - Peer floors: Capacitor `>=8.3.4`, firebase `>=12.13.0`, react `>=19.2.6`, react-onesignal `>=3.5.3`; engines node `>=20`
 - Polish/release work tracked in `docs/features/package-polish-release/` (resumable `00-tracker.json`)
