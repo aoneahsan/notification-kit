@@ -14,7 +14,6 @@ This is the heart of the library. All other modules depend on core — core depe
 | `permissions.ts` | Permission request/check logic across platforms |
 | `platform.ts` | Platform detection (web, iOS, Android, Capacitor) |
 | `storage.ts` | Notification storage abstraction |
-| `NotificationKit.test.ts` | Core test suite |
 
 ### Design Rules
 
@@ -30,12 +29,6 @@ This is the heart of the library. All other modules depend on core — core depe
 - Configuration via constructor options (all optional with sensible defaults)
 - Methods: `initialize()`, `requestPermission()`, `send()`, `schedule()`, `cancel()`, `getToken()`
 - Must handle provider not being configured gracefully (throw descriptive error, not crash)
-
-### Testing
-
-- `NotificationKit.test.ts` covers initialization, permission flows, notification dispatch
-- Mock providers — never call real Firebase/OneSignal in tests
-- Test both "provider configured" and "no provider" paths
 
 ### CLAUDE.md + AGENTS.md Rules
 

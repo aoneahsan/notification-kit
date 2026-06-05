@@ -14,7 +14,6 @@ Providers bridge NotificationKit to external notification services (Firebase, On
 | `FirebaseNativeBridge.ts` | Capacitor native bridge for FCM |
 | `OneSignalProvider.ts` | OneSignal push notification integration |
 | `OneSignalNativeBridge.ts` | Capacitor native bridge for OneSignal |
-| `*.test.ts` | Provider-specific tests |
 
 ### Implementation Patterns
 
@@ -26,15 +25,10 @@ Providers bridge NotificationKit to external notification services (Firebase, On
 
 ### Adding a New Provider
 
-1. Create `NewProvider.ts` + `NewProvider.test.ts`
+1. Create `NewProvider.ts`
 2. If Capacitor native needed: `NewNativeBridge.ts`
 3. Register in `NotificationKit.ts` provider resolution
 4. Update docs and types
-
-### Testing
-
-- Mock underlying SDK — no real API keys in tests
-- Test: init, token retrieval, sending, error handling, SDK-not-installed scenario
 
 ### CLAUDE.md + AGENTS.md Rules
 

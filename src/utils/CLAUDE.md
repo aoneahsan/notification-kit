@@ -11,7 +11,6 @@ Shared utilities used across core, providers, and react modules.
 | File | Purpose |
 |------|---------|
 | `validation.ts` | Input validation for notification configs and payloads |
-| `validation.test.ts` | Validation tests |
 | `config-validator.ts` | Full configuration validation |
 | `formatting.ts` | Notification content formatting helpers |
 | `scheduling.ts` | Cron/interval scheduling logic for local notifications |
@@ -35,11 +34,6 @@ import { logger } from './logger';
 logger.warn('Permission denied');  // NOT console.warn
 logger.error('Provider init failed', error);  // NOT console.error
 ```
-
-### Testing
-
-- `validation.test.ts` covers all validation paths including edge cases
-- Test invalid inputs, boundary values, missing fields
 
 ### CLAUDE.md + AGENTS.md Rules
 

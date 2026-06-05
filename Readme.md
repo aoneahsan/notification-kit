@@ -8,10 +8,6 @@ A unified notification library for React + Capacitor apps. One API for push noti
 - Verified on: `2026-05-26`
 - Install: `yarn install` succeeds
 - Build: `yarn build` succeeds
-- Test status: `yarn test --run` passes
-- Current test snapshot:
-  - 124 tests passed
-  - 0 tests failed
 - Known warning during verification:
   - Node `DEP0169` deprecation warnings surfaced through Yarn execution
 - Root portfolio info file:
@@ -46,7 +42,6 @@ A unified notification library for React + Capacitor apps. One API for push noti
 
 ```bash
 yarn install
-yarn test --run
 yarn build
 ```
 

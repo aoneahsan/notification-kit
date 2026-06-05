@@ -27,11 +27,6 @@ Shared utilities used across core, providers, and react modules.
 4. **Logger only** — ALL logging through `logger.ts`, NEVER `console.log`
 5. **Dynamic loader** — `dynamic-loader.ts` is the ONLY place resolving optional peer deps
 
-### Testing
-
-- Cover all validation paths including edge cases
-- Test invalid inputs, boundary values, missing fields
-
 ### CLAUDE.md + AGENTS.md Rules
 
 - Keep both files in sync — update both when changing rules

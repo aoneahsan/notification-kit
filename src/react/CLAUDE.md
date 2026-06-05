@@ -12,9 +12,7 @@ React integration for notification-kit. This module is the `notification-kit/rea
 |------|---------|
 | `index.ts` | Re-exports all hooks for the `/react` entry point |
 | `hooks/useNotifications.ts` | Main hook — init, permissions, send, receive |
-| `hooks/useNotifications.test.ts` | Hook tests |
 | `hooks/useInAppNotification.ts` | In-app notification display hook |
-| `hooks/useInAppNotification.test.ts` | In-app hook tests |
 
 ### Hook Design Rules
 
@@ -24,12 +22,6 @@ React integration for notification-kit. This module is the `notification-kit/rea
 4. **Stable references** — use `useCallback`/`useMemo` for returned functions and objects
 5. **Error boundaries** — hooks must not throw — return error state instead
 6. **TypeScript generics** — hooks should accept notification payload type generic where applicable
-
-### Testing
-
-- Use `@testing-library/react` (its built-in `renderHook`) — the legacy `@testing-library/react-hooks` is deprecated for React 18+ and has been removed
-- Test: mount/unmount lifecycle, permission states, notification dispatch, error states
-- Mock `NotificationKit` core — never test real provider in hook tests
 
 ### Export Conventions
 

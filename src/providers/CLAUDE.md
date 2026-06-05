@@ -11,10 +11,8 @@ Providers are the bridge between NotificationKit and external notification servi
 | File | Purpose |
 |------|---------|
 | `FirebaseProvider.ts` | Firebase Cloud Messaging (FCM) integration |
-| `FirebaseProvider.test.ts` | Firebase provider tests |
 | `FirebaseNativeBridge.ts` | Capacitor native bridge for FCM |
 | `OneSignalProvider.ts` | OneSignal push notification integration |
-| `OneSignalProvider.test.ts` | OneSignal provider tests |
 | `OneSignalNativeBridge.ts` | Capacitor native bridge for OneSignal |
 
 ### Implementation Patterns
@@ -28,17 +26,9 @@ Providers are the bridge between NotificationKit and external notification servi
 ### Adding a New Provider
 
 1. Create `NewProvider.ts` implementing the provider interface
-2. Create `NewProvider.test.ts` with full test coverage
-3. If Capacitor native needed: create `NewNativeBridge.ts`
-4. Register in `NotificationKit.ts` provider resolution
-5. Update docs and types
-
-### Testing
-
-- Each provider has its own test file
-- Mock the underlying SDK — tests must not require real API keys
-- Test: initialization, token retrieval, notification sending, error handling
-- Test: SDK not installed scenario
+2. If Capacitor native needed: create `NewNativeBridge.ts`
+3. Register in `NotificationKit.ts` provider resolution
+4. Update docs and types
 
 ### CLAUDE.md + AGENTS.md Rules
 

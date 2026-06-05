@@ -14,7 +14,7 @@ Unified notification library for React + Capacitor apps. Single API for push, lo
 | Node.js | >= 20 |
 | Package Manager | yarn 4.14.1 (ONLY) |
 
-State (2026-05-29, portfolio refresh): v2.1.1 published; deps at latest stable; 2026-05-29 ncu bumped only `eslint-plugin-prettier` → 5.5.6 (devDep patch, no risky majors held). `yarn type-check` + `yarn build` (dual ESM/CJS, fresh dist) + `yarn test --run` (124 passed) all green. Dev-only peer warning: eslint-plugin-react wants eslint ^8.57||^9.7 vs repo eslint 10 (no effect on published package). Resumable polish plan: `docs/features/package-polish-release/`.
+State (2026-05-29, portfolio refresh): v2.1.1 published; deps at latest stable; 2026-05-29 ncu bumped only `eslint-plugin-prettier` → 5.5.6 (devDep patch, no risky majors held). `yarn type-check` + `yarn build` (dual ESM/CJS, fresh dist) all green. Dev-only peer warning: eslint-plugin-react wants eslint ^8.57||^9.7 vs repo eslint 10 (no effect on published package). Resumable polish plan: `docs/features/package-polish-release/`.
 
 ## Agent Responsibilities
 
@@ -29,9 +29,6 @@ State (2026-05-29, portfolio refresh): v2.1.1 published; deps at latest stable; 
 |---------|---------|
 | `yarn install` | Install dependencies |
 | `yarn build` | Build (tsc + vite) |
-| `yarn test --run` | Run all tests once |
-| `yarn test` | Vitest watch mode |
-| `yarn test:coverage` | Coverage report |
 | `yarn type-check` | TypeScript noEmit check |
 | `yarn lint` / `yarn lint:fix` | ESLint |
 | `yarn format` / `yarn format:check` | Prettier |
@@ -141,7 +138,7 @@ For dependency upgrades use `npx -y npm-check-updates -u && yarn install` (lates
 
 | Path | Covers |
 |------|--------|
-| `src/AGENTS.md` | Source code conventions, testing, module patterns |
+| `src/AGENTS.md` | Source code conventions, module patterns |
 | `src/core/AGENTS.md` | Core module rules |
 | `src/providers/AGENTS.md` | Provider implementation patterns |
 | `src/react/AGENTS.md` | React hooks conventions |

@@ -13,7 +13,6 @@
 - Install: `yarn install` passed (Yarn 4.14.1)
 - Build: `yarn build` passed (dual ESM + CJS, fresh dist regenerated)
 - Type-check: `yarn type-check` passed
-- Tests: `yarn test --run` — 124 passed (7 files), 0 failed
 - Dependencies: at latest stable (TypeScript 6, ESLint 10, Vite 8, Vitest 4, jsdom 29, …). 2026-05-29 ncu pass bumped only `eslint-plugin-prettier` 5.5.5 → 5.5.6 (devDep, patch). No risky majors held back.
 - Known dev-only peer warning: `eslint-plugin-react` requests eslint `^8.57 || ^9.7` while repo runs eslint 10 — devDependency-only, does not affect the published package.
 - Peer floors: Capacitor `>=8.3.4`, firebase `>=12.13.0`, react `>=19.2.6`, react-onesignal `>=3.5.3`; engines node `>=20`
@@ -26,9 +25,6 @@
 ```bash
 yarn dev          # Development server
 yarn build        # tsc + vite build
-yarn test --run   # Run all tests once
-yarn test         # Watch mode
-yarn test:coverage
 yarn type-check   # TypeScript noEmit check
 yarn lint         # ESLint
 yarn lint:fix
@@ -45,7 +41,6 @@ yarn format:check
 | `src/react/` | React hooks (useNotifications, useInAppNotification) | See `src/react/CLAUDE.md` |
 | `src/utils/` | Validation, scheduling, formatting, logging, etc. | See `src/utils/CLAUDE.md` |
 | `src/templates/` | Service worker templates for Firebase & OneSignal | — |
-| `src/test/` | Test setup and integration tests | — |
 | `docs/` | API docs, guides, helpers, examples | See `docs/CLAUDE.md` |
 | `examples/` | Working example apps (React + Capacitor) | — |
 | `website/` | Docusaurus documentation site | — |
@@ -158,7 +153,7 @@ For dependency upgrades use `npx -y npm-check-updates -u && yarn install` (lates
 
 | Path | Covers |
 |------|--------|
-| `src/CLAUDE.md` | Source code conventions, zero-dep philosophy, testing |
+| `src/CLAUDE.md` | Source code conventions, zero-dep philosophy |
 | `src/core/CLAUDE.md` | Core module: NotificationKit, permissions, platform, storage |
 | `src/providers/CLAUDE.md` | Provider implementation patterns |
 | `src/react/CLAUDE.md` | React hooks conventions |

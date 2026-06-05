@@ -20,7 +20,6 @@
 | `react/` | React hooks — useNotifications, useInAppNotification |
 | `utils/` | Validation, scheduling, formatting, logging, in-app helpers |
 | `templates/` | Service worker template files |
-| `test/` | Vitest setup and integration tests |
 | `config/` | Support link configuration |
 | `types/` | External type declarations |
 
@@ -44,13 +43,6 @@ Two entry points only: `notification-kit` and `notification-kit/react`.
 - JSDoc on all public-facing functions and types
 - No `console.log` — use the internal logger (`src/utils/logger.ts`)
 - Max 500 lines per file
-
-### Testing
-
-- **Vitest** (NEVER Jest) — config in `vitest.config.ts`
-- Test files co-located: `ModuleName.test.ts` next to `ModuleName.ts`
-- All tests must pass before publishing: `yarn test --run`
-- Current baseline: 124 tests passing
 
 ### API Compatibility
 

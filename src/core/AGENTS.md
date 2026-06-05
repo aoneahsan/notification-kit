@@ -14,7 +14,6 @@ Heart of the library. All modules depend on core — core depends on nothing ext
 | `permissions.ts` | Permission request/check logic across platforms |
 | `platform.ts` | Platform detection (web, iOS, Android, Capacitor) |
 | `storage.ts` | Notification storage abstraction |
-| `NotificationKit.test.ts` | Core test suite |
 
 ### Design Rules
 
@@ -29,11 +28,6 @@ Heart of the library. All modules depend on core — core depends on nothing ext
 - Single entry point for consumers
 - Config via constructor options (all optional with sensible defaults)
 - Handle missing provider gracefully (descriptive error, not crash)
-
-### Testing
-
-- Mock providers — never call real Firebase/OneSignal in tests
-- Test both "provider configured" and "no provider" paths
 
 ### CLAUDE.md + AGENTS.md Rules
 
