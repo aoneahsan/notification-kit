@@ -1,6 +1,6 @@
 # AGENTS.md — notification-kit
 
-> Last Updated: 2026-06-05
+> Last Updated: 2026-06-08
 
 ## Project Overview
 
@@ -69,23 +69,19 @@ import { useNotifications } from 'notification-kit/react';
 - Use general-purpose agents for complex multi-step tasks
 - Launch multiple agents in parallel when tasks are independent
 
-### 4. Yarn Only (IRON-SOLID)
-
-- Use `yarn` exclusively — no `npm`, `pnpm`, `package-lock.json`, or `pnpm-lock.yaml`
-
-### 5. Zero-Dependency Philosophy
+### 4. Zero-Dependency Philosophy
 
 - All peer dependencies MUST remain optional
 - NEVER add required dependencies
 - Core must work without any framework or provider
 - Graceful degradation when deps unavailable
 
-### 6. API Stability
+### 5. API Stability
 
 - NEVER break public API compatibility without major version bump
 - NEVER remove or rename exported types/functions without migration path
 
-### 7. Documentation Alignment
+### 6. Documentation Alignment
 
 - Keep docs aligned with actual package state
 - Update `Readme.md`, `docs/README.md`, and portfolio file together
@@ -129,6 +125,15 @@ npm publish       # Publish to NPM
 - Keep a max-10-entry update history inside the file. On each refresh: prepend today's row, delete the previous dated file, write the new one.
 - Tracker: `/home/ahsan/Documents/01-code/docs/tracking/portfolio-info-files-update-tracker.json`
 - Last applied: 2026-06-05
+
+## Package Manager Hierarchy: nvm → npm (global) → yarn (local) (IRON-SOLID)
+
+Three tiers, each tool ONLY for its tier — for the best, most reproducible dev results:
+- **`nvm`** → install/update Node.js (which bundles `npm`): `nvm install --lts`. Use nvm to get/update `npm` itself.
+- **`npm`** → ALL global packages: `npm install -g yarn` (install yarn globally if missing) + `npm install -g <pkg>` (every other global CLI).
+- **`yarn`** → ALL local project work: `yarn`, `yarn add <pkg>`, `yarn add -D <pkg>` inside the project.
+
+❌ NEVER use `npm`/`pnpm` for LOCAL installs. NEVER use `pnpm` at all. ✅ Only `yarn.lock` in the project — delete `package-lock.json` and `pnpm-lock.yaml`.
 
 ## Package Upgrades: Use `npm-check-updates`
 
