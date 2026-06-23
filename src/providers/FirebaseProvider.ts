@@ -283,8 +283,9 @@ export class FirebaseProvider implements NotificationProvider {
       throw new Error('No FCM token available')
     }
 
-    // Topic subscription is typically handled server-side
-    // This is a placeholder for the API call
+    // FCM topic subscription is a privileged, server-side operation — it cannot
+    // be performed from client code. callTopicAPI throws a descriptive error
+    // telling the caller to subscribe the device token via their backend.
     await this.callTopicAPI('subscribe', topic, this.currentToken)
   }
 
@@ -296,8 +297,8 @@ export class FirebaseProvider implements NotificationProvider {
       throw new Error('No FCM token available')
     }
 
-    // Topic unsubscription is typically handled server-side
-    // This is a placeholder for the API call
+    // Like subscribe(), FCM topic unsubscription is server-side only.
+    // callTopicAPI throws a descriptive error pointing the caller to their backend.
     await this.callTopicAPI('unsubscribe', topic, this.currentToken)
   }
 
@@ -654,7 +655,10 @@ export class FirebaseProvider implements NotificationProvider {
   }
 
   /**
-   * Call topic API (placeholder)
+   * Topic (un)subscription dispatcher. FCM topic management is a privileged,
+   * server-side operation (Firebase Admin SDK / IID API) with no client-side
+   * path, so this always throws a descriptive error directing the caller to
+   * their backend rather than failing silently.
    */
   private async callTopicAPI(
     action: 'subscribe' | 'unsubscribe',

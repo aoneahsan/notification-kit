@@ -1,0 +1,165 @@
+{
+  "$schema": "project-finalization-tracker",
+  "description": "Resumable production-finalization tracker for the notification-kit npm package + its new docs site. The first phase/sub-task with status 'pending' or 'in_progress' is the next thing to work on.",
+  "module": "project-finalization",
+  "project": "notification-kit",
+  "projectType": "npm-package",
+  "createdAt": "2026-06-23",
+  "lastUpdated": "2026-06-23",
+  "repo": {
+    "package": { "name": "notification-kit", "remote": "o -> git@github.com:aoneahsan/notification-kit.git", "visibility": "PRIVATE" },
+    "docs": { "name": "notification-kit-docs", "remote": "o -> git@github.com:aoneahsan/notification-kit-docs.git", "visibility": "PUBLIC", "createdThisRun": true }
+  },
+  "verifyGates": {
+    "package": ["yarn type-check", "yarn lint", "yarn build"],
+    "docs": ["yarn install", "yarn build"],
+    "note": "Package is a library — no app/device build. npm publish + docs deploy are USER-ONLY."
+  },
+  "currentState": {
+    "version": "2.1.1",
+    "publishedOnNpm": true,
+    "typeCheck": "pass (2026-06-23)",
+    "lint": "pass (2026-06-23, ESLint no-console enforced)",
+    "build": "pass (2026-06-23, dual ESM+CJS, index + react entries with .d.ts)"
+  },
+  "gapInventory": [
+    {
+      "id": "GAP-01",
+      "title": "Missing LICENSE file (package.json `files` lists it, but no file existed)",
+      "class": "packaging-correctness",
+      "severity": "medium",
+      "decision": "BUILT",
+      "resolution": "Added MIT LICENSE at repo root (matches package.json license). Silences npm pack warning.",
+      "status": "complete"
+    },
+    {
+      "id": "GAP-02",
+      "title": "Misleading 'placeholder for the API call' comments in FirebaseProvider topic subscribe/unsubscribe + callTopicAPI",
+      "class": "honesty/comment-accuracy",
+      "severity": "low",
+      "decision": "BUILT",
+      "resolution": "Rewrote comments. Behavior was already correct (throws a descriptive server-side-only error for FCM topic management); only the stale 'placeholder' wording implied an unfinished feature.",
+      "status": "complete"
+    },
+    {
+      "id": "GAP-03",
+      "title": "README 'Current State' drift: said v2.1.0 + 'Documentation Website Coming Soon'",
+      "class": "docs-alignment",
+      "severity": "low",
+      "decision": "BUILT",
+      "resolution": "Updated to v2.1.1, refreshed gates list, and replaced 'coming soon' with the live notification-kit-docs site link.",
+      "status": "complete"
+    },
+    {
+      "id": "GAP-04",
+      "title": "No dedicated documentation site (only in-repo Markdown + a partial in-repo website/ Docusaurus folder)",
+      "class": "missing-deliverable",
+      "severity": "high",
+      "decision": "BUILT",
+      "resolution": "Created the new PUBLIC notification-kit-docs Docusaurus site (cloned native-update-docs structure), with full source-accurate API reference, installation, configuration, platform setup, FAQ, changelog. Dual hosting config (Firebase + GitHub Pages).",
+      "status": "complete"
+    },
+    {
+      "id": "GAP-05",
+      "title": "No docs/project-finalization tracker or docs/MANUAL-TASKS.md",
+      "class": "process-artifact",
+      "severity": "low",
+      "decision": "BUILT",
+      "resolution": "Scaffolded both this run.",
+      "status": "complete"
+    },
+    {
+      "id": "NOT-A-GAP-01",
+      "title": "FirebaseProvider client-side sendNotification / topic subscribe / getSubscriptions throw or return empty",
+      "class": "platform-limitation (intentional, honest)",
+      "severity": "info",
+      "decision": "WONT-DO",
+      "reason": "These are fundamental FCM platform limitations, not incomplete code: client-side send and topic (un)subscribe are privileged server-side operations (Firebase Admin SDK / IID API). The library correctly throws descriptive errors directing the caller to their backend. Implementing them client-side would require shipping admin credentials — a security anti-pattern. Documented as a limitation in the docs site."
+    },
+    {
+      "id": "NOT-A-GAP-02",
+      "title": "permissions.openSettings() not implemented internally",
+      "class": "intentional-zero-dep design",
+      "severity": "info",
+      "decision": "WONT-DO",
+      "reason": "Deliberately not implemented to preserve the zero-dependency philosophy (opening native settings needs a native plugin). Documented; the method throws a descriptive error telling the caller to wire their own settings plugin."
+    }
+  ],
+  "phases": [
+    {
+      "id": "phase00",
+      "title": "Setup + skills + read API + scaffold tracker/MANUAL-TASKS + refresh CLAUDE/AGENTS",
+      "status": "complete",
+      "completedAt": "2026-06-23",
+      "subTasks": [
+        { "id": "phase00.1", "title": "Invoke skills; read README + full public API (index, NotificationKit, react, types, providers)", "status": "complete" },
+        { "id": "phase00.2", "title": "Scaffold docs/project-finalization/00-tracker.json + docs/MANUAL-TASKS.md", "status": "complete" },
+        { "id": "phase00.3", "title": "Refresh root CLAUDE.md/AGENTS.md to true state + MANUAL-TASKS pointer + docs-site pointer", "status": "complete" }
+      ]
+    },
+    {
+      "id": "phase01",
+      "title": "Env/privacy gate",
+      "status": "complete",
+      "completedAt": "2026-06-23",
+      "subTasks": [
+        { "id": "phase01.1", "title": "Confirm package repo PRIVATE (gh) — PASS", "status": "complete" },
+        { "id": "phase01.2", "title": "Scan for .env/secrets/keystores — only examples/secure-config/nextjs/.env.example (no real secrets); nothing to force-add", "status": "complete" }
+      ]
+    },
+    {
+      "id": "phase02",
+      "title": "Gap audit (code vs README/API promises)",
+      "status": "complete",
+      "completedAt": "2026-06-23",
+      "subTasks": [
+        { "id": "phase02.1", "title": "Scan TODO/FIXME/stub/unimplemented; classify gaps into gapInventory[]", "status": "complete" }
+      ]
+    },
+    {
+      "id": "phase03",
+      "title": "Build automatable package gaps (LICENSE, comment honesty, README drift)",
+      "status": "complete",
+      "completedAt": "2026-06-23",
+      "subTasks": [
+        { "id": "phase03.1", "title": "GAP-01 LICENSE", "status": "complete" },
+        { "id": "phase03.2", "title": "GAP-02 FirebaseProvider comment honesty", "status": "complete" },
+        { "id": "phase03.3", "title": "GAP-03 README refresh", "status": "complete" },
+        { "id": "phase03.4", "title": "Verify gate: type-check + lint + build all green", "status": "complete" }
+      ]
+    },
+    {
+      "id": "phaseD",
+      "title": "Create notification-kit-docs PUBLIC docs site",
+      "status": "complete",
+      "completedAt": "2026-06-23",
+      "subTasks": [
+        { "id": "phaseD.1", "title": "Clone native-update-docs structure; adapt brand/links/JSON-LD/llms.txt/robots.txt", "status": "complete" },
+        { "id": "phaseD.2", "title": "Author source-accurate content: intro, installation, configuration, full API reference, platform setup, FAQ, changelog", "status": "complete" },
+        { "id": "phaseD.3", "title": "git init + gh repo create aoneahsan/notification-kit-docs --public --remote o; branch main", "status": "complete" },
+        { "id": "phaseD.4", "title": "Verify yarn install + yarn build exit 0", "status": "complete" },
+        { "id": "phaseD.5", "title": "Scaffold docs/tracking/notification-kit-docs-content-tracker.json", "status": "complete" }
+      ]
+    },
+    {
+      "id": "phase04",
+      "title": "Manual-task consolidation + finalize",
+      "status": "complete",
+      "completedAt": "2026-06-23",
+      "subTasks": [
+        { "id": "phase04.1", "title": "Append USER-ONLY tasks (npm publish, docs deploy, DNS) to docs/MANUAL-TASKS.md", "status": "complete" },
+        { "id": "phase04.2", "title": "Final verify gates + git in sync both repos", "status": "complete" }
+      ]
+    }
+  ],
+  "runHistory": [
+    {
+      "date": "2026-06-23",
+      "phase": "phase00-phase04 + phaseD",
+      "summary": "Finalized notification-kit: added LICENSE, corrected misleading FirebaseProvider topic comments, refreshed README; created the new PUBLIC notification-kit-docs Docusaurus site with full source-accurate API reference + hosting config. All package gates green; docs build green. Package repo confirmed PRIVATE. npm publish + docs deploy left as USER-ONLY.",
+      "commit": "pending"
+    }
+  ],
+  "readiness": 97,
+  "resumeInstructions": "1) Read this tracker. 2) All phases complete as of 2026-06-23 — verify package gates (yarn type-check/lint/build) + docs build still pass. 3) Remaining work is USER-ONLY (see docs/MANUAL-TASKS.md): npm publish, docs-site deploy + DNS. 4) Re-run only if the public API changes (then re-audit gapInventory + update the docs site)."
+}

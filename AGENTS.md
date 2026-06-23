@@ -1,6 +1,6 @@
 # AGENTS.md — notification-kit
 
-> Last Updated: 2026-06-08
+> Last Updated: 2026-06-23
 
 ## Task Speed Over Docs (IRON-SOLID — BEHAVIORAL)
 
@@ -14,11 +14,13 @@ Unified notification library for React + Capacitor apps. Single API for push, lo
 |----------|-------|
 | Package Name | `notification-kit` |
 | Version | 2.1.1 (published on npm) |
-| License | MIT (no LICENSE file at root yet — declared in package.json) |
+| License | MIT (LICENSE file at repo root, added 2026-06-23) |
 | Node.js | >= 20 |
 | Package Manager | yarn 4.14.1 (ONLY) |
+| Docs site | https://notification-kit-docs.aoneahsan.com (source: separate PUBLIC repo `notification-kit-docs`) |
+| Manual/user-only tasks | `docs/MANUAL-TASKS.md` (npm publish + docs deploy are USER-ONLY) |
 
-State (2026-06-05, portfolio refresh): v2.1.1 published; deps at latest stable; 2026-06-05 ncu bumped only `@types/react` → 19.2.17 (devDep patch, no risky majors held). `yarn type-check` + `yarn build` (dual ESM/CJS, fresh dist) + `yarn lint` all green. **Automated test suite removed (2026-06-03 workspace testing-infra removal)** — no `test` script / Vitest / test files; quality gates are type-check + build + lint + manual verification (do NOT re-add tests unless asked). Dev-only peer warning: eslint-plugin-react wants eslint ^8.57||^9.7 vs repo eslint 10 (no effect on published package). Resumable polish plan: `docs/features/package-polish-release/`.
+State (2026-06-23, production finalization): v2.1.1 published; `yarn type-check` + `yarn lint` + `yarn build` (dual ESM/CJS, fresh dist, `index` + `react` entries each with `.d.ts`) all green. This pass: added the missing root LICENSE (GAP-01), corrected misleading FirebaseProvider topic-API comments (GAP-02 — behavior was already correct), refreshed README drift (GAP-03), and created the new PUBLIC `notification-kit-docs` Docusaurus site (GAP-04). Repo confirmed PRIVATE. Finalization tracker: `docs/project-finalization/00-tracker.json`. **Automated test suite removed (2026-06-03)** — no `test` script / Vitest / test files; quality gates are type-check + build + lint + manual verification (do NOT re-add tests unless asked). Resumable polish plan: `docs/features/package-polish-release/`.
 
 ## Agent Responsibilities
 

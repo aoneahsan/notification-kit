@@ -1,6 +1,6 @@
 # CLAUDE.md — notification-kit
 
-> Last Updated: 2026-06-08
+> Last Updated: 2026-06-23
 
 ## Task Speed Over Docs (IRON-SOLID — BEHAVIORAL)
 
@@ -12,8 +12,11 @@ Finish the real task fast + correctly FIRST; docs/trackers/sync are a footnote (
 
 ## Current Verified State
 
-- Reviewed on: `2026-06-05` (portfolio refresh pass)
+- Reviewed on: `2026-06-23` (production finalization pass)
 - Package version: `2.1.1` (published on npm)
+- Docs site: **https://notification-kit-docs.aoneahsan.com** — separate PUBLIC repo `notification-kit-docs` (Docusaurus; full API reference). Source-of-truth for API facts is THIS repo's `src/`.
+- Manual / user-only tasks: **`docs/MANUAL-TASKS.md`** (npm publish + docs deploy + DNS are USER-ONLY)
+- Finalization tracker: `docs/project-finalization/00-tracker.json`
 - Install: `yarn install` passed (Yarn 4.14.1)
 - Build: `yarn build` passed (dual ESM + CJS, fresh dist regenerated — `index` + `react` entries, `.esm.js` / `.cjs` / `.d.ts` each)
 - Type-check: `yarn type-check` passed; `yarn lint` passed
@@ -23,7 +26,7 @@ Finish the real task fast + correctly FIRST; docs/trackers/sync are a footnote (
 - Peer floors: Capacitor `>=8.3.4`, firebase `>=12.13.0`, react `>=19.2.6`, react-onesignal `>=3.5.3`; engines node `>=20`
 - Polish/release work tracked in `docs/features/package-polish-release/` (resumable `00-tracker.json`)
 - Logger deviation: leveled logger does NOT auto-patch the host console (library-appropriate; see `src/utils/CLAUDE.md`)
-- Packaging note: `package.json` `files` lists `LICENSE` but no `LICENSE` file exists at repo root (license is MIT, declared in `package.json`). README is `Readme.md`. Worth adding a real `LICENSE` file to silence `npm pack` warnings.
+- Packaging note: root `LICENSE` (MIT) file added 2026-06-23 — `package.json` `files` entry now resolves; `npm pack` LICENSE warning gone. README is `Readme.md`.
 
 ## Commands
 

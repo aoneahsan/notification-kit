@@ -4,20 +4,18 @@ A unified notification library for React + Capacitor apps. One API for push noti
 
 ## Current State
 
-- Package version: `2.1.0`
-- Verified on: `2026-05-26`
+- Package version: `2.1.1` (published on npm)
+- Verified on: `2026-06-23`
 - Install: `yarn install` succeeds
-- Build: `yarn build` succeeds
-- Known warning during verification:
-  - Node `DEP0169` deprecation warnings surfaced through Yarn execution
-- Root portfolio info file:
-  - `NOTIFICATION-KIT_portfolio-info_2026-05-26.md`
+- Build: `yarn build` succeeds (dual ESM + CJS, `index` + `react` entries each with a `.d.ts`)
+- Quality gates: `yarn type-check`, `yarn lint`, `yarn build` — all green
 
 ## 📚 Documentation
 
+- **[Documentation site](https://notification-kit-docs.aoneahsan.com)** — full guides, configuration, and the complete API reference (search + navigation)
 - **[AI Integration Guide](./AI-INTEGRATION-GUIDE.md)** - Quick reference for AI development agents (Claude, Cursor, Copilot)
 
-📖 **[View Full Documentation](https://github.com/aoneahsan/notification-kit/tree/main/docs)**
+📖 **[Browse the Markdown docs in this repo](https://github.com/aoneahsan/notification-kit/tree/main/docs)**
 
 ### Quick Links
 - [**Installation**](https://github.com/aoneahsan/notification-kit/blob/main/docs/guides/installation.md) - Get started with notification-kit
@@ -28,7 +26,7 @@ A unified notification library for React + Capacitor apps. One API for push noti
 - [**Examples**](https://github.com/aoneahsan/notification-kit/blob/main/docs/examples/basic.md) - Code examples
 - [**Troubleshooting**](https://github.com/aoneahsan/notification-kit/blob/main/docs/guides/troubleshooting.md) - Common issues
 
-> 🚧 **Documentation Website Coming Soon**: We're working on a dedicated documentation site with search, better navigation, and interactive examples.
+> 🌐 **Documentation site**: A dedicated Docusaurus documentation site with search and navigation lives at **[notification-kit-docs.aoneahsan.com](https://notification-kit-docs.aoneahsan.com)** (source: [notification-kit-docs](https://github.com/aoneahsan/notification-kit-docs)).
 
 ## Verified Package Architecture
 
