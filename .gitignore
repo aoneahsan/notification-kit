@@ -11,12 +11,7 @@ node_modules/
 /coverage
 .nyc_output
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Environment variables (PRIVATE repo — .env / secrets ARE tracked in git; do not ignore them)
 
 # Logs
 npm-debug.log*
@@ -82,10 +77,6 @@ typings/
 
 # Yarn Integrity file
 .yarn-integrity
-
-# dotenv environment variables file
-.env
-.env.test
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -171,3 +162,17 @@ storybook-static
 test-no-deps.js
 # Firebase hosting cache (per 2026-04-22: untracked across all projects)
 .firebase/hosting.*
+
+# --- Recoverable build/cache artifacts (fleet gitignore hygiene 2026-06-24) ---
+build/
+www/
+.output/
+.vite/
+.docusaurus/
+.wxt/
+*.log
+*.iml
+
+# --- Custom rules (always present) ---
+*.ignore.*
+project-record-ignore/
