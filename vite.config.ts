@@ -101,8 +101,8 @@ export default defineConfig({
         },
       },
     },
-    sourcemap: true,
+    sourcemap: false,
     minify: false,
   },
-  logLevel: process.env.NODE_ENV === 'production' ? 'error' : 'info',
+  logLevel: 'info',
 })
