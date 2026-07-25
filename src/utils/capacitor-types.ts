@@ -53,6 +53,10 @@ export function fromCapacitorImportance(
   importance: CapacitorImportance
 ): ChannelImportance {
   const map: Record<CapacitorImportance, ChannelImportance> = {
+    // Capacitor's Importance is 0-5; ours is 1-5. Android's 0 (IMPORTANCE_NONE,
+    // notifications suppressed) has no equivalent on our scale, so it resolves to
+    // default — which is what the `|| 3` fallback below already did at runtime.
+    0: 3,
     1: 1,
     2: 2,
     3: 3,
