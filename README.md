@@ -35,7 +35,7 @@ from anywhere, including code outside the React tree.
 
 | | |
 |---|---|
-| **Version** | 2.1.1 |
+| **Version** | 2.1.3 |
 | **License** | MIT |
 | **Node** | ≥ 20 (developed and built on 24) |
 | **Platforms** | Web · iOS · Android (iOS/Android via Capacitor) |

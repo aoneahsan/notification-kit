@@ -1,6 +1,6 @@
 {
   "name": "notification-kit",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "One API for push, in-app, and local notifications across Web, iOS, and Android.",
   "type": "module",
   "sideEffects": false,
