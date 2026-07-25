@@ -1,7 +1,7 @@
 {
   "name": "notification-kit",
-  "version": "2.1.1",
-  "description": "A unified notification library for React + Capacitor apps. One API for push notifications, in-app notifications, and local notifications across Web, iOS, and Android.",
+  "version": "2.1.2",
+  "description": "One API for push, in-app, and local notifications across Web, iOS, and Android.",
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.cjs",
@@ -25,8 +25,11 @@
     "dist",
     "bin",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE",
-    "AI-INTEGRATION-GUIDE.md"
+    "AI-INTEGRATION-GUIDE.md",
+    "!**/CLAUDE.md",
+    "!**/AGENTS.md"
   ],
   "bin": {
     "notification-kit-setup": "bin/setup.js"
@@ -53,14 +56,9 @@
     "firebase",
     "onesignal",
     "typescript",
-    "mobile",
     "ios",
     "android",
-    "web",
-    "zero-dependencies",
-    "provider-less",
-    "framework-independent",
-    "lightweight"
+    "web"
   ],
   "author": {
     "name": "Ahsan Mahmood",
@@ -75,7 +73,11 @@
   "bugs": {
     "url": "https://github.com/aoneahsan/notification-kit/issues"
   },
-  "homepage": "https://github.com/aoneahsan/notification-kit#readme",
+  "homepage": "https://notification-kit-docs.aoneahsan.com",
+  "funding": {
+    "type": "individual",
+    "url": "https://aoneahsan.com/payment?project-id=notification-kit&project-identifier=notification-kit"
+  },
   "engines": {
     "node": ">=20"
   },

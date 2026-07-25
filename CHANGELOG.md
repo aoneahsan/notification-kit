@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.2] - 2026-07-25
+
+No change to the published runtime. Repository, metadata, and documentation only.
+
+### Fixed
+
+- **The package could not be rebuilt from a clean checkout.** `yarn build` failed with 22 TypeScript
+  errors and emitted no `dist/`, because five optional peer dependencies
+  (`@capacitor/local-notifications`, `@capacitor/push-notifications`, `@capacitor/preferences`,
+  `firebase`, `react-onesignal`) had no matching `devDependency` for `tsc` to resolve types from, and
+  the Vite-injected `__NOTIFICATION_KIT_VERSION__` constant had no type declaration. Added the missing
+  devDependencies and `src/globals.d.ts`. The published `2.1.1` artifact was never affected.
+- `fromCapacitorImportance` was missing the mapping for Capacitor importance `0`
+  (`IMPORTANCE_NONE`); its type claimed `1..5` while the runtime accepts `0..5`. The existing fallback
+  already resolved `0` to the default, so behaviour is unchanged — the type now matches it.
+
+### Changed
+
+- `description` shortened to match the README tagline; `homepage` now points at the documentation site;
+  `keywords` trimmed to twelve genuine search terms.
+- Added `funding`, and added `CHANGELOG.md` to the published `files` allowlist — until now the changelog
+  was **not** included in the tarball, so installed copies carried no history.
+- `Readme.md` renamed to `README.md`, and rewritten to the canonical package-README pattern.
+
+### Removed from documentation
+
+Four README feature claims had no implementation behind them and have been withdrawn: offline queueing,
+built-in internationalisation, WCAG 2.1 compliance, and built-in analytics. The `Limitations` section now
+states each of these plainly. Several API examples were also corrected — `schedule()` requires an `id`
+and returns `void`, channel management lives on `NotificationKit.getInstance()` rather than on
+`notifications`, and `ChannelImportance` is numeric. The Configuration example also had the wrong shape:
+in-app colours belong at `styles.colors`, not `inApp.theme`, and `styles` takes no `container` object.
+Every TypeScript example in the new README now compiles under `tsc --strict` against the packed tarball.
+
 ## [2.1.1] - 2026-05-27
 
 Post-release polish. No breaking changes — a safe upgrade from 2.1.0.
@@ -236,4 +270,4 @@ This is a major release that introduces a revolutionary zero-dependency architec
 
 ---
 
-For more details, see the [documentation](https://github.com/aoneahsan/notification-kit/wiki).
+For more details, see the [documentation](https://notification-kit-docs.aoneahsan.com).
