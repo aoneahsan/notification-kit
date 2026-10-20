@@ -11,7 +11,7 @@ import type {
   ProviderCapabilities,
 } from '@/types'
 import { isOneSignalInstanceConfig } from '@/types'
-// @ts-ignore - used conditionally  
+// @ts-ignore - used conditionally
 const _ = isOneSignalInstanceConfig
 
 /**
@@ -58,7 +58,7 @@ export class OneSignalProvider implements NotificationProvider {
         // Use existing OneSignal instance
         this.OneSignal = config.instance
         this.initialized = true
-        
+
         const isNative = await DynamicLoader.isNativePlatform()
         if (isNative) {
           await this.setupNativeEventListeners()
@@ -71,11 +71,11 @@ export class OneSignalProvider implements NotificationProvider {
         ConfigValidator.validateEnvironmentVariables('onesignal')
 
         const isNative = await DynamicLoader.isNativePlatform()
-        
+
         if (isNative) {
           // For native platforms, initialize through the native bridge
           await OneSignalNativeBridge.initializeNative(config)
-          
+
           // Native platforms use the OneSignal Capacitor SDK
           // which has a different API than react-onesignal
           this.initialized = true
@@ -112,8 +112,10 @@ export class OneSignalProvider implements NotificationProvider {
             throw new Error('OneSignal is required but not installed')
           }
           this.OneSignal = oneSignalModule.default
-          
-          await this.OneSignal.init(initOptions as Parameters<typeof this.OneSignal.init>[0])
+
+          await this.OneSignal.init(
+            initOptions as Parameters<typeof this.OneSignal.init>[0]
+          )
 
           this.initialized = true
           await this.setupEventListeners()
@@ -446,11 +448,12 @@ export class OneSignalProvider implements NotificationProvider {
   private async setupNativeEventListeners(): Promise<void> {
     try {
       // For native platforms, we use Capacitor's push notification events
-      const pushNotificationsModule = await DynamicLoader.loadPushNotifications()
+      const pushNotificationsModule =
+        await DynamicLoader.loadPushNotifications()
       if (!pushNotificationsModule) {
         throw new Error('Push notifications module not available')
       }
-      
+
       const { PushNotifications } = pushNotificationsModule
 
       const receivedHandle = await PushNotifications.addListener(
@@ -489,7 +492,9 @@ export class OneSignalProvider implements NotificationProvider {
       )
       this.nativeListenerHandles.push(registrationErrorHandle)
     } catch (error) {
-      this.handleError(new Error(`Native event listener setup failed: ${error}`))
+      this.handleError(
+        new Error(`Native event listener setup failed: ${error}`)
+      )
     }
   }
 
@@ -523,9 +528,14 @@ export class OneSignalProvider implements NotificationProvider {
       const oneSignal = this.OneSignal
 
       // Foreground notification received (v3 API).
-      oneSignal.Notifications.addEventListener('foregroundWillDisplay', event => {
-        this.notifyMessageListeners(this.fromOSNotification(event.notification))
-      })
+      oneSignal.Notifications.addEventListener(
+        'foregroundWillDisplay',
+        event => {
+          this.notifyMessageListeners(
+            this.fromOSNotification(event.notification)
+          )
+        }
+      )
 
       // Notification clicked / opened.
       oneSignal.Notifications.addEventListener('click', event => {
@@ -558,7 +568,9 @@ export class OneSignalProvider implements NotificationProvider {
       notification: {
         title,
         body,
-        ...(notification?.notificationId && { id: notification.notificationId }),
+        ...(notification?.notificationId && {
+          id: notification.notificationId,
+        }),
       },
     }
   }
@@ -568,9 +580,12 @@ export class OneSignalProvider implements NotificationProvider {
    */
   private async requestNativePermission(): Promise<boolean> {
     try {
-      const pushNotificationsModule = await DynamicLoader.loadPushNotifications()
+      const pushNotificationsModule =
+        await DynamicLoader.loadPushNotifications()
       if (!pushNotificationsModule) {
-        throw new Error('Push notifications require @capacitor/push-notifications')
+        throw new Error(
+          'Push notifications require @capacitor/push-notifications'
+        )
       }
       const { PushNotifications } = pushNotificationsModule
       const result = await PushNotifications.requestPermissions()
@@ -591,9 +606,12 @@ export class OneSignalProvider implements NotificationProvider {
    */
   private async checkNativePermission(): Promise<PermissionStatus> {
     try {
-      const pushNotificationsModule = await DynamicLoader.loadPushNotifications()
+      const pushNotificationsModule =
+        await DynamicLoader.loadPushNotifications()
       if (!pushNotificationsModule) {
-        throw new Error('Push notifications require @capacitor/push-notifications')
+        throw new Error(
+          'Push notifications require @capacitor/push-notifications'
+        )
       }
       const { PushNotifications } = pushNotificationsModule
       const result = await PushNotifications.checkPermissions()

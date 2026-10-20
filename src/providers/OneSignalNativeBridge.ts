@@ -26,19 +26,21 @@ export class OneSignalNativeBridge {
     }
 
     const platform = await DynamicLoader.getPlatform()
-    
+
     try {
       // For Capacitor apps, we need to use the OneSignal Capacitor SDK
       // which handles native configuration programmatically
       const capacitor = await DynamicLoader.loadCapacitorCore()
       if (!capacitor) {
-        throw new Error('Capacitor not available for native OneSignal initialization')
+        throw new Error(
+          'Capacitor not available for native OneSignal initialization'
+        )
       }
 
       // Use Capacitor's plugin system to communicate with native code
       // This approach avoids hardcoding credentials in native files
       await this.configureNativePlatform(platform, config)
-      
+
       this.isInitialized = true
       Logger.info(`OneSignal native bridge initialized for ${platform}`)
     } catch (error) {
@@ -56,10 +58,10 @@ export class OneSignalNativeBridge {
   ): Promise<void> {
     // Instead of using Info.plist or AndroidManifest.xml,
     // we'll use the OneSignal SDK's programmatic initialization
-    
+
     // The OneSignal Capacitor plugin (when available) would handle this
     // For now, we document the approach for developers
-    
+
     if (platform === 'ios') {
       await this.configureIOS(config)
     } else if (platform === 'android') {
@@ -75,9 +77,12 @@ export class OneSignalNativeBridge {
     // 1. The OneSignal SDK for iOS supports programmatic initialization
     // 2. Instead of Info.plist, use the SDK's initialization method
     // 3. This is typically done in the AppDelegate or via a Capacitor plugin
-    
+
     Logger.debug('iOS OneSignal configuration:', {
-      appId: !isOneSignalInstanceConfig(config) && config.appId ? '***' : 'not provided',
+      appId:
+        !isOneSignalInstanceConfig(config) && config.appId
+          ? '***'
+          : 'not provided',
       // Log config status without exposing sensitive data
     })
 
@@ -89,14 +94,19 @@ export class OneSignalNativeBridge {
   /**
    * Configure OneSignal for Android
    */
-  private static async configureAndroid(config: OneSignalConfig): Promise<void> {
+  private static async configureAndroid(
+    config: OneSignalConfig
+  ): Promise<void> {
     // Android configuration approach:
     // 1. The OneSignal SDK for Android supports programmatic initialization
     // 2. Instead of AndroidManifest.xml meta-data, use the SDK's init method
     // 3. This is typically done in the Application class or via a Capacitor plugin
-    
+
     Logger.debug('Android OneSignal configuration:', {
-      appId: !isOneSignalInstanceConfig(config) && config.appId ? '***' : 'not provided',
+      appId:
+        !isOneSignalInstanceConfig(config) && config.appId
+          ? '***'
+          : 'not provided',
       // Log config status without exposing sensitive data
     })
 

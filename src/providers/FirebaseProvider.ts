@@ -42,7 +42,7 @@ export class FirebaseProvider implements NotificationProvider {
     try {
       // Import the type guard function
       const { isFirebaseAppConfig } = await import('@/types')
-      
+
       this.config = config
 
       // Check if an existing Firebase app is provided
@@ -111,7 +111,9 @@ export class FirebaseProvider implements NotificationProvider {
         try {
           await handle.remove()
         } catch (error) {
-          this.handleError(new Error(`Failed to remove native listener: ${error}`))
+          this.handleError(
+            new Error(`Failed to remove native listener: ${error}`)
+          )
         }
       }
       this.nativeListenerHandles = []
@@ -453,7 +455,7 @@ export class FirebaseProvider implements NotificationProvider {
       if (!firebaseMessaging) {
         throw new Error('Firebase messaging is required but not installed')
       }
-      
+
       this.messaging = firebaseMessaging.getMessaging(this.app)
 
       // Setup message listener
@@ -568,9 +570,12 @@ export class FirebaseProvider implements NotificationProvider {
    */
   private async requestNativePermission(): Promise<boolean> {
     try {
-      const pushNotificationsModule = await DynamicLoader.loadPushNotifications()
+      const pushNotificationsModule =
+        await DynamicLoader.loadPushNotifications()
       if (!pushNotificationsModule) {
-        throw new Error('Push notifications require @capacitor/push-notifications')
+        throw new Error(
+          'Push notifications require @capacitor/push-notifications'
+        )
       }
       const { PushNotifications } = pushNotificationsModule
       const result = await PushNotifications.requestPermissions()
@@ -598,9 +603,12 @@ export class FirebaseProvider implements NotificationProvider {
    */
   private async checkNativePermission(): Promise<PermissionStatus> {
     try {
-      const pushNotificationsModule = await DynamicLoader.loadPushNotifications()
+      const pushNotificationsModule =
+        await DynamicLoader.loadPushNotifications()
       if (!pushNotificationsModule) {
-        throw new Error('Push notifications require @capacitor/push-notifications')
+        throw new Error(
+          'Push notifications require @capacitor/push-notifications'
+        )
       }
       const { PushNotifications } = pushNotificationsModule
       const result = await PushNotifications.checkPermissions()

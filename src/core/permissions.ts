@@ -85,7 +85,7 @@ export class PermissionManager {
     }
     throw new Error(
       'notification-kit: openSettings() is not implemented internally to preserve the ' +
-        "zero-dependency design. Open the OS settings from your app using a native " +
+        'zero-dependency design. Open the OS settings from your app using a native ' +
         "plugin (e.g. '@capacitor-community/native-settings')."
     )
   }
@@ -132,7 +132,8 @@ export class PermissionManager {
    */
   private async requestNativePermission(): Promise<boolean> {
     try {
-      const pushNotificationsModule = await DynamicLoader.loadPushNotifications()
+      const pushNotificationsModule =
+        await DynamicLoader.loadPushNotifications()
       if (!pushNotificationsModule) {
         throw new Error('Push notifications are not available on this platform')
       }
@@ -150,7 +151,8 @@ export class PermissionManager {
    */
   private async checkNativePermission(): Promise<PermissionStatus> {
     try {
-      const pushNotificationsModule = await DynamicLoader.loadPushNotifications()
+      const pushNotificationsModule =
+        await DynamicLoader.loadPushNotifications()
       if (!pushNotificationsModule) {
         throw new Error('Push notifications are not available on this platform')
       }
@@ -179,7 +181,7 @@ export class PermissionManager {
   private async detectPlatform(): Promise<Platform> {
     return DynamicLoader.getPlatform()
   }
-  
+
   /**
    * Ensure platform is detected
    */

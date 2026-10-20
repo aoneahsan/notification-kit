@@ -29,7 +29,7 @@ export class ConfigValidator {
     if (missingFields.length > 0) {
       throw new Error(
         `Missing required Firebase configuration fields: ${missingFields.join(', ')}. ` +
-        'Make sure all required environment variables are set.'
+          'Make sure all required environment variables are set.'
       )
     }
 
@@ -49,15 +49,19 @@ export class ConfigValidator {
     if (!config.appId) {
       throw new Error(
         'Missing required OneSignal appId. ' +
-        'Make sure ONESIGNAL_APP_ID environment variable is set.'
+          'Make sure ONESIGNAL_APP_ID environment variable is set.'
       )
     }
 
     // Validate REST API key if provided (needed for server operations)
-    if ('restApiKey' in config && config.restApiKey && config.restApiKey.length < 48) {
+    if (
+      'restApiKey' in config &&
+      config.restApiKey &&
+      config.restApiKey.length < 48
+    ) {
       Logger.warn(
         'OneSignal REST API key appears to be invalid. ' +
-        'Server-side operations may fail.'
+          'Server-side operations may fail.'
       )
     }
 
@@ -106,18 +110,21 @@ export class ConfigValidator {
   /**
    * Validate environment variables are set
    */
-  static validateEnvironmentVariables(provider: 'firebase' | 'onesignal'): void {
+  static validateEnvironmentVariables(
+    provider: 'firebase' | 'onesignal'
+  ): void {
     if (typeof process === 'undefined' || !process.env) {
       // Not in Node.js environment, skip validation
       return
     }
 
-    const requiredEnvVars = provider === 'firebase' 
-      ? this.getRequiredFirebaseEnvVars()
-      : this.getRequiredOneSignalEnvVars()
+    const requiredEnvVars =
+      provider === 'firebase'
+        ? this.getRequiredFirebaseEnvVars()
+        : this.getRequiredOneSignalEnvVars()
 
     const missingEnvVars: string[] = []
-    
+
     for (const envVars of requiredEnvVars) {
       const hasAny = envVars.some(envVar => !!process.env[envVar])
       if (!hasAny) {
@@ -128,7 +135,7 @@ export class ConfigValidator {
     if (missingEnvVars.length > 0) {
       Logger.warn(
         `Missing environment variables for ${provider}: ${missingEnvVars.join(', ')}. ` +
-        'Make sure to set these in your .env file or deployment environment.'
+          'Make sure to set these in your .env file or deployment environment.'
       )
     }
   }
@@ -138,12 +145,42 @@ export class ConfigValidator {
    */
   private static getRequiredFirebaseEnvVars(): string[][] {
     return [
-      ['FIREBASE_API_KEY', 'NEXT_PUBLIC_FIREBASE_API_KEY', 'REACT_APP_FIREBASE_API_KEY', 'VITE_FIREBASE_API_KEY'],
-      ['FIREBASE_AUTH_DOMAIN', 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN', 'REACT_APP_FIREBASE_AUTH_DOMAIN', 'VITE_FIREBASE_AUTH_DOMAIN'],
-      ['FIREBASE_PROJECT_ID', 'NEXT_PUBLIC_FIREBASE_PROJECT_ID', 'REACT_APP_FIREBASE_PROJECT_ID', 'VITE_FIREBASE_PROJECT_ID'],
-      ['FIREBASE_STORAGE_BUCKET', 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET', 'REACT_APP_FIREBASE_STORAGE_BUCKET', 'VITE_FIREBASE_STORAGE_BUCKET'],
-      ['FIREBASE_MESSAGING_SENDER_ID', 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID', 'REACT_APP_FIREBASE_MESSAGING_SENDER_ID', 'VITE_FIREBASE_MESSAGING_SENDER_ID'],
-      ['FIREBASE_APP_ID', 'NEXT_PUBLIC_FIREBASE_APP_ID', 'REACT_APP_FIREBASE_APP_ID', 'VITE_FIREBASE_APP_ID'],
+      [
+        'FIREBASE_API_KEY',
+        'NEXT_PUBLIC_FIREBASE_API_KEY',
+        'REACT_APP_FIREBASE_API_KEY',
+        'VITE_FIREBASE_API_KEY',
+      ],
+      [
+        'FIREBASE_AUTH_DOMAIN',
+        'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
+        'REACT_APP_FIREBASE_AUTH_DOMAIN',
+        'VITE_FIREBASE_AUTH_DOMAIN',
+      ],
+      [
+        'FIREBASE_PROJECT_ID',
+        'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
+        'REACT_APP_FIREBASE_PROJECT_ID',
+        'VITE_FIREBASE_PROJECT_ID',
+      ],
+      [
+        'FIREBASE_STORAGE_BUCKET',
+        'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
+        'REACT_APP_FIREBASE_STORAGE_BUCKET',
+        'VITE_FIREBASE_STORAGE_BUCKET',
+      ],
+      [
+        'FIREBASE_MESSAGING_SENDER_ID',
+        'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
+        'REACT_APP_FIREBASE_MESSAGING_SENDER_ID',
+        'VITE_FIREBASE_MESSAGING_SENDER_ID',
+      ],
+      [
+        'FIREBASE_APP_ID',
+        'NEXT_PUBLIC_FIREBASE_APP_ID',
+        'REACT_APP_FIREBASE_APP_ID',
+        'VITE_FIREBASE_APP_ID',
+      ],
     ]
   }
 
@@ -152,7 +189,12 @@ export class ConfigValidator {
    */
   private static getRequiredOneSignalEnvVars(): string[][] {
     return [
-      ['ONESIGNAL_APP_ID', 'NEXT_PUBLIC_ONESIGNAL_APP_ID', 'REACT_APP_ONESIGNAL_APP_ID', 'VITE_ONESIGNAL_APP_ID'],
+      [
+        'ONESIGNAL_APP_ID',
+        'NEXT_PUBLIC_ONESIGNAL_APP_ID',
+        'REACT_APP_ONESIGNAL_APP_ID',
+        'VITE_ONESIGNAL_APP_ID',
+      ],
     ]
   }
 }

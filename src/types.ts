@@ -88,7 +88,7 @@ export interface NotificationProvider {
 export type ProviderConfig = FirebaseConfig | OneSignalConfig
 
 // Updated Firebase config to support existing app
-export type FirebaseConfig = 
+export type FirebaseConfig =
   | {
       app: FirebaseApp // Existing Firebase app instance
       vapidKey?: string
@@ -105,7 +105,7 @@ export type FirebaseConfig =
     }
 
 // Updated OneSignal config to support existing instance
-export type OneSignalConfig = 
+export type OneSignalConfig =
   | {
       instance: any // Existing OneSignal instance
     }
@@ -399,7 +399,9 @@ export type ChannelVisibility = -1 | 0 | 1
 export type ChannelLockScreenVisibility = 'secret' | 'private' | 'public'
 export type ChannelSound = 'default' | 'none' | string
 export type ChannelVibration = boolean | number[]
-export type ChannelLights = boolean | { color: string; onMs: number; offMs: number }
+export type ChannelLights =
+  | boolean
+  | { color: string; onMs: number; offMs: number }
 
 // Payload Types
 export interface PushNotificationPayload {
@@ -556,7 +558,7 @@ export interface Duration {
   days?: number
 }
 
-export type RepeatInterval = 
+export type RepeatInterval =
   | 'year'
   | 'month'
   | 'two-weeks'
@@ -593,7 +595,7 @@ export interface InAppOptions {
   onDismiss?: () => void
 }
 
-export type NotificationPosition = 
+export type NotificationPosition =
   | 'top'
   | 'top-left'
   | 'top-right'
@@ -603,9 +605,19 @@ export type NotificationPosition =
   | 'center'
 
 // Permission Types
-export type PermissionStatus = 'granted' | 'denied' | 'prompt' | 'provisional' | 'default' | 'unknown'
+export type PermissionStatus =
+  | 'granted'
+  | 'denied'
+  | 'prompt'
+  | 'provisional'
+  | 'default'
+  | 'unknown'
 export type NotificationPermissionStatus = PermissionStatus
-export type PermissionType = 'notifications' | 'location' | 'camera' | 'microphone'
+export type PermissionType =
+  | 'notifications'
+  | 'location'
+  | 'camera'
+  | 'microphone'
 
 // Event Types
 export interface NotificationEvent {
@@ -715,7 +727,9 @@ export interface NotificationEventMap {
 
 export type NotificationEvents = keyof NotificationEventMap
 
-export type NotificationEventCallback<T = NotificationEvent> = (event: T) => void
+export type NotificationEventCallback<T = NotificationEvent> = (
+  event: T
+) => void
 
 export type EventListener = (event: NotificationEvent) => void
 
@@ -778,11 +792,15 @@ export interface RepeatOptions {
 export type WeekDay = Weekday
 
 // Utility type to check if FirebaseConfig has existing app
-export function isFirebaseAppConfig(config: FirebaseConfig): config is { app: FirebaseApp; vapidKey?: string } {
+export function isFirebaseAppConfig(
+  config: FirebaseConfig
+): config is { app: FirebaseApp; vapidKey?: string } {
   return 'app' in config
 }
 
 // Utility type to check if OneSignalConfig has existing instance
-export function isOneSignalInstanceConfig(config: OneSignalConfig): config is { instance: any } {
+export function isOneSignalInstanceConfig(
+  config: OneSignalConfig
+): config is { instance: any } {
   return 'instance' in config
 }

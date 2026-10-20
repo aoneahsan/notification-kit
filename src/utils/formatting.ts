@@ -319,7 +319,8 @@ export class FormattingUtils {
     }
 
     // Handle both past ("5m ago") and future ("in 5m") timestamps.
-    const phrase = (value: string) => (isFuture ? `in ${value}` : `${value} ago`)
+    const phrase = (value: string) =>
+      isFuture ? `in ${value}` : `${value} ago`
 
     if (minutes < 60) {
       return phrase(`${minutes}m`)

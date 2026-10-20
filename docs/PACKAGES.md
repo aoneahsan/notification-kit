@@ -3,7 +3,7 @@
 Every `package.json` unit in this repository, what each dependency is for, and every intentional pin.
 Keep this accurate on **every** add, remove, or upgrade. Fleet rule: `~/.claude/rules/fleet-tasks.md`.
 
-**Last Updated:** 2026-07-25
+**Last Updated:** 2026-10-20
 
 ---
 
@@ -13,13 +13,6 @@ Keep this accurate on **every** add, remove, or upgrade. Fleet rule: `~/.claude/
 |---|---|---|---|
 | repository root | `notification-kit` | ✅ npm | the library itself — the only publishable unit |
 | `examples/react-capacitor-example/` | `react-capacitor-example` | ❌ | runnable demo app, never published |
-| `website/` | `notification-kit-docs` | ❌ | **vestigial** — see the note below |
-
-> ⚠️ `website/` duplicates the separate `notification-kit-docs` repository that actually builds and deploys
-> [notification-kit-docs.aoneahsan.com](https://notification-kit-docs.aoneahsan.com). Two manifests now share
-> the name `notification-kit-docs` (this one at `0.0.0`, the live repo at `0.1.0`). Neither is published to
-> npm, so there is no publish hazard — but editing `website/docs/**` here changes nothing on the live site.
-> Removal is an open owner decision (`docs/REPORTED-ISSUES.md` → ISSUE-03).
 
 ## Runtime dependencies
 
@@ -71,5 +64,6 @@ emitted. Verify with `npm pack --dry-run`, then against the **extracted** tarbal
 
 ## Packages removed
 
-None removed to date. Five devDependencies were **added** on 2026-07-25 to repair the build
+The duplicate `website/` Docusaurus tree was removed on 2026-10-20; the separate public docs repository is
+canonical. Five devDependencies were added on 2026-07-25 to repair the build
 (`docs/RESOLVED-ISSUES.md` → ISSUE-01).

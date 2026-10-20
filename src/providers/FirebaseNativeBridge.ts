@@ -26,14 +26,14 @@ export class FirebaseNativeBridge {
     }
 
     const platform = await DynamicLoader.getPlatform()
-    
+
     try {
       // Validate configuration
       this.validateConfig(config)
-      
+
       // Configure platform-specific settings
       await this.configureNativePlatform(platform, config)
-      
+
       this.isInitialized = true
       Logger.info(`Firebase native bridge initialized for ${platform}`)
     } catch (error) {
@@ -58,13 +58,15 @@ export class FirebaseNativeBridge {
       'projectId',
       'storageBucket',
       'messagingSenderId',
-      'appId'
+      'appId',
     ]
 
     const missingFields = requiredFields.filter(field => !(field in config))
-    
+
     if (missingFields.length > 0) {
-      throw new Error(`Missing required Firebase configuration fields: ${missingFields.join(', ')}`)
+      throw new Error(
+        `Missing required Firebase configuration fields: ${missingFields.join(', ')}`
+      )
     }
 
     // Log configuration status without exposing sensitive data
@@ -94,7 +96,7 @@ export class FirebaseNativeBridge {
 
   /**
    * Configure Firebase for iOS
-   * 
+   *
    * IMPORTANT: This approach ensures that:
    * 1. GoogleService-Info.plist is NOT required in the repository
    * 2. Firebase configuration is provided at runtime
@@ -104,12 +106,12 @@ export class FirebaseNativeBridge {
     // iOS Firebase configuration approach:
     // Instead of using GoogleService-Info.plist, we configure Firebase programmatically
     // This would be done through a Capacitor plugin that bridges to native iOS code
-    
+
     Logger.debug('iOS Firebase configuration prepared (credentials hidden)')
 
     // Note: The actual implementation would require a Capacitor plugin
     // that bridges to native iOS code to call:
-    // 
+    //
     // let options = FirebaseOptions(
     //   googleAppID: config.appId,
     //   gcmSenderID: config.messagingSenderId,
@@ -119,28 +121,30 @@ export class FirebaseNativeBridge {
     //   storageBucket: config.storageBucket
     // )
     // FirebaseApp.configure(options: options)
-    
+
     // This avoids the need for GoogleService-Info.plist in the repository
   }
 
   /**
    * Configure Firebase for Android
-   * 
+   *
    * IMPORTANT: This approach ensures that:
    * 1. google-services.json is NOT required in the repository
    * 2. Firebase configuration is provided at runtime
    * 3. Sensitive data never appears in version control
    */
-  private static async configureAndroid(_config: FirebaseConfig): Promise<void> {
+  private static async configureAndroid(
+    _config: FirebaseConfig
+  ): Promise<void> {
     // Android Firebase configuration approach:
     // Instead of using google-services.json, we configure Firebase programmatically
     // This would be done through a Capacitor plugin that bridges to native Android code
-    
+
     Logger.debug('Android Firebase configuration prepared (credentials hidden)')
 
     // Note: The actual implementation would require a Capacitor plugin
     // that bridges to native Android code to call:
-    // 
+    //
     // FirebaseOptions options = new FirebaseOptions.Builder()
     //   .setApplicationId(config.appId)
     //   .setApiKey(config.apiKey)
@@ -150,7 +154,7 @@ export class FirebaseNativeBridge {
     //   .setGcmSenderId(config.messagingSenderId)
     //   .build();
     // FirebaseApp.initializeApp(context, options);
-    
+
     // This avoids the need for google-services.json in the repository
   }
 

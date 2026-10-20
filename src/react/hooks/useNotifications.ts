@@ -129,7 +129,10 @@ export function useNotifications(): UseNotificationsReturn {
           try {
             token = await notificationKitRef.current.getToken()
           } catch (error) {
-            Logger.debug('notification-kit: token retrieval failed at init', error)
+            Logger.debug(
+              'notification-kit: token retrieval failed at init',
+              error
+            )
           }
         }
 
@@ -375,7 +378,8 @@ export function useNotifications(): UseNotificationsReturn {
         if (on !== undefined) schedule.on = on
         if (days !== undefined) schedule.days = days
         if (timezone !== undefined) schedule.timezone = timezone
-        if (allowWhileIdle !== undefined) schedule.allowWhileIdle = allowWhileIdle
+        if (allowWhileIdle !== undefined)
+          schedule.allowWhileIdle = allowWhileIdle
         if (exact !== undefined) schedule.exact = exact
         if (wakeDevice !== undefined) schedule.wakeDevice = wakeDevice
         if (category !== undefined) schedule.category = category
@@ -563,7 +567,10 @@ export function useNotifications(): UseNotificationsReturn {
         try {
           token = await notificationKitRef.current.getToken()
         } catch (error) {
-          Logger.debug('notification-kit: token refresh failed during refresh', error)
+          Logger.debug(
+            'notification-kit: token refresh failed during refresh',
+            error
+          )
         }
       }
 

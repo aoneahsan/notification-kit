@@ -34,7 +34,10 @@ export class SchedulingUtils {
     }
 
     if (schedule.every) {
-      return this.calculateEveryTime(schedule.every as unknown as RepeatOptions, now)
+      return this.calculateEveryTime(
+        schedule.every as unknown as RepeatOptions,
+        now
+      )
     }
 
     return null
@@ -50,7 +53,11 @@ export class SchedulingUtils {
     // of that time-of-day. (The old code added a single day, which left dates
     // more than a day in the past still in the past.)
     if (scheduledTime <= now) {
-      scheduledTime.setFullYear(now.getFullYear(), now.getMonth(), now.getDate())
+      scheduledTime.setFullYear(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate()
+      )
       if (scheduledTime <= now) {
         scheduledTime.setDate(scheduledTime.getDate() + 1)
       }
@@ -139,7 +146,9 @@ export class SchedulingUtils {
         break
       }
       case 'yearly':
-        scheduledTime.setFullYear(scheduledTime.getFullYear() + Number(frequency))
+        scheduledTime.setFullYear(
+          scheduledTime.getFullYear() + Number(frequency)
+        )
         break
     }
 
@@ -183,7 +192,9 @@ export class SchedulingUtils {
     }
 
     if (schedule.every) {
-      const result = this.validateEverySchedule(schedule.every as unknown as RepeatOptions)
+      const result = this.validateEverySchedule(
+        schedule.every as unknown as RepeatOptions
+      )
       if (result.valid) {
         hasValidSchedule = true
       } else {
@@ -322,7 +333,13 @@ export class SchedulingUtils {
         'thursday',
         'friday',
         'saturday',
-        1, 2, 3, 4, 5, 6, 7
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
       ]
       if (!validWeekdays.includes(on.weekday as any)) {
         errors.push({
@@ -552,6 +569,6 @@ export class SchedulingUtils {
       friday: 5,
       saturday: 6,
     }
-    return typeof weekday === 'number' ? weekday : (map[weekday] || 0)
+    return typeof weekday === 'number' ? weekday : map[weekday] || 0
   }
 }

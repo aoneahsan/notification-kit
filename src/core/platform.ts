@@ -32,7 +32,8 @@ export class PlatformManager {
       typeof navigator !== 'undefined' ? navigator.userAgent : ''
     const isTablet = this.detectTablet(userAgent)
     // A tablet is not a desktop, even though it is "not a phone".
-    const isDesktop = platform === 'electron' || (isWeb && !isMobile && !isTablet)
+    const isDesktop =
+      platform === 'electron' || (isWeb && !isMobile && !isTablet)
     const version = this.getVersion()
 
     this.detection = {
@@ -58,7 +59,7 @@ export class PlatformManager {
    * Get platform capabilities
    */
   async getCapabilities(platform?: Platform): Promise<PlatformCapabilities> {
-    const targetPlatform = platform || await this.getPlatform()
+    const targetPlatform = platform || (await this.getPlatform())
 
     if (this.capabilities && !platform) {
       return this.capabilities

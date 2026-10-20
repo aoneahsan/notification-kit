@@ -1,43 +1,20 @@
 # AGENTS.md — docs/
 
-> Last Updated: 2026-05-26
+**Last optimized:** 2026-10-20
+**Next routine optimization:** 2026-11-19
 
-## Documentation Rules
+## Scope
 
-### Structure
+Package-local API reference, implementation guides, maintenance records, and historical decision trackers. The deployed site lives in the sibling `notification-kit-docs` repository.
 
-| Folder | Content |
-|--------|---------|
-| `api/` | API reference (core, notifications, react-hooks, types) |
-| `guides/` | Implementation guides |
-| `helpers/` | Platform setup guides |
-| `examples/` | Code examples |
-| `tracking/` | Rollout and capability tracking |
-| `README.md` | Documentation index |
+## Rules
 
-### Maintenance Rules
+- Verify every API name, signature, platform claim, and example against `src/` and built declarations.
+- Keep current operational docs concise; keep completed historical trackers as evidence and do not load them for routine work.
+- Do not recreate an in-repository Docusaurus site.
+- Record open issues in `REPORTED-ISSUES.md` and move resolved items to `RESOLVED-ISSUES.md`.
+- Use placeholders for all provider configuration and credentials.
 
-1. **Docs must match code** — never describe unimplemented features as available
-2. **Update with code changes** — update affected docs when source changes
-3. **Three-file sync** — `Readme.md` (root) + `docs/README.md` + portfolio file together
-4. **No "coming soon"** — don't mention unimplemented features
-5. **Accurate examples** — code examples must work with current API
+## Context record
 
-### When to Update
-
-- Public API changes, new providers, new hooks, version bumps
-- Platform setup changes, security guidance changes
-
-### CLAUDE.md + AGENTS.md Rules
-
-- Keep both files in sync — update both when changing rules
-- Update at least every 3 days
-
-
-## Sub-agents & Skills — Main-Context-First (IRON-SOLID)
-Default/built-in sub-agents (`general-purpose`, `Explore`, `Plan`, `claude`, `fork`, …) do NOT have
-access to `/skills`, so delegating to them silently SKIPS the skills RULE #0 requires. Do all
-skill-relevant work in the **MAIN context**; use a sub-agent ONLY when a **custom** agent exists in
-`.claude/agents/` for that job; a default `Explore`/`Plan` agent is allowed ONLY for read-only,
-no-skill search/exploration. When a relevant skill is missing, **install/enable it** rather than
-proceeding skill-less. (Owner directive 2026-07-11; full text in `~/.claude/CLAUDE.md`.)
+Reviewed against the active tree on 2026-10-20. Inherits the repository root guide.

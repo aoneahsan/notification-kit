@@ -7,6 +7,11 @@ import readline from 'readline'
 import { exec as execCallback } from 'child_process'
 import { promisify } from 'util'
 
+if (!process.stdin.isTTY || !process.stdout.isTTY) {
+  console.error('notification-kit-setup requires an interactive terminal.')
+  process.exit(1)
+}
+
 const exec = promisify(execCallback)
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)

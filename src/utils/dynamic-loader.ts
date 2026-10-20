@@ -39,9 +39,11 @@ export class DynamicLoader {
   /**
    * Load Capacitor Core dynamically
    */
-  static async loadCapacitorCore(): Promise<typeof import('@capacitor/core') | null> {
+  static async loadCapacitorCore(): Promise<
+    typeof import('@capacitor/core') | null
+  > {
     const cacheKey = '@capacitor/core'
-    
+
     if (this.loadedModules.has(cacheKey)) {
       return this.loadedModules.get(cacheKey)
     }
@@ -59,7 +61,9 @@ export class DynamicLoader {
         this.loadedModules.set(cacheKey, module)
         return module
       } catch (error) {
-        Logger.warn('Capacitor Core not available. Some features may be limited.')
+        Logger.warn(
+          'Capacitor Core not available. Some features may be limited.'
+        )
         return null
       }
     })()
@@ -71,9 +75,11 @@ export class DynamicLoader {
   /**
    * Load Capacitor Push Notifications
    */
-  static async loadPushNotifications(): Promise<typeof import('@capacitor/push-notifications') | null> {
+  static async loadPushNotifications(): Promise<
+    typeof import('@capacitor/push-notifications') | null
+  > {
     const cacheKey = '@capacitor/push-notifications'
-    
+
     if (this.loadedModules.has(cacheKey)) {
       return this.loadedModules.get(cacheKey)
     }
@@ -105,9 +111,11 @@ export class DynamicLoader {
   /**
    * Load Capacitor Local Notifications
    */
-  static async loadLocalNotifications(): Promise<typeof import('@capacitor/local-notifications') | null> {
+  static async loadLocalNotifications(): Promise<
+    typeof import('@capacitor/local-notifications') | null
+  > {
     const cacheKey = '@capacitor/local-notifications'
-    
+
     if (this.loadedModules.has(cacheKey)) {
       return this.loadedModules.get(cacheKey)
     }
@@ -139,9 +147,11 @@ export class DynamicLoader {
   /**
    * Load Capacitor Preferences
    */
-  static async loadPreferences(): Promise<typeof import('@capacitor/preferences') | null> {
+  static async loadPreferences(): Promise<
+    typeof import('@capacitor/preferences') | null
+  > {
     const cacheKey = '@capacitor/preferences'
-    
+
     if (this.loadedModules.has(cacheKey)) {
       return this.loadedModules.get(cacheKey)
     }
@@ -170,7 +180,7 @@ export class DynamicLoader {
    */
   static async loadFirebase(): Promise<typeof import('firebase/app') | null> {
     const cacheKey = 'firebase/app'
-    
+
     if (this.loadedModules.has(cacheKey)) {
       return this.loadedModules.get(cacheKey)
     }
@@ -202,9 +212,11 @@ export class DynamicLoader {
   /**
    * Load Firebase Messaging
    */
-  static async loadFirebaseMessaging(): Promise<typeof import('firebase/messaging') | null> {
+  static async loadFirebaseMessaging(): Promise<
+    typeof import('firebase/messaging') | null
+  > {
     const cacheKey = 'firebase/messaging'
-    
+
     if (this.loadedModules.has(cacheKey)) {
       return this.loadedModules.get(cacheKey)
     }
@@ -236,9 +248,11 @@ export class DynamicLoader {
   /**
    * Load OneSignal
    */
-  static async loadOneSignal(): Promise<typeof import('react-onesignal') | null> {
+  static async loadOneSignal(): Promise<
+    typeof import('react-onesignal') | null
+  > {
     const cacheKey = 'react-onesignal'
-    
+
     if (this.loadedModules.has(cacheKey)) {
       return this.loadedModules.get(cacheKey)
     }
@@ -272,7 +286,7 @@ export class DynamicLoader {
    */
   static async getPlatform(): Promise<Platform> {
     const capacitor = await this.loadCapacitorCore()
-    
+
     if (capacitor && capacitor.Capacitor.isNativePlatform()) {
       return capacitor.Capacitor.getPlatform() as Platform
     } else if (typeof window !== 'undefined') {

@@ -5,7 +5,7 @@ Welcome to the comprehensive documentation for notification-kit - a unified noti
 ## Verified Status
 
 - Last reviewed: `2026-05-26`
-- Current package version: `2.1.0`
+- Current package version: `2.1.3`
 - Install status: `yarn install` passed
 - Build status: `yarn build` passed
 - Known warning in verification pass:

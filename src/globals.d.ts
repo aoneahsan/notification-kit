@@ -7,4 +7,4 @@
  */
 
 /** The package version, single-sourced from `package.json` at build time. */
-declare const __NOTIFICATION_KIT_VERSION__: string;
+declare const __NOTIFICATION_KIT_VERSION__: string

@@ -5,6 +5,31 @@ original detail kept, never deleted. Fleet rule: `~/.claude/rules/project-issue-
 
 ---
 
+### ISSUE-04 — setup CLI failed with a stack trace outside a terminal
+
+**Status:** RESOLVED 2026-10-20 · **Affects:** the next package release
+
+`notification-kit-setup` now checks for an interactive input and output terminal before creating its
+readline interface. Piped and CI invocations exit with code 1 and one actionable sentence instead of an
+`ERR_USE_AFTER_CLOSE` stack trace. Verified with `node bin/setup.js < /dev/null`.
+
+### ISSUE-03 — duplicate in-repository documentation site
+
+**Status:** RESOLVED 2026-10-20 · **Affects:** repository maintenance only
+
+Removed the undeployed `website/` Docusaurus copy. The public
+[`notification-kit-docs`](https://github.com/aoneahsan/notification-kit-docs) repository is the single
+documentation site source and deploys the live custom domain through GitHub Pages.
+
+### ISSUE-02 — published README made unsupported claims
+
+**Status:** RESOLVED in 2.1.2 and published in 2.1.3 · **Verified:** 2026-10-20
+
+The README now documents the implemented API and its limitations. The npm registry reports `2.1.3` as
+latest, so the corrected README is present in the published package.
+
+---
+
 ### ISSUE-01 — the package could not be rebuilt from a clean checkout
 
 **Status:** RESOLVED 2026-07-25 · **Reported:** 2026-07-25 during the npm-package standardisation pass ·
